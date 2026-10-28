@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Presentation: ViewModele i przygotowanie danych dla widoku. Czysty .NET – BEZ MAUI. Zna tylko Application. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FieldService.Presentation</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FieldService.Application\FieldService.Application.csproj" />
+  </ItemGroup>
+
+</Project>

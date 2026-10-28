@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FieldService.Domain/FieldService.Domain.csproj" />
+    <Project Path="src/FieldService.Application/FieldService.Application.csproj" />
+    <Project Path="src/FieldService.Infrastructure/FieldService.Infrastructure.csproj" />
+    <Project Path="src/FieldService.Presentation/FieldService.Presentation.csproj" />
+    <Project Path="src/FieldService.UI/FieldService.UI.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FieldService.Domain.Tests/FieldService.Domain.Tests.csproj" />
+    <Project Path="tests/FieldService.Application.Tests/FieldService.Application.Tests.csproj" />
+    <Project Path="tests/FieldService.Infrastructure.Tests/FieldService.Infrastructure.Tests.csproj" />
+    <Project Path="tests/FieldService.Presentation.Tests/FieldService.Presentation.Tests.csproj" />
+    <Project Path="tests/FieldService.Tests/FieldService.Tests.csproj" />
+  </Folder>
+</Solution>

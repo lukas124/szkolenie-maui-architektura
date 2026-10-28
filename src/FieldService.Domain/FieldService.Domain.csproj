@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Domain: model domeny – reguły biznesowe w środku aplikacji. Zero zależności (bez pakietów i projektów). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FieldService.Domain</RootNamespace>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+<Project>
+  <!-- Ustawienia wspólne dla wszystkich projektów rozwiązania -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Ostrzeżenie = błąd kompilacji: kod szkoleniowy buduje się bez ostrzeżeń -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

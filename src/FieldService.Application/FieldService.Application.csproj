@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Application: przypadki użycia i porty. Zna tylko Domain. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FieldService.Application</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FieldService.Domain\FieldService.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

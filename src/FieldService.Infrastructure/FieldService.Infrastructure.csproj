@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Infrastructure: adaptery danych (SQLite, HTTP, cache). Czysty .NET, zna Application i Domain. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FieldService.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FieldService.Application\FieldService.Application.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Testy całego rozwiązania: architektura (kto kogo zna), kontener; NUnit, net10.0, bez emulatora -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="Moq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="NUnit.Framework" />
+    <Using Include="Moq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FieldService.Domain\FieldService.Domain.csproj" />
+    <ProjectReference Include="..\..\src\FieldService.Application\FieldService.Application.csproj" />
+    <ProjectReference Include="..\..\src\FieldService.Infrastructure\FieldService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\FieldService.Presentation\FieldService.Presentation.csproj" />
+  </ItemGroup>
+
+</Project>

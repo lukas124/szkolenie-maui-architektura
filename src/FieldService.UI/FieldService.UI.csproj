@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- UI: jedyny projekt MAUI – strony, platformy i korzeń kompozycji (MauiProgram), który zna wszystkie pierścienie -->
+  <PropertyGroup>
+    <!-- Android zawsze; iOS tylko na macOS (wymaga Xcode i workloadu maui-ios) -->
+    <TargetFrameworks>net10.0-android</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">$(TargetFrameworks);net10.0-ios</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <RootNamespace>FieldService.UI</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+
+    <!-- Wersje: ApplicationDisplayVersion = to, co widzi użytkownik; ApplicationVersion = zawsze rosnący numer buildu -->
+    <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">16.0</SupportedOSPlatformVersion>
+
+    <!-- Szkolenie: nie blokuj buildu iOS, gdy pakiet .NET for iOS oczekuje o jedną wersję nowszego Xcode.
+         W CI/produkcji usuń i trzymaj zgodne wersje. -->
+    <ValidateXcodeVersion>false</ValidateXcodeVersion>
+
+    <!-- Compiled bindings także dla bindingów z ustawionym Source (x:Reference, RelativeSource) -->
+    <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+  </PropertyGroup>
+
+  <!-- Debug = DEV: osobna aplikacja obok wersji produkcyjnej na tym samym telefonie -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <ApplicationId>pl.szkolenie.fieldservice.dev</ApplicationId>
+    <ApplicationTitle>FieldService DEV</ApplicationTitle>
+  </PropertyGroup>
+  <!-- Release = PROD: wersja do sklepu -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <ApplicationId>pl.szkolenie.fieldservice</ApplicationId>
+    <ApplicationTitle>FieldService</ApplicationTitle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#0E6E7C" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0E6E7C" BaseSize="128,128" />
+    <MauiImage Include="Resources\Images\*" />
+    <MauiFont Include="Resources\Fonts\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Konfiguracja aplikacji (adres API) wbudowana w zestaw i czytana przy starcie w MauiProgram -->
+    <EmbeddedResource Include="appsettings.json" LogicalName="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Korzeń kompozycji zna pierścienie, które składa (reguła zależności: UI jest na zewnątrz) -->
+    <ProjectReference Include="..\FieldService.Presentation\FieldService.Presentation.csproj" />
+    <ProjectReference Include="..\FieldService.Infrastructure\FieldService.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
