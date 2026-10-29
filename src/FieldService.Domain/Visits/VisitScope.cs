@@ -21,6 +21,8 @@ public sealed record VisitScope(IReadOnlyList<Activity> Activities, IReadOnlyLis
         return this with { Parts = parts };
     }
 
+    public VisitScope WithoutPart(PartId partId) => this with { Parts = Parts.Where(p => p.PartId != partId).ToList() };
+
     // Rekord porównuje listy po referencji – zakres porównujemy po zawartości (obiekt wartości)
     public bool Equals(VisitScope? other) =>
         other is not null && Activities.SequenceEqual(other.Activities) && Parts.SequenceEqual(other.Parts);

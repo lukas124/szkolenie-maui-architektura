@@ -13,11 +13,12 @@ using FieldService.Presentation.Feedback;
 namespace FieldService.Presentation.Visits;
 
 // Szczegóły wizyty i akcje technika. Każda akcja: przypadek użycia → Result → ponowne załadowanie albo komunikat.
-// Sygnał ostrzegawczy: 10 zależności – w checkpoincie 09-navigation kroki kreatora zakończenia przejmą części, podpis i zakończenie.
+// Sygnał ostrzegawczy: 11 zależności – w Bloku 09 kroki kreatora zakończenia przejmą części, podpis i zakończenie.
 public partial class VisitDetailsViewModel(
     GetVisitDetailsHandler getDetails,
     StartVisitHandler startVisit,
     UsePartHandler usePart,
+    RemoveUsedPartHandler removePart,
     SignByCustomerHandler sign,
     CompleteVisitHandler complete,
     AddVisitPhotoHandler addPhoto,
@@ -69,6 +70,11 @@ public partial class VisitDetailsViewModel(
 
         await RunAsync(() => usePart.HandleAsync(new UsePart(_visitId, new PartId(part.PartId), 1), ct));
     }
+
+    // R7: omyłkowo dopisana część (cała pozycja z zakresu)
+    [RelayCommand]
+    private Task RemovePartAsync(VisitPartLine line, CancellationToken ct) =>
+        RunAsync(() => removePart.HandleAsync(new RemoveUsedPart(_visitId, new PartId(line.PartId)), ct));
 
     [RelayCommand]
     private async Task SignAsync(CancellationToken ct)

@@ -47,6 +47,7 @@
   <data name="Error_Session.UnsentChangesOfOtherTechnician" xml:space="preserve"><value>W telefonie są zmiany poprzedniego technika, które nie dotarły na serwer. Niech zaloguje się i je wyśle.</value></data>
   <data name="Error_Visit.NotFound" xml:space="preserve"><value>Nie ma takiej wizyty.</value></data>
   <data name="Error_Visit.InvalidQuantity" xml:space="preserve"><value>Ilość musi być większa od zera.</value></data>
+  <data name="Error_Visit.PartNotInScope" xml:space="preserve"><value>Tej części nie ma już w zakresie prac.</value></data>
   <data name="Error_Visit.SignerRequired" xml:space="preserve"><value>Podaj imię i nazwisko osoby podpisującej.</value></data>
   <data name="Error_Visit.ReasonRequired" xml:space="preserve"><value>Podaj powód.</value></data>
   <data name="Error_Visit.ActivityCodeRequired" xml:space="preserve"><value>Wybierz kod czynności.</value></data>
@@ -69,6 +70,7 @@
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>ZAKRES PRAC</value></data>
   <data name="VisitDetails_Start" xml:space="preserve"><value>Rozpocznij wizytę</value></data>
   <data name="VisitDetails_AddPart" xml:space="preserve"><value>Dodaj część</value></data>
+  <data name="VisitDetails_Remove" xml:space="preserve"><value>Usuń</value></data>
   <data name="VisitDetails_Signature" xml:space="preserve"><value>Podpis klienta</value></data>
   <data name="VisitDetails_AddPhoto" xml:space="preserve"><value>Dodaj zdjęcie</value></data>
   <data name="VisitDetails_CompleteFixed" xml:space="preserve"><value>Zakończ – naprawione</value></data>

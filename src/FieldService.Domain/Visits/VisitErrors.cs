@@ -16,4 +16,5 @@ public static class VisitErrors
     public static readonly Error SignerRequired = new("Visit.SignerRequired", ErrorType.Validation);
     public static readonly Error InvalidQuantity = new("Visit.InvalidQuantity", ErrorType.Validation);
     public static readonly Error ActivityCodeRequired = new("Visit.ActivityCodeRequired", ErrorType.Validation);
+    public static readonly Error PartNotInScope = new("Visit.PartNotInScope", ErrorType.Validation);
 }

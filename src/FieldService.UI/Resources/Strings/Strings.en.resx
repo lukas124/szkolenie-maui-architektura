@@ -47,6 +47,7 @@
   <data name="Error_Session.UnsentChangesOfOtherTechnician" xml:space="preserve"><value>The phone holds changes made by the previous technician that have not reached the server. Ask them to sign in and send them.</value></data>
   <data name="Error_Visit.NotFound" xml:space="preserve"><value>There is no such visit.</value></data>
   <data name="Error_Visit.InvalidQuantity" xml:space="preserve"><value>The quantity must be greater than zero.</value></data>
+  <data name="Error_Visit.PartNotInScope" xml:space="preserve"><value>This part is no longer in the scope of work.</value></data>
   <data name="Error_Visit.SignerRequired" xml:space="preserve"><value>Enter the full name of the person signing.</value></data>
   <data name="Error_Visit.ReasonRequired" xml:space="preserve"><value>Enter the reason.</value></data>
   <data name="Error_Visit.ActivityCodeRequired" xml:space="preserve"><value>Choose an activity code.</value></data>
@@ -69,6 +70,7 @@
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>SCOPE OF WORK</value></data>
   <data name="VisitDetails_Start" xml:space="preserve"><value>Start visit</value></data>
   <data name="VisitDetails_AddPart" xml:space="preserve"><value>Add part</value></data>
+  <data name="VisitDetails_Remove" xml:space="preserve"><value>Remove</value></data>
   <data name="VisitDetails_Signature" xml:space="preserve"><value>Customer signature</value></data>
   <data name="VisitDetails_AddPhoto" xml:space="preserve"><value>Add photo</value></data>
   <data name="VisitDetails_CompleteFixed" xml:space="preserve"><value>Complete – fixed</value></data>

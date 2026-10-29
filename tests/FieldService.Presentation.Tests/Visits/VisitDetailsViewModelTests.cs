@@ -61,6 +61,7 @@ public class VisitDetailsViewModelTests
             new GetVisitDetailsHandler(_replica.Object, _gateway.Object, _photos),
             new StartVisitHandler(_visits, _clock),
             new UsePartHandler(_visits, _clock),
+            new RemoveUsedPartHandler(_visits, _clock),
             new SignByCustomerHandler(_visits, _clock),
             new CompleteVisitHandler(_visits, _clock),
             new AddVisitPhotoHandler(_permissions.Object, _camera.Object, _photos, _clock),
@@ -188,6 +189,26 @@ public class VisitDetailsViewModelTests
 
         Assert.That(_visits.Stored(_visitId).Scope.Parts,
             Is.EqualTo(new[] { new UsedPart(TestVisits.Filter, Quantity.Create(1).Value) }));
+    }
+
+    // R7: „Usuń” przy pozycji części usuwa ją z zakresu i odświeża ekran
+    [Test]
+    public async Task RemovePart_LineOfScope_RemovesPartAndReloads()
+    {
+        var visit = TestVisits.WithScope(_visitId);
+        visit.UsePart(TestVisits.Filter, Quantity.Create(2).Value, _clock.Now);
+        visit.ClearDomainEvents();
+        _visits.Add(visit);
+        await _viewModel.OnNavigatedToAsync(_visitId);
+
+        await _viewModel.RemovePartCommand.ExecuteAsync(new VisitPartLine(TestVisits.Filter.Value, 2));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_visits.Stored(_visitId).Scope.Parts, Is.Empty);
+            _feedback.Verify(f => f.ShowErrorAsync(It.IsAny<Error>()), Times.Never);
+            _replica.Verify(r => r.GetDetailsAsync(_visitId, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        });
     }
 
     // ---------- Zdjęcie: trzy reakcje na błąd ----------

@@ -10,6 +10,8 @@ public sealed record ActivityRecorded(VisitId VisitId, Activity Activity, DateTi
 
 public sealed record PartUsed(VisitId VisitId, PartId PartId, Quantity Quantity, DateTimeOffset OccurredAt) : IDomainEvent;
 
+public sealed record PartRemoved(VisitId VisitId, PartId PartId, DateTimeOffset OccurredAt) : IDomainEvent;
+
 public sealed record CustomerSigned(VisitId VisitId, string SignerName, int ScopeVersion, DateTimeOffset OccurredAt) : IDomainEvent;
 
 public sealed record CustomerSignatureInvalidated(VisitId VisitId, DateTimeOffset OccurredAt) : IDomainEvent;

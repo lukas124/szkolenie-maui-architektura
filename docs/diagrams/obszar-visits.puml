@@ -1,0 +1,51 @@
+@startuml obszar-visits
+' Model C4 (S. Brown), poziom 3: komponenty obszaru Visits w pierścieniach aplikacji mobilnej.
+' Strzałki „zależy od” wskazują do środka (reguła zależności); adapter realizuje port z pierścienia wewnętrznego.
+!include <C4/C4_Component>
+
+title Aplikacja mobilna – obszar Visits w pierścieniach
+
+Container_Boundary(ui, "FieldService.UI (MAUI)") {
+    Component(pages, "VisitsListPage, VisitDetailsPage", "XAML", "Strony wizyt")
+    Component(platform, "MauiPermissionService, MauiPhotoCapture", "MAUI", "Adaptery platformy")
+    Component(root, "MauiProgram", "C#", "Korzeń kompozycji")
+}
+
+Container_Boundary(presentation, "FieldService.Presentation") {
+    Component(vm, "VisitsListViewModel, VisitDetailsViewModel", "CommunityToolkit.Mvvm", "Stan ekranu i koordynacja")
+}
+
+Container_Boundary(infrastructure, "FieldService.Infrastructure") {
+    Component(repo, "SqliteVisitRepository", "SQLite", "IVisitRepository + IVisitReplica")
+    Component(gateway, "HttpVisitsGateway, VisitDtoMapper", "HTTP, ACL", "IVisitsGateway")
+    Component(clock, "SystemClock", "C#", "IClock")
+}
+
+Container_Boundary(application, "FieldService.Application") {
+    Component(handlers, "CompleteVisitHandler, RemoveUsedPartHandler, …", "Przypadki użycia", "Wczytaj → model → zapisz → Result")
+    Component(ports, "IVisitsGateway, IVisitReplica, IClock, IPermissionService, IPhotoCapture", "Porty", "Abstractions")
+}
+
+Container_Boundary(domain, "FieldService.Domain") {
+    Component(visit, "Visit, VisitScope, VisitErrors", "Agregat", "Reguły R1–R7, zdarzenia")
+    Component(irepo, "IVisitRepository", "Interfejs repozytorium", "Część modelu")
+}
+
+ContainerDb(replika, "Lokalna replika", "SQLite")
+Container_Ext(api, "API FieldService", "REST/JSON")
+
+Rel(pages, vm, "wiąże się z")
+Rel(vm, handlers, "wywołuje")
+Rel(handlers, visit, "wywołuje reguły")
+Rel(handlers, irepo, "wczytuje i zapisuje przez")
+Rel(handlers, ports, "używa")
+Rel(repo, irepo, "realizuje")
+Rel(repo, ports, "realizuje IVisitReplica")
+Rel(gateway, ports, "realizuje IVisitsGateway")
+Rel(clock, ports, "realizuje IClock")
+Rel(platform, ports, "realizuje IPermissionService, IPhotoCapture")
+Rel(root, vm, "rejestruje")
+Rel(repo, replika, "czyta i zapisuje")
+Rel(gateway, api, "HTTPS/JSON")
+
+@enduml

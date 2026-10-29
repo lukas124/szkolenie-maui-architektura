@@ -5,7 +5,7 @@ using FieldService.Domain.Visits.Events;
 namespace FieldService.Domain.Visits;
 
 // Wizyta – jednostka spójności modułu Realizacja wizyty (replika na telefonie, ostateczny arbiter: serwer).
-// Stan zmienia się tylko przez metody z regułami R1–R6. Odmowa = Result z błędem i brak jakiejkolwiek zmiany.
+// Stan zmienia się tylko przez metody z regułami R1–R7; odmowa = Result z błędem i brak jakiejkolwiek zmiany.
 public sealed class Visit : AggregateRoot<VisitId>
 {
     private Visit(VisitId id, Guid workOrderId, IReadOnlyList<string> technicianIds, VisitStatus status,
@@ -84,6 +84,18 @@ public sealed class Visit : AggregateRoot<VisitId>
 
         Scope = Scope.WithPart(partId, quantity);
         Raise(new PartUsed(Id, partId, quantity, now));
+        ScopeChanged(now);
+        return Result.Success();
+    }
+
+    // R7: usunięcie omyłkowo dopisanej części (cała pozycja) – tylko w trakcie i tylko część z zakresu; R3 jak przy dopisaniu
+    public Result RemoveUsedPart(PartId partId, DateTimeOffset now)
+    {
+        if (Status != VisitStatus.InProgress) return VisitErrors.NotInProgress;
+        if (Scope.Parts.All(p => p.PartId != partId)) return VisitErrors.PartNotInScope;
+
+        Scope = Scope.WithoutPart(partId);
+        Raise(new PartRemoved(Id, partId, now));
         ScopeChanged(now);
         return Result.Success();
     }

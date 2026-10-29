@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddTransient<StartVisitHandler>();
         services.AddTransient<RecordActivityHandler>();
         services.AddTransient<UsePartHandler>();
+        services.AddTransient<RemoveUsedPartHandler>();
         services.AddTransient<SignByCustomerHandler>();
         services.AddTransient<CompleteVisitHandler>();
         services.AddTransient<AddVisitPhotoHandler>();
