@@ -1,4 +1,5 @@
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Content.Res;
 using Android.OS;
@@ -6,6 +7,8 @@ using AndroidX.Core.View;
 
 namespace FieldService.UI;
 
+// Deep link: fieldservice://visits/{id} otwiera aplikację (albo trafia do działającej – SingleTop → OnNewIntent)
+[IntentFilter([Intent.ActionView], Categories = [Intent.CategoryDefault, Intent.CategoryBrowsable], DataScheme = "fieldservice")]
 [Activity(
     Theme = "@style/Maui.SplashTheme",
     MainLauncher = true,
@@ -22,6 +25,20 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnCreate(savedInstanceState);
         UpdateSystemBars(Resources?.Configuration); // ikony pasków systemowych
+        SendAppLink(Intent);
+    }
+
+    protected override void OnNewIntent(Intent? intent)
+    {
+        base.OnNewIntent(intent);
+        SendAppLink(intent);
+    }
+
+    // Adres z intencji → App.OnAppLinkRequestReceived (ta sama droga co na iOS)
+    private static void SendAppLink(Intent? intent)
+    {
+        if (intent?.Data?.ToString() is { } link && Uri.TryCreate(link, UriKind.Absolute, out var uri))
+            Microsoft.Maui.Controls.Application.Current?.SendOnAppLinkRequestReceived(uri);
     }
 
     public override void OnConfigurationChanged(Configuration newConfig)

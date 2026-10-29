@@ -16,7 +16,7 @@ public partial class VisitsListViewModel(
     IVisitItemFactory items,
     IVisitFormatter formatter,
     IUserFeedback feedback,
-    INavigationService navigation) : BaseViewModel
+    INavigationService navigation) : BaseViewModel, INavigatedTo<VisitsListRoute>
 {
     public ObservableCollection<VisitItem> Visits { get; } = [];
 
@@ -33,7 +33,7 @@ public partial class VisitsListViewModel(
     // true = lista była już załadowana (wejście na ekran), kolejne pojawienie się = powrót z innej strony
     private bool _loaded;
 
-    public override async Task OnNavigatedToAsync(object? parameter)
+    public async Task OnNavigatedToAsync(VisitsListRoute route)
     {
         await LoadAsync(CancellationToken.None);
         _loaded = true;
@@ -50,7 +50,7 @@ public partial class VisitsListViewModel(
     }
 
     [RelayCommand]
-    private Task OpenVisitAsync(VisitItem item) => navigation.NavigateToAsync<VisitDetailsViewModel>(new VisitId(item.Id));
+    private Task OpenVisitAsync(VisitItem item) => navigation.NavigateAsync(new VisitDetailsRoute(new VisitId(item.Id)));
 
     private async Task LoadAsync(CancellationToken ct)
     {

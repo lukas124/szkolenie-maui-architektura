@@ -58,7 +58,26 @@ public abstract class BasePage : ContentPage
     // Strzałka „wstecz” w nagłówku = systemowy przycisk „wstecz”
     public ICommand BackButtonCommand => _backButtonCommand ??= new Command(() => OnBackRequestedAsync().FireAndForget());
 
-    protected virtual Task OnBackRequestedAsync() => Navigation.PopAsync();
+    // Modal zamykamy PopModalAsync (PopAsync go nie zamknie); zakres modala sprząta NavigationService
+    protected virtual Task OnBackRequestedAsync() =>
+        Navigation.ModalStack.Contains(this) ? Navigation.PopModalAsync() : Navigation.PopAsync();
+
+    // true = ViewModel dostał już OnClosed (strona zdjęta ze stosu)
+    private bool _closed;
+
+    // Strona zdjęta ze stosu: wstecz, gest iOS (OnNavigatedFrom), zamknięcie modala i reset stosu (NavigationService)
+    internal void NotifyClosed()
+    {
+        if (_closed) return;
+        _closed = true;
+        if (BindingContext is BaseViewModel vm) vm.OnClosed();
+    }
+
+    protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+    {
+        base.OnNavigatedFrom(args);
+        if (args.NavigationType == NavigationType.Pop) NotifyClosed();
+    }
 
     // true = stronę przykrył dialog (DialogPage), a jego otwarcie i zamknięcie nie jest dla ViewModelu wyjściem ani powrotem
     private bool _coveredByDialog;

@@ -15,7 +15,7 @@ description: Nowy przypadek użycia (komenda wizyty) w FieldService od testu –
    zapisu → `visits.SaveAsync`. Testy w `tests/FieldService.Application.Tests/Visits/<Nazwa>HandlerTests.cs`
    z `InMemoryVisitRepository` i `FixedClock` (co najmniej: nieznana wizyta, odmowa bez zapisu, zapis).
 4. **Rejestracja.** `services.AddTransient<<Nazwa>Handler>();` w `src/FieldService.Application/DependencyInjection.cs`.
-5. **ViewModel.** Komenda w `src/FieldService.Presentation/Visits/VisitDetailsViewModel.cs` przez `RunAsync(...)`;
+5. **ViewModel.** Komenda w ViewModelu ekranu albo kroku kreatora (`src/FieldService.Presentation/Visits/Completion/`);
    test w `tests/FieldService.Presentation.Tests`. Tekst błędu `Error_Visit.<Nazwa>` w `Strings.resx`.
 6. **Sprawdzenie.** `dotnet build FieldService.slnx` (zero ostrzeżeń), `dotnet test FieldService.slnx` (wszystko zielone,
    także `FieldService.Tests`), `git diff --stat tests/` – testy z kroku 1 bez zmian; lista `docs/ai/review-kodu.md`.

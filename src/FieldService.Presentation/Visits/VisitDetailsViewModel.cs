@@ -1,31 +1,25 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FieldService.Application.Abstractions;
-using FieldService.Application.Parts.Queries;
 using FieldService.Application.Visits.Commands;
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Common;
-using FieldService.Domain.Inventory;
 using FieldService.Domain.Visits;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
+using FieldService.Presentation.Navigation;
 
 namespace FieldService.Presentation.Visits;
 
-// Szczegóły wizyty i akcje technika. Każda akcja: przypadek użycia → Result → ponowne załadowanie albo komunikat.
-// Sygnał ostrzegawczy: 11 zależności – w Bloku 09 kroki kreatora zakończenia przejmą części, podpis i zakończenie.
+// Szczegóły wizyty: rozpoczęcie, zdjęcie i wejście w kreator zakończenia (części, podpis i zakończenie są w kreatorze).
 public partial class VisitDetailsViewModel(
     GetVisitDetailsHandler getDetails,
     StartVisitHandler startVisit,
-    UsePartHandler usePart,
-    RemoveUsedPartHandler removePart,
-    SignByCustomerHandler sign,
-    CompleteVisitHandler complete,
     AddVisitPhotoHandler addPhoto,
-    GetVanStockHandler getVanStock,
     IPermissionService permissions,
     IVisitFormatter formatter,
-    IUserFeedback feedback) : BaseViewModel
+    IUserFeedback feedback,
+    INavigationService navigation) : BaseViewModel, INavigatedTo<VisitDetailsRoute>
 {
     private VisitId _visitId;
 
@@ -43,49 +37,25 @@ public partial class VisitDetailsViewModel(
 
     public string? SignatureText => Details?.HasValidSignature == true ? Details.SignerName : null;
 
-    public override async Task OnNavigatedToAsync(object? parameter)
+    // true = szczegóły były już załadowane, kolejne pojawienie się = powrót z kreatora
+    private bool _loaded;
+
+    public async Task OnNavigatedToAsync(VisitDetailsRoute route)
     {
-        if (parameter is VisitId id) _visitId = id;
+        _visitId = route.Id;
         await LoadAsync(refresh: true);
+        _loaded = true;
     }
+
+    // Powrót z kreatora (przerwanego): zakres i podpis mogły się zmienić – świeże dane z repliki
+    public override Task OnAppearingAsync() => _loaded ? LoadAsync() : Task.CompletedTask;
 
     [RelayCommand]
     private Task StartAsync() => RunAsync(() => startVisit.HandleAsync(new StartVisit(_visitId), CancellationToken.None));
 
-    // Część z auta technika – wybór z listy, ilość 1 (dokładniejszy wybór w kreatorze zakończenia wizyty)
+    // Kreator zakończenia: ViewModel prosi o cel, nie składa obiektów – kreator ma własny zakres (CompletionDraft)
     [RelayCommand]
-    private async Task AddPartAsync(CancellationToken ct)
-    {
-        var stock = await getVanStock.HandleAsync(new GetVanStock(), ct);
-        if (!stock.IsSuccess)
-        {
-            await feedback.ShowErrorAsync(stock.Error!);
-            return;
-        }
-
-        var names = stock.Value.Select(p => p.Name).ToList();
-        var chosen = await feedback.ChooseAsync("Visit_ChoosePart", names);
-        var part = stock.Value.FirstOrDefault(p => p.Name == chosen);
-        if (part is null) return;
-
-        await RunAsync(() => usePart.HandleAsync(new UsePart(_visitId, new PartId(part.PartId), 1), ct));
-    }
-
-    // R7: omyłkowo dopisana część (cała pozycja z zakresu)
-    [RelayCommand]
-    private Task RemovePartAsync(VisitPartLine line, CancellationToken ct) =>
-        RunAsync(() => removePart.HandleAsync(new RemoveUsedPart(_visitId, new PartId(line.PartId)), ct));
-
-    [RelayCommand]
-    private async Task SignAsync(CancellationToken ct)
-    {
-        if (Details is null || !await feedback.ConfirmAsync("Visit_SignTitle", "Visit_SignMessage")) return;
-        await RunAsync(() => sign.HandleAsync(new SignByCustomer(_visitId, Details.Customer.Name), ct));
-    }
-
-    [RelayCommand]
-    private Task CompleteAsync(CancellationToken ct) =>
-        RunAsync(() => complete.HandleAsync(new CompleteVisit(_visitId, VisitOutcomeType.Fixed, null), ct));
+    private Task CompleteAsync() => navigation.OpenModalAsync(new CompleteVisitRoute(_visitId));
 
     // Android po pierwszej odmowie pokaże okno zgody jeszcze raz – ostatni. Najpierw nasze wyjaśnienie
     [RelayCommand]

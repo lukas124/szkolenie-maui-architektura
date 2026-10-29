@@ -7,6 +7,7 @@ using FieldService.Domain.Common;
 using FieldService.Domain.Visits;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
+using FieldService.Presentation.Navigation;
 using FieldService.Presentation.Visits;
 using FieldService.TestDoubles;
 
@@ -26,8 +27,8 @@ public class VisitDetailsViewModelTests
     private Mock<IVisitsGateway> _gateway = null!;
     private Mock<IPermissionService> _permissions = null!;
     private Mock<IPhotoCapture> _camera = null!;
-    private Mock<IInventoryGateway> _inventory = null!;
     private Mock<IUserFeedback> _feedback = null!;
+    private Mock<INavigationService> _navigation = null!;
     private VisitId _visitId;
     private VisitDetails _details = null!;
     private VisitDetailsViewModel _viewModel = null!;
@@ -42,8 +43,8 @@ public class VisitDetailsViewModelTests
         _gateway = new Mock<IVisitsGateway>();
         _permissions = new Mock<IPermissionService>();
         _camera = new Mock<IPhotoCapture>();
-        _inventory = new Mock<IInventoryGateway>();
         _feedback = new Mock<IUserFeedback>();
+        _navigation = new Mock<INavigationService>();
 
         _visitId = new VisitId(Guid.NewGuid());
         _details = Details(_visitId);
@@ -60,21 +61,17 @@ public class VisitDetailsViewModelTests
         _viewModel = new VisitDetailsViewModel(
             new GetVisitDetailsHandler(_replica.Object, _gateway.Object, _photos),
             new StartVisitHandler(_visits, _clock),
-            new UsePartHandler(_visits, _clock),
-            new RemoveUsedPartHandler(_visits, _clock),
-            new SignByCustomerHandler(_visits, _clock),
-            new CompleteVisitHandler(_visits, _clock),
             new AddVisitPhotoHandler(_permissions.Object, _camera.Object, _photos, _clock),
-            new GetVanStockHandler(_inventory.Object),
             _permissions.Object,
             new VisitFormatter(new TestLocalizer(), _clock),
-            _feedback.Object);
+            _feedback.Object,
+            _navigation.Object);
     }
 
     [Test]
     public async Task NavigatedTo_LoadsDetails()
     {
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         Assert.That(_viewModel.Details, Is.EqualTo(_details));
     }
@@ -87,49 +84,16 @@ public class VisitDetailsViewModelTests
         _gateway.Setup(g => g.GetVisitAsync(_visitId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<RemoteVisit>.Failure(offline));
 
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         _feedback.Verify(f => f.ShowErrorAsync(offline), Times.Once);
-    }
-
-    // ---------- Zakończ ----------
-
-    // Checkpoint 07: „Zakończ – naprawione” bez podpisu → komunikat SignatureRequired, bez zapisu.
-    [Test]
-    public async Task Complete_WithoutSignature_ShowsSignatureRequired()
-    {
-        await _viewModel.OnNavigatedToAsync(_visitId);
-
-        await _viewModel.CompleteCommand.ExecuteAsync(null);
-
-        Assert.Multiple(() =>
-        {
-            _feedback.Verify(f => f.ShowErrorAsync(VisitErrors.SignatureRequired), Times.Once);
-            Assert.That(_visits.SaveCount, Is.EqualTo(0));
-        });
-    }
-
-    [Test]
-    public async Task Complete_WithSignature_SavesAndReloadsDetails()
-    {
-        _visits.Add(TestVisits.Signed(_visitId));
-        await _viewModel.OnNavigatedToAsync(_visitId);
-
-        await _viewModel.CompleteCommand.ExecuteAsync(null);
-
-        Assert.Multiple(() =>
-        {
-            _feedback.Verify(f => f.ShowErrorAsync(It.IsAny<Error>()), Times.Never);
-            Assert.That(_visits.Stored(_visitId).Status, Is.EqualTo(VisitStatus.Completed));
-            _replica.Verify(r => r.GetDetailsAsync(_visitId, It.IsAny<CancellationToken>()), Times.AtLeast(2));
-        });
     }
 
     // Konflikt (np. wizyta już rozpoczęta na drugim telefonie) → komunikat i świeże dane
     [Test]
     public async Task Start_Conflict_ShowsErrorAndReloads()
     {
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.StartCommand.ExecuteAsync(null);
 
@@ -140,75 +104,17 @@ public class VisitDetailsViewModelTests
         });
     }
 
-    // ---------- Podpis i część ----------
+    // ---------- Kreator ----------
 
+    // „Zakończ wizytę” otwiera kreator jako modal (trasa z Id), nie składa obiektów sam
     [Test]
-    public async Task Sign_Confirmed_SignsWithCustomerName()
+    public async Task Complete_OpensWizardModal()
     {
-        _feedback.Setup(f => f.ConfirmAsync("Visit_SignTitle", "Visit_SignMessage")).ReturnsAsync(true);
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
-        await _viewModel.SignCommand.ExecuteAsync(null);
+        await _viewModel.CompleteCommand.ExecuteAsync(null);
 
-        Assert.That(_visits.Stored(_visitId).Signature?.SignerName, Is.EqualTo(CustomerName));
-    }
-
-    [Test]
-    public async Task Sign_NotConfirmed_DoesNotSave()
-    {
-        _feedback.Setup(f => f.ConfirmAsync("Visit_SignTitle", "Visit_SignMessage")).ReturnsAsync(false);
-        await _viewModel.OnNavigatedToAsync(_visitId);
-
-        await _viewModel.SignCommand.ExecuteAsync(null);
-
-        Assert.That(_visits.SaveCount, Is.EqualTo(0));
-    }
-
-    [Test]
-    public async Task AddPart_ChoiceCancelled_DoesNotSave()
-    {
-        GivenVanStock();
-        _feedback.Setup(f => f.ChooseAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>()))
-            .ReturnsAsync((string?)null);
-        await _viewModel.OnNavigatedToAsync(_visitId);
-
-        await _viewModel.AddPartCommand.ExecuteAsync(null);
-
-        Assert.That(_visits.SaveCount, Is.EqualTo(0));
-    }
-
-    [Test]
-    public async Task AddPart_PartChosen_UsesOnePieceOfThatPart()
-    {
-        GivenVanStock();
-        _feedback.Setup(f => f.ChooseAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>()))
-            .ReturnsAsync("Filtr siatkowy");
-        await _viewModel.OnNavigatedToAsync(_visitId);
-
-        await _viewModel.AddPartCommand.ExecuteAsync(null);
-
-        Assert.That(_visits.Stored(_visitId).Scope.Parts,
-            Is.EqualTo(new[] { new UsedPart(TestVisits.Filter, Quantity.Create(1).Value) }));
-    }
-
-    // R7: „Usuń” przy pozycji części usuwa ją z zakresu i odświeża ekran
-    [Test]
-    public async Task RemovePart_LineOfScope_RemovesPartAndReloads()
-    {
-        var visit = TestVisits.WithScope(_visitId);
-        visit.UsePart(TestVisits.Filter, Quantity.Create(2).Value, _clock.Now);
-        visit.ClearDomainEvents();
-        _visits.Add(visit);
-        await _viewModel.OnNavigatedToAsync(_visitId);
-
-        await _viewModel.RemovePartCommand.ExecuteAsync(new VisitPartLine(TestVisits.Filter.Value, 2));
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(_visits.Stored(_visitId).Scope.Parts, Is.Empty);
-            _feedback.Verify(f => f.ShowErrorAsync(It.IsAny<Error>()), Times.Never);
-            _replica.Verify(r => r.GetDetailsAsync(_visitId, It.IsAny<CancellationToken>()), Times.Exactly(2));
-        });
+        _navigation.Verify(n => n.OpenModalAsync(new CompleteVisitRoute(_visitId)), Times.Once);
     }
 
     // ---------- Zdjęcie: trzy reakcje na błąd ----------
@@ -216,7 +122,7 @@ public class VisitDetailsViewModelTests
     [Test]
     public async Task AddPhoto_Success_StoresPhotoWithoutMessages()
     {
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -233,7 +139,7 @@ public class VisitDetailsViewModelTests
     {
         _camera.Setup(c => c.CapturePhotoAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<string>.Failure(DeviceErrors.PhotoCancelled));
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -256,7 +162,7 @@ public class VisitDetailsViewModelTests
             .ReturnsAsync(Result.Success());
         _feedback.Setup(f => f.ConfirmAsync("Permission_CameraTitle", "Permission_CameraExplain", "Permission_Allow", "Permission_NotNow"))
             .ReturnsAsync(true);
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -277,7 +183,7 @@ public class VisitDetailsViewModelTests
         _permissions.Setup(p => p.ShouldExplainCamera()).Returns(true);
         _feedback.Setup(f => f.ConfirmAsync("Permission_CameraTitle", "Permission_CameraExplain", "Permission_Allow", "Permission_NotNow"))
             .ReturnsAsync(false);
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -294,7 +200,7 @@ public class VisitDetailsViewModelTests
         _permissions.Setup(p => p.ShouldExplainCamera()).Returns(true);
         _feedback.Setup(f => f.ConfirmAsync("Permission_CameraTitle", "Permission_CameraExplain", "Permission_Allow", "Permission_NotNow"))
             .ReturnsAsync(true);
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -312,7 +218,7 @@ public class VisitDetailsViewModelTests
         _permissions.Setup(p => p.EnsureCameraAsync()).ReturnsAsync(Result.Failure(DeviceErrors.PermissionDenied));
         _feedback.Setup(f => f.ConfirmAsync("Permission_CameraTitle", "Permission_CameraExplain", "Permission_Allow", "Permission_NotNow"))
             .ReturnsAsync(false);
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -333,7 +239,7 @@ public class VisitDetailsViewModelTests
         _permissions.Setup(p => p.EnsureCameraAsync()).ReturnsAsync(Result.Failure(DeviceErrors.PermissionDeniedPermanently));
         _feedback.Setup(f => f.ConfirmAsync("Permission_CameraTitle", "Permission_CameraSettings", "Permission_OpenSettings", "Common_Cancel"))
             .ReturnsAsync(true);
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -351,7 +257,7 @@ public class VisitDetailsViewModelTests
         _permissions.Setup(p => p.EnsureCameraAsync()).ReturnsAsync(Result.Failure(DeviceErrors.PermissionDeniedPermanently));
         _feedback.Setup(f => f.ConfirmAsync("Permission_CameraTitle", "Permission_CameraSettings", "Permission_OpenSettings", "Common_Cancel"))
             .ReturnsAsync(false);
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -370,7 +276,7 @@ public class VisitDetailsViewModelTests
         var failure = new Error("Photo.Failed", ErrorType.Unexpected);
         _camera.Setup(c => c.CapturePhotoAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<string>.Failure(failure));
-        await _viewModel.OnNavigatedToAsync(_visitId);
+        await _viewModel.OnNavigatedToAsync(new VisitDetailsRoute(_visitId));
 
         await _viewModel.AddPhotoCommand.ExecuteAsync(null);
 
@@ -379,13 +285,6 @@ public class VisitDetailsViewModelTests
 
     // ---------- given ----------
 
-    private void GivenVanStock() =>
-        _inventory.Setup(i => i.GetVanStockAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<IReadOnlyList<VanStockItem>>.Success(new[]
-            {
-                new VanStockItem(TestVisits.Filter.Value, "Filtr siatkowy", 3),
-                new VanStockItem("P-ZAWOR-02", "Zawór trójdrogowy", 1),
-            }));
 
     private static VisitDetails Details(VisitId visitId) => new(
         visitId.Value, "ZL-2026-0042", VisitStatus.InProgress, FixedClock.DefaultNow, FixedClock.DefaultNow.AddHours(2),

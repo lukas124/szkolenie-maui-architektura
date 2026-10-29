@@ -60,7 +60,8 @@ public class LayerDependencyTests
     // Lokalizator usług: ViewModel dostaje zależności przez konstruktor, kontener zna tylko korzeń kompozycji (UI)
     [Test]
     public void Presentation_DoesNotUseServiceProvider() =>
-        AssertNoDependency(Presentation, "System.IServiceProvider");
+        AssertNoDependency(Presentation, "System.IServiceProvider", "Microsoft.Extensions.DependencyInjection.IServiceScopeFactory",
+            "Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions");
 
     // Czas w modelu i przypadkach użycia tylko z IClock albo parametru now (NetArchTest nie widzi wywołań – skan źródeł)
     [Test]

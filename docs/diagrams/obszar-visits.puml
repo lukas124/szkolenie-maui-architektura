@@ -12,7 +12,7 @@ Container_Boundary(ui, "FieldService.UI (MAUI)") {
 }
 
 Container_Boundary(presentation, "FieldService.Presentation") {
-    Component(vm, "VisitsListViewModel, VisitDetailsViewModel", "CommunityToolkit.Mvvm", "Stan ekranu i koordynacja")
+    Component(vm, "VisitsListViewModel, VisitDetailsViewModel, CompleteVisitFlowViewModel + kroki", "CommunityToolkit.Mvvm", "Stan ekranu i koordynacja")
 }
 
 Container_Boundary(infrastructure, "FieldService.Infrastructure") {

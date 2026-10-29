@@ -16,5 +16,6 @@ zmieniasz jeden plik, zmieniasz oba.
 - Komenda z elementu listy: `Command="{Binding …Command, Source={RelativeSource AncestorType={x:Type …ViewModel}}, x:DataType=…ViewModel}"`
   z `CommandParameter="{Binding .}"`.
 - Lista z danymi: `CollectionView` (wirtualizacja); `BindableLayout` tylko dla kilku elementów.
-- Nowa strona: dziedziczy po `BasePage`, rejestracja w `src/FieldService.UI/DependencyInjection.cs`.
+- Nowa strona: dziedziczy po `BasePage`, rejestracja `AddPage<TPage, TViewModel>()` w stronach modułu (np.
+  `src/FieldService.UI/Visits/VisitsPages.cs`) + trasa w module Presentation (`RouteMap`).
 - Po zmianie XAML: `dotnet build src/FieldService.UI -c Release -f net10.0-android` (kompilowane bindingi).

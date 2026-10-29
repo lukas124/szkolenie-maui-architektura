@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Kreator zakończenia wizyty: jedna strona, krok pokazuje StepView z szablonem z CompletionStepTemplateSelector.
+     Strzałka w nagłówku zamyka kreator (modal); „Wstecz” i „Dalej” przesuwają kroki. -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:controls="clr-namespace:FieldService.UI.Controls"
+                xmlns:selectors="clr-namespace:FieldService.UI.Selectors"
+                xmlns:completion="clr-namespace:FieldService.Presentation.Visits.Completion;assembly=FieldService.Presentation"
+                xmlns:queries="clr-namespace:FieldService.Application.Visits.Queries;assembly=FieldService.Application"
+                xmlns:protocols="clr-namespace:FieldService.Domain.Protocols;assembly=FieldService.Domain"
+                x:Class="FieldService.UI.Visits.Pages.CompleteVisitPage"
+                x:DataType="completion:CompleteVisitFlowViewModel"
+                Title="{Binding Title}"
+                CanNavigateBack="True">
+    <pages:BasePage.Resources>
+        <DataTemplate x:Key="ActivitiesStep" x:DataType="completion:ActivitiesStepViewModel">
+            <VerticalStackLayout Spacing="8">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Activities}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Label Text="{Binding ., StringFormat='• {0}'}" Style="{StaticResource Body}" />
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Button Text="{loc:Translate CompleteVisit_AddActivity}" Command="{Binding AddActivityCommand}" Style="{StaticResource SecondaryButton}" />
+            </VerticalStackLayout>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PartsStep" x:DataType="completion:PartsStepViewModel">
+            <VerticalStackLayout Spacing="8">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Parts}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="queries:VisitPartLine">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <Label Style="{StaticResource Body}" VerticalOptions="Center">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding PartId, StringFormat='• {0}'}" />
+                                            <Span Text="{Binding Quantity, StringFormat=' × {0}'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Button Grid.Column="1" Text="{loc:Translate CompleteVisit_Remove}" Style="{StaticResource SecondaryButton}" Padding="12,0" MinimumHeightRequest="36"
+                                        Command="{Binding RemovePartCommand, Source={RelativeSource AncestorType={x:Type completion:PartsStepViewModel}}, x:DataType=completion:PartsStepViewModel}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Button Text="{loc:Translate CompleteVisit_AddPart}" Command="{Binding AddPartCommand}" Style="{StaticResource SecondaryButton}" />
+            </VerticalStackLayout>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SignatureStep" x:DataType="completion:SignatureStepViewModel">
+            <VerticalStackLayout Spacing="8">
+                <Label Text="{loc:Translate CompleteVisit_SignerName}" Style="{StaticResource Caption}" />
+                <Entry Text="{Binding SignerName}" />
+                <controls:SignaturePad HasDrawing="{Binding HasDrawing}" ClearText="{loc:Translate CompleteVisit_ClearSignature}" />
+            </VerticalStackLayout>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SummaryStep" x:DataType="completion:SummaryStepViewModel">
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{loc:Translate CompleteVisit_ActivitiesSection}" Style="{StaticResource SectionHeader}" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Protocol.Activities}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Label Text="{Binding ., StringFormat='• {0}'}" Style="{StaticResource Body}" />
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Label Text="{loc:Translate CompleteVisit_PartsSection}" Style="{StaticResource SectionHeader}" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Protocol.Parts}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="protocols:ProtocolPartLine">
+                            <Label Style="{StaticResource Body}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding Name, StringFormat='• {0}'}" />
+                                        <Span Text="{Binding Quantity, StringFormat=' × {0}'}" />
+                                        <Span Text="{Binding Total, StringFormat={loc:TranslateFormat CompleteVisit_LineTotal}}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Label Text="{Binding Protocol.PartsTotal, StringFormat={loc:TranslateFormat CompleteVisit_PartsTotal}}" Style="{StaticResource CardTitle}" />
+                <Label Text="{Binding Protocol.LaborTime, StringFormat={loc:TranslateFormat CompleteVisit_LaborTime}}" Style="{StaticResource Body}" />
+            </VerticalStackLayout>
+        </DataTemplate>
+
+        <selectors:CompletionStepTemplateSelector x:Key="StepSelector"
+                                                  Activities="{StaticResource ActivitiesStep}"
+                                                  Parts="{StaticResource PartsStep}"
+                                                  Signature="{StaticResource SignatureStep}"
+                                                  Summary="{StaticResource SummaryStep}" />
+    </pages:BasePage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16" RowSpacing="12">
+        <VerticalStackLayout Spacing="2">
+            <Label Text="{Binding StepText}" Style="{StaticResource SectionHeader}" />
+            <Label Text="{Binding CurrentStep.Title}" Style="{StaticResource Headline}" />
+        </VerticalStackLayout>
+        <ScrollView Grid.Row="1">
+            <controls:StepView Step="{Binding CurrentStep}" TemplateSelector="{StaticResource StepSelector}" />
+        </ScrollView>
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="8">
+            <Button Text="{loc:Translate CompleteVisit_Back}" Command="{Binding BackCommand}" IsEnabled="{Binding CanGoBack}" Style="{StaticResource SecondaryButton}" />
+            <Button Grid.Column="1" Text="{Binding CurrentStep.NextButtonText}" Command="{Binding NextCommand}" />
+        </Grid>
+    </Grid>
+</pages:BasePage>

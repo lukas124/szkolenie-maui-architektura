@@ -41,7 +41,7 @@ public class VisitsListViewModelSpecTests
         _feedback = new Mock<IUserFeedback>();
         _feedback.Setup(f => f.ShowErrorAsync(It.IsAny<Error>())).Returns(Task.CompletedTask);
         _navigation = new Mock<INavigationService>();
-        _navigation.Setup(n => n.NavigateToAsync<VisitDetailsViewModel>(It.IsAny<object?>())).Returns(Task.CompletedTask);
+        _navigation.Setup(n => n.NavigateAsync(It.IsAny<VisitDetailsRoute>())).ReturnsAsync(NavigationResult.Success);
 
         var handler = new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IClock>(c => c.Now == Now));
         _vm = new VisitsListViewModel(handler, _items.Object, _formatter.Object, _feedback.Object, _navigation.Object);
@@ -82,7 +82,7 @@ public class VisitsListViewModelSpecTests
         var a = NewVisit(At(12, 8), VisitStatus.Completed, customer: "A");
         GatewayReturns(b, a);
 
-        await _vm.OnNavigatedToAsync(null);
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
 
         Assert.That(_vm.Visits.Select(v => v.CustomerName), Is.EqualTo(new[] { "A", "B" }));
         _items.Verify(f => f.Create(It.IsAny<VisitSummary>()), Times.Exactly(2));
@@ -93,7 +93,7 @@ public class VisitsListViewModelSpecTests
     {
         GatewayReturns(NewVisit(At(12, 11)), NewVisit(At(12, 13)));
 
-        await _vm.OnNavigatedToAsync(null);
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
 
         Assert.That(_vm.Summary, Is.EqualTo(SummaryText));
         Assert.That(_vm.LastUpdated, Is.EqualTo(UpdatedText));
@@ -104,7 +104,7 @@ public class VisitsListViewModelSpecTests
     {
         var error = GatewayFails();
 
-        await _vm.OnNavigatedToAsync(null);
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
 
         _feedback.Verify(f => f.ShowErrorAsync(error), Times.Once);
         Assert.That(_vm.Visits, Is.Empty);
@@ -116,7 +116,7 @@ public class VisitsListViewModelSpecTests
     {
         GatewayReturns(NewVisit(At(12, 11)));
 
-        await _vm.OnNavigatedToAsync(null);
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
 
         _feedback.Verify(f => f.ShowErrorAsync(It.IsAny<Error>()), Times.Never);
     }
@@ -126,10 +126,10 @@ public class VisitsListViewModelSpecTests
     {
         GatewayReturns(NewVisit(At(12, 11), customer: "A"), NewVisit(At(12, 12), customer: "B"));
         var collection = _vm.Visits;
-        await _vm.OnNavigatedToAsync(null);
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
 
         GatewayReturns(NewVisit(At(12, 14), customer: "C"));
-        await _vm.OnNavigatedToAsync(null);
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
 
         Assert.That(_vm.Visits, Is.SameAs(collection));
         Assert.That(_vm.Visits.Select(v => v.CustomerName), Is.EqualTo(new[] { "C" }));
@@ -140,8 +140,8 @@ public class VisitsListViewModelSpecTests
     {
         GatewayReturns(NewVisit(At(12, 11)));
 
-        await _vm.OnNavigatedToAsync(null);
-        await _vm.OnNavigatedToAsync(null);
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
 
         _gateway.Verify(g => g.GetTodayAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
@@ -177,7 +177,7 @@ public class VisitsListViewModelSpecTests
     {
         GatewayReturns(NewVisit(At(12, 11)));
         var collection = _vm.Visits;
-        await _vm.OnNavigatedToAsync(null);
+        await _vm.OnNavigatedToAsync(new VisitsListRoute());
 
         await _vm.RefreshCommand.ExecuteAsync(null);
 
@@ -194,7 +194,7 @@ public class VisitsListViewModelSpecTests
 
         await _vm.OpenVisitCommand.ExecuteAsync(item);
 
-        _navigation.Verify(n => n.NavigateToAsync<VisitDetailsViewModel>(new VisitId(item.Id)), Times.Once);
+        _navigation.Verify(n => n.NavigateAsync(new VisitDetailsRoute(new VisitId(item.Id))), Times.Once);
     }
 
     [Test]
