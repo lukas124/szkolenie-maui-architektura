@@ -1,28 +1,9 @@
-using FieldService.Presentation.Visits;
+using FieldService.UI.Pages;
 
 namespace FieldService.UI.Visits.Pages;
 
-public partial class VisitsListPage : ContentPage
+// Skromny obiekt: strona tylko wyświetla; cykl życia przekazuje BasePage, nawigacja jest w ViewModelu
+public partial class VisitsListPage : BasePage
 {
-    private readonly VisitsListViewModel _viewModel;
-
-    // Strona i ViewModel przychodzą z kontenera (korzeń kompozycji: MauiProgram)
-    public VisitsListPage(VisitsListViewModel viewModel)
-    {
-        InitializeComponent();
-        BindingContext = _viewModel = viewModel;
-    }
-
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
-        _viewModel.LoadCommand.Execute(null);
-    }
-
-    // Nawigacja jeszcze w code-behind – usługa nawigacji dojdzie w checkpoincie 03-presentation
-    private async void OnVisitTapped(object? sender, TappedEventArgs e)
-    {
-        if (sender is BindableObject { BindingContext: VisitItem item })
-            await Navigation.PushAsync(new VisitDetailsPage(item));
-    }
+    public VisitsListPage() => InitializeComponent();
 }

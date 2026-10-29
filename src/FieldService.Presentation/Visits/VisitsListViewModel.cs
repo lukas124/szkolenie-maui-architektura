@@ -1,25 +1,23 @@
 using System.Collections.ObjectModel;
-using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using FieldService.Application.Abstractions;
 using FieldService.Application.Visits.Queries;
-using FieldService.Domain.Common;
-using FieldService.Domain.Visits;
 using FieldService.Presentation.Common;
+using FieldService.Presentation.Feedback;
+using FieldService.Presentation.Navigation;
 
 namespace FieldService.Presentation.Visits;
 
-// Lista wizyt na dziś. Już w dobrym pierścieniu (czysty .NET, zależności przez konstruktor),
-// ale wciąż robi za dużo: formatuje, buduje elementy i wybiera teksty błędów – porządkujemy w checkpoincie 03-presentation.
+// Lista wizyt na dziś. ViewModel koordynuje: przypadek użycia → Result → fabryka → kolekcja albo komunikat błędu.
+// Nie formatuje, nie buduje elementów, nie składa tekstów i nie zna stron.
 public partial class VisitsListViewModel(
     GetTodayVisitsHandler getTodayVisits,
-    IClock clock,
-    ILocalizer localizer,
-    IDialogService dialogs) : ObservableObject
+    IVisitItemFactory items,
+    IVisitFormatter formatter,
+    IUserFeedback feedback,
+    INavigationService navigation) : BaseViewModel
 {
-    [ObservableProperty]
-    public partial ObservableCollection<VisitItem> Visits { get; set; } = [];
+    public ObservableCollection<VisitItem> Visits { get; } = [];
 
     // gest „pociągnij, aby odświeżyć” (RefreshView sam ustawia true)
     [ObservableProperty]
@@ -31,84 +29,29 @@ public partial class VisitsListViewModel(
     [ObservableProperty]
     public partial string LastUpdated { get; set; } = "";
 
+    public override Task OnNavigatedToAsync(object? parameter) => LoadAsync(CancellationToken.None);
+
     [RelayCommand]
+    private async Task RefreshAsync(CancellationToken ct)
+    {
+        try { await LoadAsync(ct); }
+        finally { IsRefreshing = false; }
+    }
+
+    [RelayCommand]
+    private Task OpenVisitAsync(VisitItem item) => navigation.NavigateToAsync<VisitDetailsViewModel>(item);
+
     private async Task LoadAsync(CancellationToken ct)
     {
-        try
+        var result = await getTodayVisits.HandleAsync(new GetTodayVisits(), ct);
+        if (!result.IsSuccess)
         {
-            var result = await getTodayVisits.HandleAsync(new GetTodayVisits(), ct);
-            if (!result.IsSuccess)
-            {
-                await dialogs.ShowAlertAsync(localizer["Error_Title"], ErrorText(result.Error!), localizer["Common_Ok"]);
-                return;
-            }
-
-            var now = clock.Now;
-            var visits = result.Value;
-            Visits = new ObservableCollection<VisitItem>(visits.Select(v => CreateItem(v, now)));
-            Summary = BuildSummary(visits);
-            LastUpdated = string.Format(localizer["Visits_LastUpdated"], now.ToLocalTime().ToString("H:mm", CultureInfo.CurrentCulture));
+            await feedback.ShowErrorAsync(result.Error!);
+            return;
         }
-        finally
-        {
-            IsRefreshing = false;
-        }
+
+        Visits.ReplaceWith(result.Value.Select(items.Create));
+        Summary = formatter.FormatDaySummary(result.Value);
+        LastUpdated = formatter.FormatUpdatedNow();
     }
-
-    private VisitItem CreateItem(VisitSummary visit, DateTimeOffset now)
-    {
-        var start = visit.PlannedStart.ToLocalTime();
-        var end = visit.PlannedEnd.ToLocalTime();
-        var day = (start.Date - now.ToLocalTime().Date).Days switch
-        {
-            0 => localizer["Visits_Today"],
-            1 => localizer["Visits_Tomorrow"],
-            _ => start.ToString("ddd dd.MM", CultureInfo.CurrentCulture)
-        };
-        var window = $"{day} {start:H:mm}–{end:H:mm}";
-        var minutes = (int)(visit.PlannedStart - now).TotalMinutes;
-
-        var (statusKey, tone) = visit.Status switch
-        {
-            VisitStatus.Planned when visit.IsLate => ("Visits_Status_Late", VisitTone.Danger),
-            VisitStatus.Planned => ("Visits_Status_Planned", VisitTone.Neutral),
-            VisitStatus.InProgress => ("Visits_Status_InProgress", VisitTone.Info),
-            VisitStatus.Completed => ("Visits_Status_Completed", VisitTone.Success),
-            _ => ("Visits_Status_Cancelled", VisitTone.Warning)
-        };
-
-        return new VisitItem
-        {
-            Id = visit.Id,
-            Title = visit.CustomerName,
-            Subtitle = $"{visit.DeviceName} · {visit.Address}",
-            TimeText = visit.Status == VisitStatus.Planned && minutes is > 0 and < 60
-                ? string.Format(localizer["Visits_StartsIn"], window, minutes)
-                : window,
-            StatusText = localizer[statusKey],
-            Tone = tone,
-            ThumbnailUrl = visit.ThumbnailUrl,
-            IsBrigade = visit.IsBrigade,
-            IsCancelled = visit.Status == VisitStatus.Cancelled,
-            WorkOrderNumber = visit.WorkOrderNumber,
-            Address = visit.Address,
-            DeviceName = visit.DeviceName,
-            FaultDescription = visit.FaultDescription
-        };
-    }
-
-    private string BuildSummary(IReadOnlyList<VisitSummary> visits)
-    {
-        if (visits.Count == 0) return localizer["Visits_Empty"];
-        var done = visits.Count(v => v.Status == VisitStatus.Completed);
-        var left = visits.Count(v => v.Status is VisitStatus.Planned or VisitStatus.InProgress);
-        return string.Format(localizer["Visits_Summary"], done, visits.Count, left);
-    }
-
-    private string ErrorText(Error error) => error.Type switch
-    {
-        ErrorType.Network => localizer["Error_Network"],
-        ErrorType.Unauthorized => localizer["Error_Unauthorized"],
-        _ => localizer["Error_Unexpected"]
-    };
 }

@@ -1,33 +1,48 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!-- Lista wizyt na dziś. Kolor statusu: VisitTone → ToneToColorConverter, szablon elementu: VisitTemplateSelector. -->
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
-             xmlns:visits="clr-namespace:FieldService.Presentation.Visits;assembly=FieldService.Presentation"
-             xmlns:selectors="clr-namespace:FieldService.UI.Selectors"
-             x:Class="FieldService.UI.Visits.Pages.VisitsListPage"
-             x:DataType="visits:VisitsListViewModel"
-             Title="{loc:Translate VisitsList_Title}">
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="{loc:Translate VisitsList_Refresh}" Command="{Binding LoadCommand}" />
-    </ContentPage.ToolbarItems>
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:visits="clr-namespace:FieldService.Presentation.Visits;assembly=FieldService.Presentation"
+                xmlns:selectors="clr-namespace:FieldService.UI.Selectors"
+                x:Class="FieldService.UI.Visits.Pages.VisitsListPage"
+                x:DataType="visits:VisitsListViewModel"
+                Title="{loc:Translate VisitsList_Title}">
 
-    <ContentPage.Resources>
+    <pages:BasePage.Resources>
         <DataTemplate x:Key="ActiveVisit" x:DataType="visits:VisitItem">
             <Border Style="{StaticResource Card}" Margin="16,6">
                 <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnVisitTapped" />
+                    <TapGestureRecognizer
+                        Command="{Binding OpenVisitCommand, Source={RelativeSource AncestorType={x:Type visits:VisitsListViewModel}}, x:DataType=visits:VisitsListViewModel}"
+                        CommandParameter="{Binding .}" />
                 </Border.GestureRecognizers>
                 <Grid ColumnDefinitions="56,*" ColumnSpacing="12">
                     <Image Source="{Binding ThumbnailUrl}" WidthRequest="56" HeightRequest="56" Aspect="AspectFill" />
                     <VerticalStackLayout Grid.Column="1" Spacing="2">
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Text="{Binding Title}" Style="{StaticResource CardTitle}" />
+                            <Label Text="{Binding CustomerName}" Style="{StaticResource CardTitle}" />
                             <Label Grid.Column="1" Text="{Binding StatusText}" FontFamily="PlexSemiBold" FontSize="13"
                                    TextColor="{Binding Tone, Converter={StaticResource ToneToColor}}" />
                         </Grid>
-                        <Label Text="{Binding TimeText}" Style="{StaticResource Body}" />
-                        <Label Text="{Binding Subtitle}" Style="{StaticResource Caption}" LineBreakMode="TailTruncation" />
+                        <Label Style="{StaticResource Body}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding TimeWindowText}" />
+                                    <Span Text="{Binding StartsInText, StringFormat=' · {0}', TargetNullValue=''}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Style="{StaticResource Caption}" LineBreakMode="TailTruncation">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding DeviceName}" />
+                                    <Span Text=" · " />
+                                    <Span Text="{Binding AddressText}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
                         <Label Text="{loc:Translate VisitsList_Brigade}" IsVisible="{Binding IsBrigade}" Style="{StaticResource Caption}" />
                     </VerticalStackLayout>
                 </Grid>
@@ -39,11 +54,11 @@
             <Border Style="{StaticResource Card}" Margin="16,6" Opacity="0.6">
                 <VerticalStackLayout Spacing="2">
                     <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="{Binding Title}" Style="{StaticResource CardTitle}" TextDecorations="Strikethrough" />
+                        <Label Text="{Binding CustomerName}" Style="{StaticResource CardTitle}" TextDecorations="Strikethrough" />
                         <Label Grid.Column="1" Text="{Binding StatusText}" FontFamily="PlexSemiBold" FontSize="13"
                                TextColor="{Binding Tone, Converter={StaticResource ToneToColor}}" />
                     </Grid>
-                    <Label Text="{Binding TimeText}" Style="{StaticResource Caption}" />
+                    <Label Text="{Binding TimeWindowText}" Style="{StaticResource Caption}" />
                 </VerticalStackLayout>
             </Border>
         </DataTemplate>
@@ -51,22 +66,16 @@
         <selectors:VisitTemplateSelector x:Key="VisitTemplate"
                                          ActiveTemplate="{StaticResource ActiveVisit}"
                                          CancelledTemplate="{StaticResource CancelledVisit}" />
-    </ContentPage.Resources>
+    </pages:BasePage.Resources>
 
     <Grid RowDefinitions="Auto,*">
         <VerticalStackLayout Padding="16,12" Spacing="2">
             <Label Text="{Binding Summary}" Style="{StaticResource CardTitle}" />
             <Label Text="{Binding LastUpdated}" Style="{StaticResource Caption}" />
-            <ActivityIndicator IsRunning="{Binding LoadCommand.IsRunning}" IsVisible="{Binding LoadCommand.IsRunning}"
-                               HorizontalOptions="Start" />
         </VerticalStackLayout>
 
-        <RefreshView Grid.Row="1" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadCommand}">
-            <CollectionView ItemsSource="{Binding Visits}" ItemTemplate="{StaticResource VisitTemplate}" SelectionMode="None">
-                <CollectionView.EmptyView>
-                    <Label Text="{loc:Translate VisitsList_Empty}" Style="{StaticResource Body}" HorizontalOptions="Center" Margin="0,48" />
-                </CollectionView.EmptyView>
-            </CollectionView>
+        <RefreshView Grid.Row="1" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Visits}" ItemTemplate="{StaticResource VisitTemplate}" SelectionMode="None" />
         </RefreshView>
     </Grid>
-</ContentPage>
+</pages:BasePage>
