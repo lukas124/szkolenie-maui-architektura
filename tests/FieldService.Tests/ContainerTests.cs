@@ -75,6 +75,7 @@ public class ContainerTests
         Assert.That(map.Entries.Keys, Is.SupersetOf(new[]
         {
             typeof(LoginRoute), typeof(VisitsListRoute), typeof(VisitDetailsRoute), typeof(CompleteVisitRoute),
+            typeof(VisitHistoryRoute), typeof(VanStockRoute),
         }));
     }
 

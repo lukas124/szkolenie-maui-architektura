@@ -15,6 +15,7 @@ public static class VisitsModule
         services.AddTransient<VisitsListViewModel>();
         services.AddTransient<VisitDetailsViewModel>();
         services.AddTransient<VisitFilterViewModel>();
+        services.AddTransient<VisitHistoryViewModel>();
 
         // Kreator: stan przepływu jeden na otwarcie (zakres tworzy NavigationService przy otwarciu modala)
         services.AddScoped<CompletionDraft>();
@@ -28,6 +29,7 @@ public static class VisitsModule
             .Map<VisitsListRoute, VisitsListViewModel>()
             .Map<VisitDetailsRoute, VisitDetailsViewModel>()
             .Map<VisitFilterRoute, VisitFilterViewModel>()
+            .Map<VisitHistoryRoute, VisitHistoryViewModel>()
             .Map<CompleteVisitRoute, CompleteVisitFlowViewModel>();
         return services;
     }

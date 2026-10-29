@@ -1,6 +1,7 @@
 using FieldService.Presentation.Feedback;
 using FieldService.Presentation.Navigation;
 using FieldService.Presentation.Orders;
+using FieldService.Presentation.Parts;
 using FieldService.Presentation.Session;
 using FieldService.Presentation.State;
 using FieldService.Presentation.Visits;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         // Moduły = modele z mapy kontekstów, które mają ekrany w aplikacji
         services.AddVisitsPresentation(routes);
         services.AddOrdersPresentation(routes);
+        services.AddPartsPresentation(routes);
         return services;
     }
 }

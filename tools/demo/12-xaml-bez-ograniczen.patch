@@ -1,0 +1,77 @@
+diff --git a/src/FieldService.UI/Parts/Pages/VanStockPage.xaml b/src/FieldService.UI/Parts/Pages/VanStockPage.xaml
+index 6f209b1..e2fed8e 100644
+--- a/src/FieldService.UI/Parts/Pages/VanStockPage.xaml
++++ b/src/FieldService.UI/Parts/Pages/VanStockPage.xaml
+@@ -1,14 +1,33 @@
+ <?xml version="1.0" encoding="utf-8" ?>
+-<!-- „Auto technika” (moduł Parts) – ekran do zrobienia z makiety (docs/ai/makiety/van-stock.png) promptem
+-     docs/ai/prompt-xaml.md; ViewModel gotowy: VanStockViewModel. -->
+-<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+-                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+-                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+-                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+-                xmlns:parts="clr-namespace:FieldService.Presentation.Parts;assembly=FieldService.Presentation"
+-                x:Class="FieldService.UI.Parts.Pages.VanStockPage"
+-                x:DataType="parts:VanStockViewModel"
+-                Title="{loc:Translate VanStock_Title}"
+-                CanNavigateBack="True">
+-    <Label Text="{loc:Translate VanStock_Todo}" Style="{StaticResource Caption}" Margin="16" />
+-</pages:BasePage>
++<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
++             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
++             x:Class="FieldService.UI.Parts.Pages.VanStockPage"
++             Title="Auto technika"
++             BackgroundColor="#FFFFFF">
++    <StackLayout Padding="16">
++        <StackLayout Orientation="Horizontal">
++            <Label Text="Części w aucie" FontSize="13" TextColor="#E65100" />
++            <Button Text="Odśwież" Clicked="OnRefreshClicked" BackgroundColor="#E65100" TextColor="#FFFFFF"
++                    HorizontalOptions="EndAndExpand" />
++        </StackLayout>
++        <ActivityIndicator IsRunning="{Binding IsLoadingParts}" Color="#E65100" />
++        <ListView ItemsSource="{Binding Parts}" HasUnevenRows="True">
++            <ListView.ItemTemplate>
++                <DataTemplate>
++                    <ViewCell>
++                        <Frame Padding="12" Margin="0,4" BorderColor="#DDDDDD" HasShadow="False">
++                            <StackLayout Orientation="Horizontal">
++                                <StackLayout>
++                                    <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" TextColor="#212121" />
++                                    <Label Text="{Binding PartId}" FontSize="12" TextColor="#757575" />
++                                </StackLayout>
++                                <Label Text="{Binding Quantity, StringFormat='{0} szt.'}" FontSize="18" TextColor="#212121"
++                                       HorizontalOptions="EndAndExpand" VerticalOptions="Center" />
++                            </StackLayout>
++                        </Frame>
++                    </ViewCell>
++                </DataTemplate>
++            </ListView.ItemTemplate>
++        </ListView>
++    </StackLayout>
++</ContentPage>
+diff --git a/src/FieldService.UI/Parts/Pages/VanStockPage.xaml.cs b/src/FieldService.UI/Parts/Pages/VanStockPage.xaml.cs
+index 2d2a224..06d803e 100644
+--- a/src/FieldService.UI/Parts/Pages/VanStockPage.xaml.cs
++++ b/src/FieldService.UI/Parts/Pages/VanStockPage.xaml.cs
+@@ -1,8 +1,18 @@
+-using FieldService.UI.Pages;
++using FieldService.Presentation.Parts;
+ 
+ namespace FieldService.UI.Parts.Pages;
+ 
+-public partial class VanStockPage : BasePage
++public partial class VanStockPage : ContentPage
+ {
+-    public VanStockPage() => InitializeComponent();
++    private readonly VanStockViewModel _viewModel;
++
++    public VanStockPage(VanStockViewModel viewModel)
++    {
++        InitializeComponent();
++        _viewModel = viewModel;
++        BindingContext = viewModel;
++    }
++
++    private async void OnRefreshClicked(object sender, EventArgs e) =>
++        await _viewModel.RefreshCommand.ExecuteAsync(null);
+ }

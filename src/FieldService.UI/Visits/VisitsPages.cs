@@ -12,5 +12,6 @@ public static class VisitsPages
         .AddPage<VisitsListPage, VisitsListViewModel>()
         .AddPage<VisitDetailsPage, VisitDetailsViewModel>()
         .AddPage<VisitFilterPage, VisitFilterViewModel>()
+        .AddPage<VisitHistoryPage, VisitHistoryViewModel>()
         .AddPage<CompleteVisitPage, CompleteVisitFlowViewModel>();
 }

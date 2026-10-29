@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FieldService.UI.Parts.Pages.VanStockPage"
+             Title="Auto technika"
+             BackgroundColor="#FFFFFF">
+    <StackLayout Padding="16">
+        <StackLayout Orientation="Horizontal">
+            <Label Text="Części w aucie" FontSize="13" TextColor="#E65100" />
+            <Button Text="Odśwież" Clicked="OnRefreshClicked" BackgroundColor="#E65100" TextColor="#FFFFFF"
+                    HorizontalOptions="EndAndExpand" />
+        </StackLayout>
+        <ActivityIndicator IsRunning="{Binding IsLoadingParts}" Color="#E65100" />
+        <ListView ItemsSource="{Binding Parts}" HasUnevenRows="True">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <Frame Padding="12" Margin="0,4" BorderColor="#DDDDDD" HasShadow="False">
+                            <StackLayout Orientation="Horizontal">
+                                <StackLayout>
+                                    <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" TextColor="#212121" />
+                                    <Label Text="{Binding PartId}" FontSize="12" TextColor="#757575" />
+                                </StackLayout>
+                                <Label Text="{Binding Quantity, StringFormat='{0} szt.'}" FontSize="18" TextColor="#212121"
+                                       HorizontalOptions="EndAndExpand" VerticalOptions="Center" />
+                            </StackLayout>
+                        </Frame>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackLayout>
+</ContentPage>

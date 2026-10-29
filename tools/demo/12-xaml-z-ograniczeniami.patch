@@ -1,0 +1,45 @@
+diff --git a/src/FieldService.UI/Parts/Pages/VanStockPage.xaml b/src/FieldService.UI/Parts/Pages/VanStockPage.xaml
+index 6f209b1..a0bf0dc 100644
+--- a/src/FieldService.UI/Parts/Pages/VanStockPage.xaml
++++ b/src/FieldService.UI/Parts/Pages/VanStockPage.xaml
+@@ -1,14 +1,37 @@
+ <?xml version="1.0" encoding="utf-8" ?>
+-<!-- „Auto technika” (moduł Parts) – ekran do zrobienia z makiety (docs/ai/makiety/van-stock.png) promptem
+-     docs/ai/prompt-xaml.md; ViewModel gotowy: VanStockViewModel. -->
++<!-- „Auto technika” – części w aucie (moduł Parts), odpowiedź LLM na prompt z ograniczeniami
++     (docs/ai/prompt-xaml.md) + VanStockViewModel + style. -->
+ <pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                 xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                 xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                 xmlns:parts="clr-namespace:FieldService.Presentation.Parts;assembly=FieldService.Presentation"
++                xmlns:queries="clr-namespace:FieldService.Application.Parts.Queries;assembly=FieldService.Application"
+                 x:Class="FieldService.UI.Parts.Pages.VanStockPage"
+                 x:DataType="parts:VanStockViewModel"
+                 Title="{loc:Translate VanStock_Title}"
+                 CanNavigateBack="True">
+-    <Label Text="{loc:Translate VanStock_Todo}" Style="{StaticResource Caption}" Margin="16" />
++    <RefreshView IsRefreshing="{Binding IsLoadingParts}" Command="{Binding RefreshCommand}">
++        <CollectionView ItemsSource="{Binding Parts}" SelectionMode="None" ItemSizingStrategy="MeasureFirstItem">
++            <CollectionView.Header>
++                <Label Text="{loc:Translate VanStock_Heading}" Style="{StaticResource SectionHeader}" Margin="16,12,16,4"
++                       SemanticProperties.HeadingLevel="Level1" />
++            </CollectionView.Header>
++            <CollectionView.EmptyView>
++                <Label Text="{loc:Translate VanStock_Empty}" Style="{StaticResource Caption}" Margin="16" HorizontalOptions="Center" />
++            </CollectionView.EmptyView>
++            <CollectionView.ItemTemplate>
++                <DataTemplate x:DataType="queries:VanStockItem">
++                    <Grid Style="{StaticResource ListRow}" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto"
++                          SemanticProperties.Description="{Binding Name}">
++                        <Label Text="{Binding Name}" Style="{StaticResource CardTitle}" />
++                        <Label Grid.Row="1" Text="{Binding PartId}" Style="{StaticResource Caption}" />
++                        <Label Grid.Column="1" Grid.RowSpan="2" VerticalOptions="Center" Style="{StaticResource Title}"
++                               Text="{Binding Quantity, StringFormat={loc:TranslateFormat VanStock_Quantity}}"
++                               SemanticProperties.Description="{Binding Quantity, StringFormat={loc:TranslateFormat VanStock_QuantityDescription}}" />
++                    </Grid>
++                </DataTemplate>
++            </CollectionView.ItemTemplate>
++        </CollectionView>
++    </RefreshView>
+ </pages:BasePage>

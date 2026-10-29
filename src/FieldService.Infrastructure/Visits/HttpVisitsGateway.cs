@@ -62,6 +62,27 @@ public sealed class HttpVisitsGateway(HttpClient http, AccessTokenStore tokens) 
         }
     }
 
+    public async Task<Result<VisitHistoryPageResult>> GetHistoryAsync(int page, int pageSize, CancellationToken ct)
+    {
+        try
+        {
+            using var request = AuthorizedRequest.Create(HttpMethod.Get, $"api/visits/history?page={page}&pageSize={pageSize}", tokens);
+            using var response = await http.SendAsync(request, ct);
+            if (!response.IsSuccessStatusCode) return ToError(response.StatusCode);
+
+            var dto = await response.Content.ReadFromJsonAsync<VisitHistoryPageDto>(ct);
+            return Result<VisitHistoryPageResult>.Success(VisitDtoMapper.ToHistoryPage(dto!));
+        }
+        catch (Exception ex) when (NetworkFailures.IsNetwork(ex) && !ct.IsCancellationRequested)
+        {
+            return new Error("Visits.Network", ErrorType.Network);
+        }
+        catch (JsonException)
+        {
+            return new Error("Visits.Unexpected", ErrorType.Unexpected);
+        }
+    }
+
     public async Task<Result<int>> SendAsync(OutboxMessage message, int expectedVersion, CancellationToken ct)
     {
         try

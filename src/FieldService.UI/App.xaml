@@ -15,6 +15,15 @@
             <!-- VisitTone (Presentation) → kolor; dostępny na wszystkich stronach -->
             <converters:ToneToColorConverter x:Key="ToneToColor" />
             <converters:ResourceTextConverter x:Key="ResourceText" />
+            <converters:ToneToStyleConverter x:Key="ToneToBadge"
+                                             Neutral="{StaticResource Badge.Neutral}" Info="{StaticResource Badge.Info}"
+                                             Success="{StaticResource Badge.Success}" Warning="{StaticResource Badge.Warning}"
+                                             Danger="{StaticResource Badge.Danger}" />
+            <converters:ToneToStyleConverter x:Key="ToneToBadgeText"
+                                             Neutral="{StaticResource BadgeText.Neutral}" Info="{StaticResource BadgeText.Info}"
+                                             Success="{StaticResource BadgeText.Success}" Warning="{StaticResource BadgeText.Warning}"
+                                             Danger="{StaticResource BadgeText.Danger}" />
+            <converters:RelativeTimeConverter x:Key="RelativeTime" />
 
             <!-- Każda BasePage dostaje szablon z nagłówkiem (Templates/PageTemplate.xaml) -->
             <Style TargetType="pages:BasePage" ApplyToDerivedTypes="True" BasedOn="{StaticResource PageStyle}">

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Historia wizyt: płynna lista ze stronicowaniem. Wirtualizacja (CollectionView bez ScrollView wokół), x:DataType na
+     stronie i w szablonie, jeden Grid na wiersz, miniatury, kolory ze stylów. Równe wiersze = jeden szablon
+     i MeasureFirstItem (lista mierzy tylko pierwszy wiersz; z DataTemplateSelector MeasureFirstItem nie działa). -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:controls="clr-namespace:FieldService.UI.Controls"
+                xmlns:visits="clr-namespace:FieldService.Presentation.Visits;assembly=FieldService.Presentation"
+                x:Class="FieldService.UI.Visits.Pages.VisitHistoryPage"
+                x:DataType="visits:VisitHistoryViewModel"
+                Title="{loc:Translate VisitHistory_Title}"
+                CanNavigateBack="True">
+
+    <CollectionView ItemsSource="{Binding Visits}"
+                    ItemSizingStrategy="MeasureFirstItem"
+                    RemainingItemsThreshold="5"
+                    RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"
+                    SelectionMode="None">
+        <CollectionView.EmptyView>
+            <Label Text="{loc:Translate VisitHistory_Empty}" Style="{StaticResource Caption}" Margin="16" HorizontalOptions="Center" />
+        </CollectionView.EmptyView>
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="visits:VisitHistoryItem">
+                <Grid Style="{StaticResource ListRow}" ColumnDefinitions="56,*,Auto" RowDefinitions="Auto,Auto">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenCommand}" />
+                    </Grid.GestureRecognizers>
+                    <!-- anulowana wizyta: ten sam układ, przygaszona -->
+                    <Grid.Triggers>
+                        <DataTrigger TargetType="Grid" Binding="{Binding IsCancelled}" Value="True">
+                            <Setter Property="Opacity" Value="0.6" />
+                        </DataTrigger>
+                    </Grid.Triggers>
+                    <Image Grid.RowSpan="2" Source="{Binding ThumbnailUrl}" WidthRequest="56" HeightRequest="56" Aspect="AspectFill" />
+                    <Label Grid.Column="1" Text="{Binding CustomerName}" Style="{StaticResource CardTitle}" MaxLines="1" />
+                    <Label Grid.Column="1" Grid.Row="1" Style="{StaticResource Caption}" LineBreakMode="TailTruncation">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <!-- RelativeTime liczy przy każdym wiązaniu – celowo zostaje, zmierzymy go w ćwiczeniu 14 -->
+                                <Span Text="{Binding VisitDate, Converter={StaticResource RelativeTime}}" />
+                                <Span Text=" · " />
+                                <Span Text="{Binding City}" />
+                                <Span Text=" · " />
+                                <Span Text="{Binding DeviceName}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                    <controls:StatusBadge Grid.Column="2" Grid.RowSpan="2" VerticalOptions="Center"
+                                          Tone="{Binding Tone}" Text="{Binding StatusText}"
+                                          SemanticProperties.Description="{Binding StatusText}" />
+                </Grid>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</pages:BasePage>

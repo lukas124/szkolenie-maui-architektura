@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Visits;
 
@@ -35,4 +36,27 @@ public sealed class VisitItemFactory(IVisitFormatter formatter) : IVisitItemFact
             ThumbnailUrl = visit.ThumbnailUrl
         };
     }
+
+    public VisitHistoryItem CreateHistory(VisitHistoryEntry entry, Func<Task> open) => new()
+    {
+        Id = entry.Id,
+        CustomerName = entry.CustomerName,
+        DeviceName = entry.DeviceName,
+        City = entry.City,
+        WorkOrderNumber = entry.WorkOrderNumber,
+        StatusText = formatter.FormatOutcome(entry.Status, entry.Outcome),
+        Tone = (entry.Status, entry.Outcome) switch
+        {
+            // anulowana w historii: przygaszona i neutralna (na liście dnia anulowana to ostrzeżenie – zmiana planu)
+            (VisitStatus.Cancelled, _) => VisitTone.Neutral,
+            (_, VisitOutcomeType.NeedsFollowUp) => VisitTone.Warning,
+            (_, VisitOutcomeType.NotFixed) => VisitTone.Danger,
+            _ => VisitTone.Success
+        },
+        IsCancelled = entry.Status == VisitStatus.Cancelled,
+        VisitDate = entry.CompletedAt ?? entry.PlannedStart,
+        ThumbnailUrl = entry.ThumbnailUrl,
+        PhotoUrl = entry.PhotoUrl,
+        OpenCommand = new AsyncRelayCommand(open)
+    };
 }
