@@ -20,4 +20,10 @@ public interface IVisitFormatter
 
     // „Aktualizacja: 12:32”
     string FormatUpdatedNow();
+
+    // „Bez sieci – dane z 9:12” (z innego dnia: „Bez sieci – dane z 28.10 9:12”)
+    string FormatOfflineSince(DateTimeOffset savedAt);
+
+    // „Oczekuje na wysłanie (2)”
+    string FormatPending(int count);
 }

@@ -48,13 +48,13 @@ public class GetTodayVisitsFilterTests
         _clock.Setup(c => c.Now).Returns(Now);
     }
 
-    private GetTodayVisitsHandler CreateHandler() => new(_gateway.Object, _replica.Object, _clock.Object);
+    private GetTodayVisitsHandler CreateHandler() => new(_gateway.Object, _replica.Object, Mock.Of<IVisitListSnapshotStore>(), _clock.Object);
 
     private async Task<Guid[]> HandleAndGetIdsAsync(GetTodayVisits query)
     {
         var result = await CreateHandler().HandleAsync(query, CancellationToken.None);
         Assert.That(result.IsSuccess, Is.True);
-        return result.Value.Select(v => v.Id).ToArray();
+        return result.Value.Visits.Select(v => v.Id).ToArray();
     }
 
     [Test]
@@ -78,7 +78,7 @@ public class GetTodayVisitsFilterTests
     {
         var result = await CreateHandler().HandleAsync(new GetTodayVisits(OnlyOverdue: true), CancellationToken.None);
 
-        Assert.That(result.Value.All(v => v.IsLate), Is.True);
+        Assert.That(result.Value.Visits.All(v => v.IsLate), Is.True);
     }
 
     [TestCase(VisitStatus.Planned, new[] { 1, 2 })]

@@ -71,9 +71,14 @@
   <data name="Startup_ResumeMessage" xml:space="preserve"><value>Completing the visit was interrupted. Return to the wizard?</value></data>
   <data name="Startup_Resume" xml:space="preserve"><value>Return</value></data>
   <data name="Startup_Discard" xml:space="preserve"><value>No, discard</value></data>
+  <data name="Visits_OfflineSince" xml:space="preserve"><value>Offline – data from {0}</value></data>
+  <data name="Visits_PendingSync" xml:space="preserve"><value>Waiting to be sent ({0})</value></data>
+  <data name="Error_Sync.Conflict" xml:space="preserve"><value>The dispatcher changed the visit before the changes from the phone arrived. Changes rejected – you see the state from the server.</value></data>
+  <data name="Error_Sync.Rejected" xml:space="preserve"><value>The server did not accept the visit changes from the phone. Changes rejected – you see the state from the server.</value></data>
   <!-- Wzorce dat i godzin (składnia formatów .NET). Każdy język ma własne, nazwy dni i AM/PM daje kultura. -->
   <data name="Format_Time" xml:space="preserve"><value>h:mm tt</value></data>
   <data name="Format_Day" xml:space="preserve"><value>ddd M/d</value></data>
+  <data name="Format_DayTime" xml:space="preserve"><value>M/d h:mm tt</value></data>
   <!-- Napisy stron (klucz Ekran_Nazwa). XAML bierze je przez {loc:Translate Klucz}. -->
   <data name="Login_Subtitle" xml:space="preserve"><value>Field service visits. Sign in to see today's visits.</value></data>
   <data name="Login_EmailLabel" xml:space="preserve"><value>E-MAIL</value></data>
@@ -87,6 +92,7 @@
   <data name="VisitsList_Filter" xml:space="preserve"><value>Filter</value></data>
   <data name="VisitsList_FilterOn" xml:space="preserve"><value>Filter on</value></data>
   <data name="VisitsList_WorkOrders" xml:space="preserve"><value>My work orders</value></data>
+  <data name="VisitsList_SendNow" xml:space="preserve"><value>Send now</value></data>
   <data name="VisitDetails_Title" xml:space="preserve"><value>Visit</value></data>
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>DEVICE AND FAULT</value></data>
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>SCOPE OF WORK</value></data>

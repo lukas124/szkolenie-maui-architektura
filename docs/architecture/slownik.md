@@ -18,3 +18,5 @@ Wszechobecny język: te same słowa w rozmowie z biznesem, na ekranie, w testach
 | Auto technika | części, które technik ma przy sobie | `GetVanStock`, `VanStockItem` |
 | Dyspozytor | przyjmuje zgłoszenie klienta, zakłada zlecenie, planuje wizyty, może je anulować albo przenieść | – (poza aplikacją; `Visit.Cancel` odtwarza jego decyzję) |
 | Brygada | dwóch techników na jednej wizycie, każdy z telefonem | `Visit.TechnicianIds` (kilku techników na wizycie) |
+| Oczekuje na wysłanie | zmiana technika zapisana w telefonie, która jeszcze nie dotarła na serwer | `outbox`, `ISyncScheduler.GetPendingCountAsync` |
+| Konflikt wizyty | dyspozytor zmienił wizytę (np. anulował), zanim dotarły zmiany z telefonu – obowiązuje stan z serwera | `Visit.VersionConflict`, `SyncErrors.Conflict` |

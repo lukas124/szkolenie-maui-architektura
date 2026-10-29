@@ -23,7 +23,7 @@ public class GetTodayVisitsHandlerSpecTests
     public void SetUp()
     {
         _gateway = new Mock<IVisitsGateway>();
-        _handler = new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IClock>(c => c.Now == Now));
+        _handler = new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IVisitListSnapshotStore>(), Mock.Of<IClock>(c => c.Now == Now));
     }
 
     // 07: wizyty zmienione w telefonie – tu żadnych
@@ -35,7 +35,7 @@ public class GetTodayVisitsHandlerSpecTests
         _gateway.Setup(g => g.GetTodayAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<VisitSummary>>.Success(visits));
 
-    private Task<Result<IReadOnlyList<VisitSummary>>> Handle() =>
+    private Task<Result<TodayVisits>> Handle() =>
         _handler.HandleAsync(new GetTodayVisits(), CancellationToken.None);
 
     [Test]
@@ -49,7 +49,7 @@ public class GetTodayVisitsHandlerSpecTests
         var result = await Handle();
 
         Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value.Select(v => v.CustomerName), Is.EqualTo(new[] { "A", "B", "C" }));
+        Assert.That(result.Value.Visits.Select(v => v.CustomerName), Is.EqualTo(new[] { "A", "B", "C" }));
     }
 
     [Test]
@@ -62,7 +62,7 @@ public class GetTodayVisitsHandlerSpecTests
 
         var result = await Handle();
 
-        Assert.That(result.Value.Select(v => v.CustomerName), Is.EqualTo(new[] { "Wcześniej", "Później" }));
+        Assert.That(result.Value.Visits.Select(v => v.CustomerName), Is.EqualTo(new[] { "Wcześniej", "Później" }));
     }
 
     [Test]
@@ -72,7 +72,7 @@ public class GetTodayVisitsHandlerSpecTests
 
         var result = await Handle();
 
-        Assert.That(result.Value[0].IsLate, Is.True);
+        Assert.That(result.Value.Visits[0].IsLate, Is.True);
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class GetTodayVisitsHandlerSpecTests
 
         var result = await Handle();
 
-        Assert.That(result.Value[0].IsLate, Is.True);
+        Assert.That(result.Value.Visits[0].IsLate, Is.True);
     }
 
     [Test]
@@ -92,7 +92,7 @@ public class GetTodayVisitsHandlerSpecTests
 
         var result = await Handle();
 
-        Assert.That(result.Value[0].IsLate, Is.False);
+        Assert.That(result.Value.Visits[0].IsLate, Is.False);
     }
 
     [Test]
@@ -103,7 +103,7 @@ public class GetTodayVisitsHandlerSpecTests
 
         var result = await Handle();
 
-        Assert.That(result.Value[0].IsLate, Is.True);
+        Assert.That(result.Value.Visits[0].IsLate, Is.True);
     }
 
     [TestCase(VisitStatus.InProgress)]
@@ -115,7 +115,7 @@ public class GetTodayVisitsHandlerSpecTests
 
         var result = await Handle();
 
-        Assert.That(result.Value[0].IsLate, Is.False);
+        Assert.That(result.Value.Visits[0].IsLate, Is.False);
     }
 
     [Test]
@@ -128,7 +128,7 @@ public class GetTodayVisitsHandlerSpecTests
 
         var result = await Handle();
 
-        Assert.That(result.Value, Is.EqualTo(new[]
+        Assert.That(result.Value.Visits, Is.EqualTo(new[]
         {
             completed,
             planned with { IsLate = true },
@@ -144,7 +144,7 @@ public class GetTodayVisitsHandlerSpecTests
         var result = await Handle();
 
         Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Is.Empty);
+        Assert.That(result.Value.Visits, Is.Empty);
     }
 
     [TestCase(ErrorType.Network)]

@@ -1,6 +1,7 @@
 using FieldService.Domain.Visits;
 using FieldService.Infrastructure.Persistence;
 using FieldService.TestDoubles;
+using FieldService.Application.Abstractions;
 
 namespace FieldService.Infrastructure.Tests.Persistence;
 
@@ -158,5 +159,5 @@ public class SqliteVisitRepositoryContractTests : VisitRepositoryContract
     [TearDown]
     public void TearDown() => _paths.Dispose();
 
-    protected override IVisitRepository CreateRepository() => new SqliteVisitRepository(new SqliteDb(_paths));
+    protected override IVisitRepository CreateRepository() => new SqliteVisitRepository(new SqliteDb(_paths), Mock.Of<ISyncScheduler>());
 }

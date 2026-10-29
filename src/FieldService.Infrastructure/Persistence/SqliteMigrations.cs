@@ -51,6 +51,30 @@ internal static class SqliteMigrations
                 VisitId TEXT NOT NULL,
                 StepIndex INTEGER NOT NULL)
             """
+        ],
+        // 3: skrzynka nadawcza – zmiany wizyt do wysłania na serwer (Id = klucz idempotencji)
+        [
+            """
+            CREATE TABLE outbox (
+                Id TEXT PRIMARY KEY,
+                Type TEXT NOT NULL,
+                VisitId TEXT NOT NULL,
+                Payload TEXT NOT NULL,
+                CreatedAt TEXT NOT NULL,
+                Attempts INTEGER NOT NULL,
+                LastError TEXT NULL,
+                SentAt TEXT NULL,
+                Failed INTEGER NOT NULL)
+            """
+        ],
+        // 4: migawka ostatniej listy wizyt (jeden wiersz) – lista bez sieci
+        [
+            """
+            CREATE TABLE visit_list_snapshot (
+                Id INTEGER PRIMARY KEY CHECK (Id = 1),
+                VisitsJson TEXT NOT NULL,
+                SavedAt TEXT NOT NULL)
+            """
         ]
     ];
 

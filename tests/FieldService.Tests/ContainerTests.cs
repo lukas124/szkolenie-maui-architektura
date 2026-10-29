@@ -49,6 +49,23 @@ public class ContainerTests
     }
 
     [Test]
+    public void SyncScheduler_IsSingleton_AndProcessorIsNewPerRun()
+    {
+        using var provider = BuildProvider();
+
+        var processors = provider.GetRequiredService<Func<FieldService.Infrastructure.Outbox.OutboxProcessor>>();
+        var firstScheduler = provider.GetRequiredService<ISyncScheduler>();
+        var firstProcessor = processors();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(provider.GetRequiredService<ISyncScheduler>(), Is.SameAs(firstScheduler));
+            // procesor (z HttpClient bramy) nie żyje w singletonie – nowy na każdy przebieg
+            Assert.That(processors(), Is.Not.SameAs(firstProcessor));
+        });
+    }
+
+    [Test]
     public void RouteMap_ContainsVisitRoutesAndLogin()
     {
         using var provider = BuildProvider();

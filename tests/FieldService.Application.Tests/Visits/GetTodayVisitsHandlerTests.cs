@@ -26,7 +26,7 @@ public class GetTodayVisitsHandlerTests
         _replica.Setup(r => r.GetLocallyChangedStatusesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => _changedOnPhone);
         _clock = new FixedClock();
-        _handler = new GetTodayVisitsHandler(_gateway.Object, _replica.Object, _clock);
+        _handler = new GetTodayVisitsHandler(_gateway.Object, _replica.Object, Mock.Of<IVisitListSnapshotStore>(), _clock);
     }
 
     [Test]
@@ -38,7 +38,7 @@ public class GetTodayVisitsHandlerTests
 
         var result = await _handler.HandleAsync(new GetTodayVisits(), CancellationToken.None);
 
-        Assert.That(result.Value.Select(v => v.Id), Is.EqualTo(new[] { early.Id, late.Id }));
+        Assert.That(result.Value.Visits.Select(v => v.Id), Is.EqualTo(new[] { early.Id, late.Id }));
     }
 
     [Test]
@@ -51,8 +51,8 @@ public class GetTodayVisitsHandlerTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(result.Value.Single().Status, Is.EqualTo(VisitStatus.Planned));
-            Assert.That(result.Value.Single().Version, Is.EqualTo(4));
+            Assert.That(result.Value.Visits.Single().Status, Is.EqualTo(VisitStatus.Planned));
+            Assert.That(result.Value.Visits.Single().Version, Is.EqualTo(4));
         });
     }
 
@@ -66,7 +66,7 @@ public class GetTodayVisitsHandlerTests
 
         var result = await _handler.HandleAsync(new GetTodayVisits(), CancellationToken.None);
 
-        var visit = result.Value.Single();
+        var visit = result.Value.Visits.Single();
         Assert.Multiple(() =>
         {
             Assert.That(visit.Status, Is.EqualTo(VisitStatus.InProgress));
@@ -82,7 +82,7 @@ public class GetTodayVisitsHandlerTests
 
         var result = await _handler.HandleAsync(new GetTodayVisits(), CancellationToken.None);
 
-        Assert.That(result.Value.Single().IsLate, Is.True);
+        Assert.That(result.Value.Visits.Single().IsLate, Is.True);
     }
 
     [Test]
@@ -92,7 +92,7 @@ public class GetTodayVisitsHandlerTests
 
         var result = await _handler.HandleAsync(new GetTodayVisits(), CancellationToken.None);
 
-        Assert.That(result.Value.Single().IsLate, Is.False);
+        Assert.That(result.Value.Visits.Single().IsLate, Is.False);
     }
 
     [Test]
@@ -102,7 +102,7 @@ public class GetTodayVisitsHandlerTests
 
         var result = await _handler.HandleAsync(new GetTodayVisits(), CancellationToken.None);
 
-        Assert.That(result.Value.Single().IsLate, Is.False);
+        Assert.That(result.Value.Visits.Single().IsLate, Is.False);
     }
 
     // Wizyta „Planned” na serwerze, ale technik już ją rozpoczął lokalnie – po nałożeniu repliki nie jest spóźniona.
@@ -115,7 +115,7 @@ public class GetTodayVisitsHandlerTests
 
         var result = await _handler.HandleAsync(new GetTodayVisits(), CancellationToken.None);
 
-        Assert.That(result.Value.Single().IsLate, Is.False);
+        Assert.That(result.Value.Visits.Single().IsLate, Is.False);
     }
 
     [Test]

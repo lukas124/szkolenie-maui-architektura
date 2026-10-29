@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using FieldService.Application.Abstractions;
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Visits;
 using FieldService.Presentation.Common;
@@ -15,7 +16,9 @@ namespace FieldService.Presentation.Visits;
 // Lista wizyt na dziś. ViewModel koordynuje: przypadek użycia → Result → fabryka → kolekcja albo komunikat błędu.
 // Nie formatuje, nie buduje elementów, nie składa tekstów i nie zna stron. Filtr bierze ze stanu aplikacji (IAppState),
 // a o jego zmianie dowiaduje się z komunikatu – słaby posłaniec nie trzyma listy w pamięci po zamknięciu ekranu.
-public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsListRoute>, IRecipient<FilterChangedMessage>
+// Pokazuje też, ile zmian czeka na wysłanie – nie obiecujemy wysyłki w tle, dajemy „Wyślij teraz”.
+public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsListRoute>, IRecipient<FilterChangedMessage>,
+    IRecipient<SyncCompletedMessage>
 {
     private readonly GetTodayVisitsHandler _getTodayVisits;
     private readonly IVisitItemFactory _items;
@@ -23,9 +26,10 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
     private readonly IUserFeedback _feedback;
     private readonly INavigationService _navigation;
     private readonly IAppState _appState;
+    private readonly ISyncScheduler _sync;
 
     public VisitsListViewModel(GetTodayVisitsHandler getTodayVisits, IVisitItemFactory items, IVisitFormatter formatter,
-        IUserFeedback feedback, INavigationService navigation, IAppState appState)
+        IUserFeedback feedback, INavigationService navigation, IAppState appState, ISyncScheduler sync)
     {
         _getTodayVisits = getTodayVisits;
         _items = items;
@@ -33,7 +37,9 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
         _feedback = feedback;
         _navigation = navigation;
         _appState = appState;
-        WeakReferenceMessenger.Default.Register(this);
+        _sync = sync;
+        // wszystkie komunikaty, które lista odbiera (IRecipient<…>)
+        WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
     public ObservableCollection<VisitItem> Visits { get; } = [];
@@ -47,6 +53,15 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
 
     [ObservableProperty]
     public partial string LastUpdated { get; set; } = "";
+
+    // zmiany z telefonu, które jeszcze nie dotarły na serwer
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPending), nameof(PendingText))]
+    public partial int PendingCount { get; set; }
+
+    public bool HasPending => PendingCount > 0;
+
+    public string PendingText => _formatter.FormatPending(PendingCount);
 
     // true = lista była już załadowana (wejście na ekran), kolejne pojawienie się = powrót z innej strony
     private bool _loaded;
@@ -86,6 +101,9 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
     }
 
     [RelayCommand]
+    private void SendNow() => _sync.RequestSync();
+
+    [RelayCommand]
     private Task OpenFilterAsync() => _navigation.OpenModalAsync(new VisitFilterRoute());
 
     [RelayCommand]
@@ -101,8 +119,21 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
         _ = LoadAsync(CancellationToken.None);
     }
 
+    // Przebieg wysyłki skończony: nowy licznik. Po wysłaniu albo odrzuceniu zmian lista od nowa (statusy z serwera)
+    public void Receive(SyncCompletedMessage message)
+    {
+        var result = message.Result;
+        PendingCount = result.Pending;
+        if (result.Conflicts.Count > 0) _ = _feedback.ShowErrorAsync(SyncErrors.Conflict);
+        else if (result.Rejected.Count > 0) _ = _feedback.ShowErrorAsync(SyncErrors.Rejected);
+        if (result.Sent > 0 || result.Conflicts.Count > 0 || result.Rejected.Count > 0) _ = LoadAsync(CancellationToken.None);
+    }
+
     private async Task LoadAsync(CancellationToken ct)
     {
+        // licznik z bazy telefonu – aktualny także bez sieci
+        PendingCount = await _sync.GetPendingCountAsync(ct);
+
         var filter = _appState.Filter;
         var result = await _getTodayVisits.HandleAsync(new GetTodayVisits(filter.OnlyOverdue, filter.Status), ct);
         if (!result.IsSuccess)
@@ -111,8 +142,10 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
             return;
         }
 
-        Visits.ReplaceWith(result.Value.Select(_items.Create));
-        Summary = _formatter.FormatDaySummary(result.Value);
-        LastUpdated = _formatter.FormatUpdatedNow();
+        var today = result.Value;
+        Visits.ReplaceWith(today.Visits.Select(_items.Create));
+        Summary = _formatter.FormatDaySummary(today.Visits);
+        // bez sieci: lista z migawki – technik widzi, z kiedy są dane
+        LastUpdated = today.OfflineSince is { } since ? _formatter.FormatOfflineSince(since) : _formatter.FormatUpdatedNow();
     }
 }

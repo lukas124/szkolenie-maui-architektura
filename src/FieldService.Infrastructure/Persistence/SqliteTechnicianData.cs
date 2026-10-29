@@ -2,12 +2,16 @@ using FieldService.Application.Abstractions;
 
 namespace FieldService.Infrastructure.Persistence;
 
-// Dane technika w bazie telefonu. Zmiany jeszcze nie wychodzą z telefonu (wysyłka dopiero w Bloku 11), więc nie ma
-// czego chronić przed następnym technikiem – logowanie innego technika po prostu czyści dane poprzedniego.
-// Czyszczenie usuwa wizyty, zdjęcia (wiersze i pliki) i szkic kreatora.
+// Dane technika w bazie telefonu: niewysłane zmiany = wiadomości czekające w outbox.
+// Czyszczenie usuwa wizyty, zdjęcia (wiersze i pliki), szkic kreatora, kolejkę (same wysłane albo odrzucone)
+// i migawkę listy.
 public sealed class SqliteTechnicianData(SqliteDb db) : ILocalTechnicianData
 {
-    public Task<bool> HasUnsentChangesAsync(CancellationToken ct) => Task.FromResult(false);
+    public async Task<bool> HasUnsentChangesAsync(CancellationToken ct)
+    {
+        var connection = await db.GetConnectionAsync();
+        return await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM outbox WHERE SentAt IS NULL AND Failed = 0") > 0;
+    }
 
     public async Task ClearAsync(CancellationToken ct)
     {
@@ -18,6 +22,8 @@ public sealed class SqliteTechnicianData(SqliteDb db) : ILocalTechnicianData
             c.Execute("DELETE FROM visits");
             c.Execute("DELETE FROM visit_photos");
             c.Execute("DELETE FROM flow_drafts");
+            c.Execute("DELETE FROM outbox");
+            c.Execute("DELETE FROM visit_list_snapshot");
         });
         foreach (var path in photos) DeleteFile(path);
     }

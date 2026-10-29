@@ -71,9 +71,14 @@
   <data name="Startup_ResumeMessage" xml:space="preserve"><value>Zamykanie wizyty zostało przerwane. Wrócić do kreatora?</value></data>
   <data name="Startup_Resume" xml:space="preserve"><value>Wróć</value></data>
   <data name="Startup_Discard" xml:space="preserve"><value>Nie, porzuć</value></data>
+  <data name="Visits_OfflineSince" xml:space="preserve"><value>Bez sieci – dane z {0}</value></data>
+  <data name="Visits_PendingSync" xml:space="preserve"><value>Oczekuje na wysłanie ({0})</value></data>
+  <data name="Error_Sync.Conflict" xml:space="preserve"><value>Dyspozytor zmienił wizytę, zanim dotarły zmiany z telefonu. Zmiany odrzucone – widzisz stan z serwera.</value></data>
+  <data name="Error_Sync.Rejected" xml:space="preserve"><value>Serwer nie przyjął zmian wizyty z telefonu. Zmiany odrzucone – widzisz stan z serwera.</value></data>
   <!-- Wzorce dat i godzin (składnia formatów .NET). Każdy język ma własne, nazwy dni i AM/PM daje kultura. -->
   <data name="Format_Time" xml:space="preserve"><value>H:mm</value></data>
   <data name="Format_Day" xml:space="preserve"><value>ddd dd.MM</value></data>
+  <data name="Format_DayTime" xml:space="preserve"><value>d.MM H:mm</value></data>
   <!-- Napisy stron (klucz Ekran_Nazwa). XAML bierze je przez {loc:Translate Klucz}. -->
   <data name="Login_Subtitle" xml:space="preserve"><value>Wizyty serwisowe w terenie. Zaloguj się, żeby zobaczyć wizyty na dziś.</value></data>
   <data name="Login_EmailLabel" xml:space="preserve"><value>E-MAIL</value></data>
@@ -87,6 +92,7 @@
   <data name="VisitsList_Filter" xml:space="preserve"><value>Filtr</value></data>
   <data name="VisitsList_FilterOn" xml:space="preserve"><value>Filtr włączony</value></data>
   <data name="VisitsList_WorkOrders" xml:space="preserve"><value>Moje zlecenia</value></data>
+  <data name="VisitsList_SendNow" xml:space="preserve"><value>Wyślij teraz</value></data>
   <data name="VisitDetails_Title" xml:space="preserve"><value>Wizyta</value></data>
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>URZĄDZENIE I USTERKA</value></data>
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>ZAKRES PRAC</value></data>
