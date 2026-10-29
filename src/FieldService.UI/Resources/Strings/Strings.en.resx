@@ -69,6 +69,7 @@
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>SCOPE OF WORK</value></data>
   <data name="VisitDetails_Start" xml:space="preserve"><value>Start visit</value></data>
   <data name="VisitDetails_AddPart" xml:space="preserve"><value>Add part</value></data>
+  <data name="VisitDetails_Remove" xml:space="preserve"><value>Remove</value></data>
   <data name="VisitDetails_Signature" xml:space="preserve"><value>Customer signature</value></data>
   <data name="VisitDetails_AddPhoto" xml:space="preserve"><value>Add photo</value></data>
   <data name="VisitDetails_CompleteFixed" xml:space="preserve"><value>Complete – fixed</value></data>

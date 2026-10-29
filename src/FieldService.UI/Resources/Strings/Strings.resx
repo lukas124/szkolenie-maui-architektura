@@ -69,6 +69,7 @@
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>ZAKRES PRAC</value></data>
   <data name="VisitDetails_Start" xml:space="preserve"><value>Rozpocznij wizytę</value></data>
   <data name="VisitDetails_AddPart" xml:space="preserve"><value>Dodaj część</value></data>
+  <data name="VisitDetails_Remove" xml:space="preserve"><value>Usuń</value></data>
   <data name="VisitDetails_Signature" xml:space="preserve"><value>Podpis klienta</value></data>
   <data name="VisitDetails_AddPhoto" xml:space="preserve"><value>Dodaj zdjęcie</value></data>
   <data name="VisitDetails_CompleteFixed" xml:space="preserve"><value>Zakończ – naprawione</value></data>

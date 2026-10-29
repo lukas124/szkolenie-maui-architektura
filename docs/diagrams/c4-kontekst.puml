@@ -1,0 +1,19 @@
+@startuml c4-kontekst
+' Model C4 (S. Brown), poziom 1: kontekst systemu FieldService
+!include <C4/C4_Context>
+
+title FieldService – kontekst systemu
+
+Person(technik, "Technik serwisu", "Realizuje wizyty u klientów, często bez zasięgu")
+Person(dyspozytor, "Dyspozytor", "Zakłada zlecenia, planuje i anuluje wizyty")
+Person_Ext(klient, "Klient", "Podpisuje zakres prac na telefonie technika")
+
+System(fieldservice, "FieldService", "Aplikacja mobilna technika i API: wizyty na dziś, przebieg wizyty, podpis klienta, wynik")
+System_Ext(tozsamosc, "Dostawca tożsamości", "Logowanie technika, tokeny dostępu")
+
+Rel(technik, fieldservice, "Rozpoczyna wizytę, dopisuje czynności i części, kończy wizytę")
+Rel(klient, fieldservice, "Podpisuje zakres prac")
+Rel(dyspozytor, fieldservice, "Planuje i anuluje wizyty")
+Rel(fieldservice, tozsamosc, "Uwierzytelnia technika")
+
+@enduml

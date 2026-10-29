@@ -1,0 +1,23 @@
+@startuml c4-kontenery
+' Model C4 (S. Brown), poziom 2: kontenery
+!include <C4/C4_Container>
+
+title FieldService – kontenery
+
+Person(technik, "Technik serwisu", "Pracuje u klienta, często bez zasięgu")
+System_Ext(tozsamosc, "Dostawca tożsamości", "Logowanie technika, tokeny dostępu")
+
+System_Boundary(fs, "FieldService") {
+    Container(app, "Aplikacja mobilna", ".NET MAUI (Android, iOS)", "Pierścienie Domain, Application, Infrastructure, Presentation, UI")
+    ContainerDb(replika, "Lokalna replika", "SQLite (fieldservice-replica.db3)", "Wizyty i zdjęcia na telefonie – praca bez zasięgu")
+    Container(api, "API FieldService", "ASP.NET Core, REST/JSON", "Źródło prawdy wizyt; api/auth/login, api/visits, api/vanstock")
+    ContainerDb(baza, "Baza centralna", "PostgreSQL", "Wizyty, zlecenia, magazyn części")
+}
+
+Rel(technik, app, "Używa")
+Rel(app, replika, "Czyta i zapisuje", "sqlite-net-pcl")
+Rel(app, api, "Loguje technika (api/auth/login), pobiera wizyty i auto technika", "HTTPS/JSON, Bearer")
+Rel(api, baza, "Czyta i zapisuje", "SQL")
+Rel(api, tozsamosc, "Uwierzytelnia technika, weryfikuje tokeny", "HTTPS")
+
+@enduml

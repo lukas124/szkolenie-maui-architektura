@@ -1,0 +1,30 @@
+' Nagrana odpowiedź LLM do dema (plan B) – do weryfikacji, nie wzorzec.
+' Prompt: „Na podstawie src/ wygeneruj C4 kontenerów (C4-PlantUML) i README obszaru Visits; nie wymyślaj typów”.
+' Porównaj z docs/diagrams/c4-kontenery.puml i docs/diagrams/obszar-visits.puml.
+@startuml c4-wygenerowany
+!include <C4/C4_Component>
+
+title FieldService – aplikacja mobilna (wygenerowane)
+
+Person(technik, "Technik serwisu")
+
+Container_Boundary(app, "Aplikacja mobilna (.NET MAUI)") {
+    Component(ui, "VisitDetailsPage", "XAML")
+    Component(vm, "VisitDetailsViewModel", "Presentation")
+    Component(service, "VisitService", "Application", "Logika wizyty i wywołania API")
+    Component(repo, "SqliteVisitRepository", "Infrastructure")
+    Component(http, "HttpVisitsGateway", "Infrastructure")
+}
+
+ContainerDb(db, "SQLite", "fieldservice-replica.db3")
+Container_Ext(api, "API FieldService", "REST/JSON")
+
+Rel(technik, ui, "Używa")
+Rel(ui, vm, "Binding")
+Rel(vm, service, "Wywołuje")
+Rel(vm, repo, "Czyta szczegóły wizyty")
+Rel(service, http, "Pobiera wizyty")
+Rel(repo, db, "SQL")
+Rel(http, api, "HTTPS/JSON")
+
+@enduml

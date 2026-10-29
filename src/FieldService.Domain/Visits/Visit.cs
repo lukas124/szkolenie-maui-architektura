@@ -5,7 +5,7 @@ using FieldService.Domain.Visits.Events;
 namespace FieldService.Domain.Visits;
 
 // Wizyta – jednostka spójności modułu Realizacja wizyty (replika na telefonie, ostateczny arbiter: serwer).
-// Stan zmienia się tylko przez metody z regułami R1–R6. Odmowa = Result z błędem i brak jakiejkolwiek zmiany.
+// Stan zmienia się tylko przez metody z regułami R1–R7; odmowa = Result z błędem i brak jakiejkolwiek zmiany.
 public sealed class Visit : AggregateRoot<VisitId>
 {
     private Visit(VisitId id, Guid workOrderId, IReadOnlyList<string> technicianIds, VisitStatus status,
@@ -87,6 +87,10 @@ public sealed class Visit : AggregateRoot<VisitId>
         ScopeChanged(now);
         return Result.Success();
     }
+
+    // TODO: Ćwiczenie 08 – R7: RemoveUsedPart(PartId partId, DateTimeOffset now) – tylko w trakcie (NotInProgress),
+    // część musi być w zakresie (nowy błąd VisitErrors.PartNotInScope), zmiana zakresu jak w UsePart (R3), zdarzenie PartRemoved.
+    // Zacznij od testów (docs/ai/prompty/01-test-najpierw.md).
 
     // R4: klient podpisuje niepusty zakres w trakcie wizyty – podpis zapamiętuje wersję zakresu
     public Result SignByCustomer(string signerName, DateTimeOffset now)

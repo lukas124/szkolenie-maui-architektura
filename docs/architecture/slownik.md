@@ -12,8 +12,8 @@ Wszechobecny język: te same słowa w rozmowie z biznesem, na ekranie, w testach
 | Podpis klienta | akceptacja konkretnego zakresu prac przez klienta | `CustomerSignature`, `Visit.SignByCustomer`, `HasValidSignature()` |
 | Wynik wizyty | jak skończyła się wizyta: naprawione, potrzebna kolejna wizyta (np. brak części) albo nie naprawiono | `VisitOutcome`, `VisitOutcomeType`, `Visit.Complete` |
 | Protokół | dokument z wizyty wyliczany z zakresu prac – klient widzi go przed podpisem | `VisitProtocol`, `VisitProtocolBuilder` |
-| Zapas części | stan jednej części w jednym magazynie i jej rezerwacje (model Magazyn, serwer) | – (serwer) |
-| Rezerwacja | odłożenie sztuk części dla wizyty; wygasa po czasie | – (serwer) |
+| Zapas części | stan jednej części w jednym magazynie i jej rezerwacje (model Magazyn, serwer) | tylko serwer |
+| Rezerwacja | odłożenie sztuk części dla wizyty; wygasa po czasie | tylko serwer |
 | Auto technika | części, które technik ma przy sobie | `GetVanStock`, `VanStockItem` |
 | Dyspozytor | przyjmuje zgłoszenie klienta, zakłada zlecenie, planuje wizyty, może je anulować albo przenieść | – (poza aplikacją; `Visit.Cancel` odtwarza jego decyzję) |
 | Brygada | dwóch techników na jednej wizycie, każdy z telefonem | `Visit.TechnicianIds` (kilku techników na wizycie) |

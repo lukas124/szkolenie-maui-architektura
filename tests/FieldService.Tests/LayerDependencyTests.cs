@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NetArchTest.Rules;
 
 namespace FieldService.Tests;
@@ -34,7 +35,7 @@ public class LayerDependencyTests
 
     [Test]
     public void Presentation_DoesNotDependOnInfrastructure() =>
-        AssertNoDependency(Presentation, "FieldService.Infrastructure");
+        AssertNoDependency(Presentation, "FieldService.Infrastructure", "System.Net.Http");
 
     // ViewModel dostaje model odczytu (VisitDetails), nigdy agregat ani repozytorium – zmiany tylko przez przypadki użycia
     [Test]
@@ -51,6 +52,27 @@ public class LayerDependencyTests
                 .Where(forbidden.Contains)
                 .Select(_ => t.FullName))
             .Distinct()
+            .ToList();
+
+        Assert.That(offenders, Is.Empty);
+    }
+
+    // Lokalizator usług: ViewModel dostaje zależności przez konstruktor, kontener zna tylko korzeń kompozycji (UI)
+    [Test]
+    public void Presentation_DoesNotUseServiceProvider() =>
+        AssertNoDependency(Presentation, "System.IServiceProvider");
+
+    // Czas w modelu i przypadkach użycia tylko z IClock albo parametru now (NetArchTest nie widzi wywołań – skan źródeł)
+    [Test]
+    public void DomainAndApplication_DoNotReadSystemClock()
+    {
+        var root = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+        while (root.GetFiles("FieldService.slnx").Length == 0) root = root.Parent!;
+        var obj = $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}";
+
+        var offenders = new[] { "src/FieldService.Domain", "src/FieldService.Application" }
+            .SelectMany(d => Directory.GetFiles(Path.Combine(root.FullName, d), "*.cs", SearchOption.AllDirectories))
+            .Where(f => !f.Contains(obj) && Regex.IsMatch(File.ReadAllText(f), @"DateTime(Offset)?\.(Utc)?Now"))
             .ToList();
 
         Assert.That(offenders, Is.Empty);

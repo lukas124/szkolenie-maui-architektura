@@ -70,6 +70,9 @@ public partial class VisitDetailsViewModel(
         await RunAsync(() => usePart.HandleAsync(new UsePart(_visitId, new PartId(part.PartId), 1), ct));
     }
 
+    // TODO: Ćwiczenie 08 – R7: [RelayCommand] RemovePartAsync(VisitPartLine line, CancellationToken ct) przez RunAsync
+    // i RemoveUsedPartHandler (parametr konstruktora); w VisitDetailsPage.xaml przycisk „Usuń” przy pozycji części
+
     [RelayCommand]
     private async Task SignAsync(CancellationToken ct)
     {
