@@ -43,8 +43,13 @@ public partial class App : Microsoft.Maui.Controls.Application
     // Jeden stos nawigacji (NavigationPage) na całe okno, bez Shella; start: logowanie.
     // Okno może powstać więcej niż raz w czasie życia procesu (Android), dlatego stronę startową za każdym razem
     // tworzy usługa nawigacji (strona i ViewModel z kontenera, BindingContext przypisany).
-    protected override Window CreateWindow(IActivationState? activationState) =>
-        new(new NavigationPage(_services.GetRequiredService<NavigationService>().CreateStartPage<LoginRoute>()));
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        var startPage = _services.GetRequiredService<NavigationService>().CreateStartPage<LoginRoute>();
+        var window = new Window(new NavigationPage(startPage));
+        _services.GetRequiredService<SyncTriggers>().Attach(window);
+        return window;
+    }
 
     // Powrót do aplikacji: strefę czasową telefonu czytamy od nowa, bo technik mógł ją zmienić albo przejechać do innej
     protected override void OnResume()

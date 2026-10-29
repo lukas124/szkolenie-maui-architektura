@@ -2,6 +2,7 @@ using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Inventory;
 using FieldService.Domain.Visits;
 using FieldService.Infrastructure.Persistence;
+using FieldService.Application.Abstractions;
 
 namespace FieldService.Infrastructure.Tests.Persistence;
 
@@ -22,7 +23,7 @@ public class SqliteVisitRepositoryTests
     public void SetUp()
     {
         _paths = new TemporaryAppPaths();
-        _repository = new SqliteVisitRepository(new SqliteDb(_paths));
+        _repository = new SqliteVisitRepository(new SqliteDb(_paths), Mock.Of<ISyncScheduler>());
     }
 
     [TearDown]
@@ -286,7 +287,7 @@ public class SqliteVisitRepositoryTests
         visit.Start(Now);
         await _repository.SaveAsync(visit, CancellationToken.None);
 
-        var reopened = new SqliteVisitRepository(new SqliteDb(_paths));
+        var reopened = new SqliteVisitRepository(new SqliteDb(_paths), Mock.Of<ISyncScheduler>());
         var loaded = await reopened.GetAsync(visit.Id, CancellationToken.None);
 
         Assert.That(loaded?.Status, Is.EqualTo(VisitStatus.InProgress));

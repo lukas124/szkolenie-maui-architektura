@@ -112,7 +112,8 @@ public partial class VisitDetailsViewModel(
         }
 
         await feedback.ShowErrorAsync(result.Error!);
-        if (result.Error!.Type == ErrorType.Conflict) await LoadAsync();
+        // wizyta zmieniła się w międzyczasie albo serwer odrzucił zmiany z telefonu (lokalna kopia usunięta) – stan z serwera
+        if (result.Error!.Type is ErrorType.Conflict or ErrorType.NotFound) await LoadAsync();
     }
 
     private async Task LoadAsync(bool refresh = false)

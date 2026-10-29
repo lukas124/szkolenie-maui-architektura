@@ -55,6 +55,9 @@ CompleteVisitPage (UI, XAML – kreator, ostatni krok)
               ├─ IVisitRepository.GetAsync ──────────▶ SqliteVisitRepository (Infrastructure)
               ├─ Visit.Complete(outcome, clock.Now) (Domain – reguła i zdarzenie VisitCompleted)
               └─ IVisitRepository.SaveAsync ─────────▶ SqliteVisitRepository (Infrastructure)
+                                                         ├─ transakcja: wiersz wizyty + wiadomość w outbox
+                                                         └─ ISyncScheduler.RequestSync() ─▶ OutboxProcessor
+                                                              └─ HttpVisitsGateway.SendAsync ─▶ POST api/visits/{id}/complete
         ◀─ Result (sukces → INavigationService zamyka kreator i wraca na listę; błąd → IUserFeedback.ShowErrorAsync)
 ```
 
@@ -67,6 +70,8 @@ CompleteVisitPage (UI, XAML – kreator, ostatni krok)
 4. **Port** (`IVisitRepository`, `IVisitsGateway`, `IVisitReplica`) opisuje, czego przypadek użycia potrzebuje od
    świata zewnętrznego.
 5. **Adapter** w Infrastructure albo UI realizuje port: SQLite, HTTP, aparat, uprawnienia.
+6. **Wysyłka** idzie osobno: `Result` wraca do ViewModelu po zapisie w telefonie, serwer dostaje zmianę z outbox,
+   gdy jest sieć (z kluczem idempotencji i wersją; konflikt → kompensacja).
 
 Błąd wraca jako `Result`, nie jako wyjątek. Tekst dla użytkownika pochodzi z `Strings.resx` (`Error_{Code}`, np.
 `Error_Visit.SignatureRequired`) przez `ErrorMessageProvider`.

@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddSingleton<IAppPaths, MauiAppPaths>();
         services.AddSingleton<IPermissionService, MauiPermissionService>();
         services.AddSingleton<IPhotoCapture, MauiPhotoCapture>();
+        services.AddSingleton<SyncTriggers>();
         return services;
     }
 

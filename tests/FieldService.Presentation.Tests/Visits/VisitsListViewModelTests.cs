@@ -26,12 +26,13 @@ public class VisitsListViewModelTests
         var localizer = new TestLocalizer();
         var formatter = new VisitFormatter(localizer, clock.Object);
         return new VisitsListViewModel(
-            new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), clock.Object),
+            new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IVisitListSnapshotStore>(), clock.Object),
             new VisitItemFactory(formatter),
             formatter,
             _feedback.Object,
             _navigation.Object,
-            new AppState(Mock.Of<IPreferencesStore>()));
+            new AppState(Mock.Of<IPreferencesStore>()),
+            Mock.Of<ISyncScheduler>());
     }
 
     private static VisitSummary Visit(string customer, VisitStatus status) =>

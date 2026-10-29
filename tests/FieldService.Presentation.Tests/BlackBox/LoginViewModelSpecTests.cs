@@ -39,7 +39,7 @@ public class LoginViewModelSpecTests
         _navigation.Setup(n => n.ResetToAsync(It.IsAny<VisitsListRoute>())).ReturnsAsync(NavigationResult.Success);
 
         _vm = new LoginViewModel(new SignInHandler(_auth.Object, Mock.Of<IPreferencesStore>(), Mock.Of<ILocalTechnicianData>()), _preferences.Object, _messages.Object, _navigation.Object,
-            new StartupNavigator(Mock.Of<IFlowDraftStore>(), Mock.Of<IUserFeedback>(), _navigation.Object));
+            new StartupNavigator(Mock.Of<IFlowDraftStore>(), Mock.Of<IUserFeedback>(), _navigation.Object, Mock.Of<ISyncScheduler>()));
     }
 
     private void Fill(string email, string pin)

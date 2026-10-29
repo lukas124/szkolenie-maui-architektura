@@ -19,7 +19,7 @@ internal sealed class VisitRow
     public string? CancelReason { get; set; }
     public int Version { get; set; }
 
-    // wersja z serwera (ostatnie pobranie); Version ≠ ServerVersion = lokalne zmiany technika jeszcze niewysłane
+    // wersja z serwera (ostatnie pobranie albo odpowiedź na wysłaną zmianę) – idzie w If-Match przy wysyłce z outbox
     public int ServerVersion { get; set; }
 
     public string WorkOrderNumber { get; set; } = "";

@@ -26,6 +26,27 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
   się z komunikatu `WeakReferenceMessenger`, nie z zdarzenia singletona. Stan, który musi przeżyć ubicie procesu, zapisujemy
   od razu po zmianie (filtr – `IPreferencesStore`, szkic kreatora – `IFlowDraftStore`).
 
+## Dane offline
+- Zapis najpierw w telefonie: `SqliteVisitRepository.SaveAsync` w jednej transakcji zapisuje wiersz wizyty i wiadomość
+  w tabeli `outbox` dla każdego zdarzenia (`OutboxMessage.From`) – transakcyjna skrzynka nadawcza. Nie wysyłamy z
+  ViewModelu ani z handlera.
+- Wysyła `OutboxProcessor` (`src/FieldService.Infrastructure/Outbox`): w kolejności zapisu, w obrębie wizyty po kolei;
+  `Idempotency-Key` = `OutboxMessage.Id` (nadany przy zapisie), wersja z kolumny `ServerVersion` w `If-Match` i
+  `X-If-Match` (proxy hostingu wycina `If-Match`). `Network`/`Unauthorized` (i limit żądań 429) → stop,
+  `Visit.VersionConflict` → kompensacja (serwer wygrywa: wiadomości wizyty `Failed`, lokalna kopia usunięta, komunikat
+  `SyncErrors.Conflict`), inny błąd → ponowienie w następnym przebiegu, po 5 próbach cała wizyta jak przy konflikcie
+  (`SyncErrors.Rejected`).
+- Outbox i `ISyncScheduler` leżą poza przestrzenią `Visits`, ale niosą tylko zmiany wizyt – `Orders` i `Parts` ich nie
+  używają (`ModuleSharedStateTests`).
+- Kiedy wysyłać decyduje `SyncScheduler` (port `ISyncScheduler`): zapis, logowanie, powrót z tła i odzyskanie sieci
+  (`UI/Platform/SyncTriggers`), „Wyślij teraz”. Nie obiecujemy wysyłki w tle – lista pokazuje „Oczekuje na wysłanie (N)”.
+- „Lokalne zmiany” wizyty = jej oczekujące wiadomości w `outbox`; takiej wizyty dane z serwera nie nadpisują.
+- Lista bez sieci: każda pobrana lista trafia do migawki (`IVisitListSnapshotStore`, tabela `visit_list_snapshot`);
+  przy `ErrorType.Network` `GetTodayVisits` zwraca migawkę (`TodayVisits.OfflineSince`), lista pokazuje
+  „Bez sieci – dane z …”.
+- Dane w telefonie należą do jednego technika: logowanie innego usuwa je (`ILocalTechnicianData.ClearAsync`), a przy
+  oczekujących wiadomościach poprzedniego technika logowanie odmawia – jego zmiany nie mogą pójść z cudzym tokenem.
+
 ## Konwencje
 - Nazwy z języka domeny (`docs/architecture/slownik.md`): `Visit`, `VisitScope`, `CustomerSignature`.
 - Komenda `CompleteVisit` + `CompleteVisitHandler`; zapytanie `GetVisitDetails` → model odczytu `VisitDetails`;
@@ -35,6 +56,7 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 ## Wzorce – tak u nas robimy
 - Reguła biznesowa: metoda agregatu zwraca `Result`, zdarzenie po sprawdzeniu reguły – `src/FieldService.Domain/Visits/Visit.cs`.
 - Przypadek użycia: wczytaj → model → zapisz → `Result` – `src/FieldService.Application/Visits/Commands/CompleteVisit.cs`.
+- Zapis z wiadomością do wysłania w jednej transakcji – `src/FieldService.Infrastructure/Persistence/SqliteVisitRepository.cs`.
 - ViewModel koordynuje, nie formatuje i nie zna stron – `src/FieldService.Presentation/Visits/VisitsListViewModel.cs`.
 - Test agregatu given–when–then bez atrap – `tests/FieldService.Domain.Tests/Visits/VisitTests.cs`;
   test handlera z `InMemoryVisitRepository` i `FixedClock` – `tests/FieldService.Application.Tests/Visits/CompleteVisitHandlerTests.cs`.

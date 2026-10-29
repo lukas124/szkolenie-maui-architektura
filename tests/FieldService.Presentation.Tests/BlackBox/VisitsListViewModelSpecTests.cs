@@ -44,9 +44,9 @@ public class VisitsListViewModelSpecTests
         _navigation = new Mock<INavigationService>();
         _navigation.Setup(n => n.NavigateAsync(It.IsAny<VisitDetailsRoute>())).ReturnsAsync(NavigationResult.Success);
 
-        var handler = new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IClock>(c => c.Now == Now));
+        var handler = new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IVisitListSnapshotStore>(), Mock.Of<IClock>(c => c.Now == Now));
         _vm = new VisitsListViewModel(handler, _items.Object, _formatter.Object, _feedback.Object, _navigation.Object,
-            new AppState(Mock.Of<IPreferencesStore>()));
+            new AppState(Mock.Of<IPreferencesStore>()), Mock.Of<ISyncScheduler>());
     }
 
     // 07: wizyty zmienione w telefonie – tu żadnych

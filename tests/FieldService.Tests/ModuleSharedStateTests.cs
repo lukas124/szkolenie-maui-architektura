@@ -20,7 +20,10 @@ public class ModuleSharedStateTests
         [
             "FieldService.Application.Abstractions.IVisitsGateway", "FieldService.Application.Abstractions.IVisitReplica",
             "FieldService.Application.Abstractions.IFlowDraftStore", "FieldService.Presentation.State",
-            "FieldService.Presentation.Messages.FilterChangedMessage"
+            "FieldService.Presentation.Messages.FilterChangedMessage",
+            // wysyłka zmian wizyt (outbox) – też dane modułu Visits, choć leżą poza jego przestrzenią nazw
+            "FieldService.Application.Abstractions.ISyncScheduler", "FieldService.Presentation.Messages.SyncCompletedMessage",
+            "FieldService.Infrastructure.Outbox"
         ];
 
         foreach (var assembly in new[] { Application, Infrastructure, Presentation })

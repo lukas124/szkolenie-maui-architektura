@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FieldService.Application.Visits.Queries;
+using FieldService.Domain.Common;
 using FieldService.Presentation.Feedback;
 
 namespace FieldService.Presentation.Visits.Completion;
@@ -23,18 +24,25 @@ public abstract partial class CompletionStep : ObservableObject
     public virtual Task<bool> TryLeaveAsync() => Task.FromResult(true);
 
     // Wspólne dla kroków, które zmieniają zakres: po udanej komendzie świeże szczegóły z repliki
-    protected static async Task<bool> ApplyAsync(Task<Domain.Common.Result> command, CompletionDraft draft,
+    protected static async Task<bool> ApplyAsync(Task<Result> command, CompletionDraft draft,
         GetVisitDetailsHandler details, IUserFeedback feedback)
     {
         var result = await command;
         if (!result.IsSuccess)
         {
             await feedback.ShowErrorAsync(result.Error!);
+            // wizyta zmieniła się w międzyczasie (albo serwer odrzucił zmiany z telefonu) – krok pokazuje stan z serwera
+            if (result.Error!.Type is ErrorType.Conflict or ErrorType.NotFound) await RefreshAsync(draft, details);
             return false;
         }
 
+        await RefreshAsync(draft, details);
+        return true;
+    }
+
+    private static async Task RefreshAsync(CompletionDraft draft, GetVisitDetailsHandler details)
+    {
         var fresh = await details.HandleAsync(new GetVisitDetails(draft.VisitId), CancellationToken.None);
         if (fresh.IsSuccess) draft.Details = fresh.Value;
-        return true;
     }
 }

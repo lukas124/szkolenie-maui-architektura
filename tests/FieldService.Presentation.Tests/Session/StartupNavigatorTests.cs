@@ -24,7 +24,7 @@ public class StartupNavigatorTests
         _navigation = new Mock<INavigationService>();
     }
 
-    private StartupNavigator CreateNavigator() => new(_drafts.Object, _feedback.Object, _navigation.Object);
+    private StartupNavigator CreateNavigator() => new(_drafts.Object, _feedback.Object, _navigation.Object, Mock.Of<ISyncScheduler>());
 
     private void DraftExists() =>
         _drafts.Setup(d => d.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new FlowDraft(VisitId, 2));

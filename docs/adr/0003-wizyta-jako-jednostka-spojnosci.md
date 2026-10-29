@@ -29,5 +29,5 @@ dane klienta – migawką w modelu odczytu, zlecenie – tylko identyfikatorem (
 - **Negatywne:** te same reguły są też na serwerze (dwie implementacje do zgrania); spójność ze zleceniem i magazynem
   jest tylko ostateczna – zamknięcie zlecenia i rezerwacja części dzieją się później, po synchronizacji, i mogą się
   nie udać (kompensacja).
-- Do zrobienia: zmiany wizyty trafiają na serwer przez synchronizację (Blok 11); konflikt z serwerem rozstrzyga
-  kompensacja, nie nadpisanie.
+- Zmiany wizyty trafiają na serwer przez outbox (`Infrastructure/Outbox`) z wersją, którą widział telefon; konflikt z
+  serwerem rozstrzyga kompensacja (serwer wygrywa, technik dostaje komunikat), nie nadpisanie.

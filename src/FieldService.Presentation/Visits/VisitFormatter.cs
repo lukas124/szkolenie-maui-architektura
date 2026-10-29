@@ -51,6 +51,15 @@ public sealed class VisitFormatter(ILocalizer localizer, IClock clock) : IVisitF
         string.Format(localizer["Visits_LastUpdated"],
             Local(clock.Now).ToString(localizer["Format_Time"], localizer.CurrentCulture));
 
+    public string FormatOfflineSince(DateTimeOffset savedAt)
+    {
+        var local = Local(savedAt);
+        var format = localizer[local.Date == Local(clock.Now).Date ? "Format_Time" : "Format_DayTime"];
+        return string.Format(localizer["Visits_OfflineSince"], local.ToString(format, localizer.CurrentCulture));
+    }
+
+    public string FormatPending(int count) => string.Format(localizer.CurrentCulture, localizer["Visits_PendingSync"], count);
+
     // chwila w strefie czasowej telefonu, z czasem letnim albo zimowym obowiązującym tego dnia
     private DateTimeOffset Local(DateTimeOffset moment) => TimeZoneInfo.ConvertTime(moment, localizer.TimeZone);
 }

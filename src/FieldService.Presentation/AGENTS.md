@@ -14,6 +14,8 @@ Doprecyzowuje `AGENTS.md` z korzenia dla plików tego projektu.
 - Przepływ kilku kroków (kreator): jedna strona + ViewModele kroków (`CompletionStep`) + stan przepływu Scoped
   (`CompletionDraft`) – bez `if (step is …)`.
 - ViewModel dostaje model odczytu (`VisitDetails`, `VisitSummary`), nigdy agregat ani repozytorium.
+- Wynik pracy w tle (wysyłka zmian) przychodzi komunikatem (`SyncCompletedMessage`, wysyła UI na wątku UI) – ViewModel
+  nie subskrybuje zdarzeń singletona.
 - Teksty przez klucze zasobów (`ILocalizer`, `IUserFeedback`) – wartości w `src/FieldService.UI/Resources/Strings/Strings.resx`.
 - Testy w `tests/FieldService.Presentation.Tests` – bez emulatora: prawdziwe przypadki użycia, porty Application jako
   atrapy (Moq) albo fałszywki (`InMemoryVisitRepository`, `FixedClock`), porty prezentacji jako atrapy.

@@ -37,8 +37,8 @@ Protokół z wizyty (`VisitProtocolBuilder` w `Domain/Protocols`) to osobny mode
 Reguła aplikacyjna (poza agregatem): technik ma w toku najwyżej jedną wizytę – `StartVisitHandler`
 (`IVisitRepository.HasOtherInProgressAsync`), błąd `VisitApplicationErrors.AnotherInProgress`; reguła patrzy na kilka
 wizyt, a agregat zna tylko siebie. Dane w telefonie należą do jednego technika: logowanie innego technika usuwa dane
-poprzedniego (`SignInHandler` + `ILocalTechnicianData`); zmiany wizyt nie są wysyłane na serwer, więc
-`HasUnsentChangesAsync` zawsze zwraca `false` i odmowy (`SessionErrors.UnsentChangesOfOtherTechnician`) tu nie ma. Reguła „część musi być w aucie technika” należy do modelu Magazyn
+poprzedniego (`SignInHandler` + `ILocalTechnicianData`), a gdy czekają niewysłane zmiany – odmawia
+(`SessionErrors.UnsentChangesOfOtherTechnician`). Reguła „część musi być w aucie technika” należy do modelu Magazyn
 i nie blokuje `UsePart`.
 
 ## Przypadki użycia (`src/FieldService.Application/Visits`)
@@ -46,7 +46,7 @@ i nie blokuje `UsePart`.
 - komendy (`Commands`): `StartVisit`, `RecordActivity`, `UsePart`, `RemoveUsedPart`, `SignByCustomer`,
   `CompleteVisit`, `AddVisitPhoto` – każda z handlerem `…Handler`; wzór: `CompleteVisitHandler`
   (wczytaj → model → zapisz → `Result`);
-- zapytania (`Queries`): `GetTodayVisits(OnlyOverdue, Status)` → `VisitSummary` (filtr i „spóźniona” według
+- zapytania (`Queries`): `GetTodayVisits(OnlyOverdue, Status)` → `TodayVisits` (`VisitSummary` + `OfflineSince` – bez sieci z migawki; filtr i „spóźniona” według
   `OverdueVisitSpecification` z Domain), `GetVisitDetails` → `VisitDetails`, `GetVisitProtocol` → `VisitProtocol`
   (z migawką `CustomerSnapshot`).
 
@@ -59,19 +59,37 @@ i nie blokuje `UsePart`.
 | `IFlowDraftStore` (szkic kreatora) | Application/Abstractions | `SqliteFlowDraftStore` (tabela `flow_drafts`) | Infrastructure/Persistence |
 | `IPreferencesStore` (filtr listy) | Application/Abstractions | `MauiPreferencesStore` | UI/Platform |
 | `IVisitsGateway` | Application/Abstractions | `HttpVisitsGateway` + `VisitDtoMapper` (ACL) | Infrastructure/Visits |
+| `ISyncScheduler` (wysyłka zmian) | Application/Abstractions | `SyncScheduler` + `OutboxProcessor` (tabela `outbox`) | Infrastructure/Outbox |
+| `IOutboxSender` (wiadomość → żądanie) | Infrastructure/Outbox | `HttpVisitsGateway.SendAsync` | Infrastructure/Visits |
 | `IVisitPhotoStore` | Application/Abstractions | `SqliteVisitPhotoStore` | Infrastructure/Persistence |
 | `ILocalTechnicianData` (dane technika w telefonie) | Application/Abstractions | `SqliteTechnicianData` | Infrastructure/Persistence |
+| `IVisitListSnapshotStore` (lista bez sieci) | Application/Abstractions | `SqliteVisitListSnapshotStore` (tabela `visit_list_snapshot`) | Infrastructure/Persistence |
 | `IClock` | Application/Abstractions | `SystemClock` | Infrastructure |
 | `IInventoryGateway` | Application/Abstractions | `HttpInventoryGateway` | Infrastructure/Inventory |
 | `IPermissionService` | Application/Abstractions | `MauiPermissionService` | UI/Platform |
 | `IPhotoCapture` | Application/Abstractions | `MauiPhotoCapture` | UI/Platform |
+
+Mapa wiadomość → żądanie (`HttpVisitsGateway.SendAsync`, nagłówki `Idempotency-Key`, `If-Match` i `X-If-Match`):
+
+| Zdarzenie | Żądanie |
+|---|---|
+| `VisitStarted` | `POST api/visits/{id}/start` |
+| `ActivityRecorded` | `POST api/visits/{id}/activities` |
+| `PartUsed` | `POST api/visits/{id}/parts` |
+| `PartRemoved` | `DELETE api/visits/{id}/parts/{partId}` |
+| `CustomerSigned` | `PUT api/visits/{id}/signature` |
+| `VisitCompleted` | `POST api/visits/{id}/complete` |
+
+`CustomerSignatureInvalidated` nie idzie na serwer (serwer unieważnia podpis sam po zmianie zakresu), `VisitCancelled`
+też nie (anuluje dyspozytor).
 
 Rejestracje: `AddInfrastructure` (`src/FieldService.Infrastructure/DependencyInjection.cs`) i `AddPlatformServices`
 (`src/FieldService.UI/DependencyInjection.cs`).
 
 ## Prezentacja
 
-`VisitsListViewModel` (lista na dziś, `VisitItemFactory`, `VisitFormatter`), `VisitDetailsViewModel` (Rozpocznij, Dodaj
+`VisitsListViewModel` (lista na dziś, `VisitItemFactory`, `VisitFormatter`, licznik „Oczekuje na wysłanie (N)” i
+„Wyślij teraz”, komunikaty `FilterChangedMessage` i `SyncCompletedMessage`), `VisitDetailsViewModel` (Rozpocznij, Dodaj
 zdjęcie, Zakończ wizytę → kreator) i kreator zakończenia w `Visits/Completion` (`CompleteVisitFlowViewModel` + kroki
 `ActivitiesStepViewModel`, `PartsStepViewModel`, `SignatureStepViewModel`, `SummaryStepViewModel`, stan `CompletionDraft`)
 w `src/FieldService.Presentation/Visits`; protokół w ostatnim kroku z zapytania `GetVisitProtocol` (ceny z katalogu
@@ -89,7 +107,10 @@ części `IInventoryGateway.GetPartCatalogAsync` – `GET api/parts`). Trasy mod
 | protokół | `tests/FieldService.Domain.Tests/Protocols/VisitProtocolBuilderTests.cs` |
 | przypadki użycia (z `InMemoryVisitRepository`, `FixedClock`) | `tests/FieldService.Application.Tests/Visits/*HandlerTests.cs` |
 | repozytorium SQLite | `tests/FieldService.Infrastructure.Tests/Persistence/SqliteVisitRepositoryTests.cs`, `VisitRepositoryContract.cs` |
+| lista bez sieci (migawka) | `tests/FieldService.Application.Tests/Visits/GetTodayVisitsSnapshotTests.cs`, `tests/FieldService.Infrastructure.Tests/Persistence/SqliteVisitListSnapshotStoreTests.cs`, `tests/FieldService.Presentation.Tests/Visits/VisitsListOfflineTests.cs` |
 | dane technika w telefonie (zmiana technika) | `tests/FieldService.Application.Tests/Session/SignInHandlerTests.cs`, `tests/FieldService.Infrastructure.Tests/Persistence/SqliteTechnicianDataTests.cs` |
+| outbox (zapis w transakcji, wysyłka, kompensacja) | `tests/FieldService.Infrastructure.Tests/Outbox/OutboxTests.cs`, `OutboxMessageTests.cs`, `SyncSchedulerTests.cs` |
+| wiadomość → żądanie HTTP | `tests/FieldService.Infrastructure.Tests/Visits/HttpVisitsGatewaySendTests.cs` |
 | ViewModele | `tests/FieldService.Presentation.Tests/Visits/*Tests.cs` |
 | reguła zależności | `tests/FieldService.Tests/LayerDependencyTests.cs` |
 
