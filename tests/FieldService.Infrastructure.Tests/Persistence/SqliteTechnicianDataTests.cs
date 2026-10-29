@@ -1,3 +1,4 @@
+using FieldService.Application.Abstractions;
 using FieldService.Domain.Visits;
 using FieldService.Infrastructure.Persistence;
 using FieldService.TestDoubles;
@@ -46,6 +47,7 @@ public class SqliteTechnicianDataTests
         await File.WriteAllTextAsync(photoFile, "jpg");
         var photos = new SqliteVisitPhotoStore(_db);
         await photos.AddAsync(visit.Id, photoFile, FixedClock.DefaultNow, CancellationToken.None);
+        await new SqliteFlowDraftStore(_db).SaveAsync(new FlowDraft(visit.Id, 2), CancellationToken.None);
 
         await _data.ClearAsync(CancellationToken.None);
 
@@ -54,6 +56,13 @@ public class SqliteTechnicianDataTests
             Assert.That(await _visits.GetAsync(visit.Id, CancellationToken.None), Is.Null);
             Assert.That(await photos.CountAsync(visit.Id, CancellationToken.None), Is.EqualTo(0));
             Assert.That(File.Exists(photoFile), Is.False);
+            Assert.That(await DraftCountAsync(), Is.EqualTo(0));
         });
+    }
+
+    private async Task<int> DraftCountAsync()
+    {
+        var connection = await _db.GetConnectionAsync();
+        return await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM flow_drafts");
     }
 }

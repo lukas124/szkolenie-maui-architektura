@@ -1,3 +1,4 @@
+using FieldService.Presentation.State;
 using FieldService.Application.Abstractions;
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Common;
@@ -29,7 +30,8 @@ public class VisitsListViewModelTests
             new VisitItemFactory(formatter),
             formatter,
             _feedback.Object,
-            _navigation.Object);
+            _navigation.Object,
+            new AppState(Mock.Of<IPreferencesStore>()));
     }
 
     private static VisitSummary Visit(string customer, VisitStatus status) =>
@@ -81,7 +83,7 @@ public class VisitsListViewModelTests
     }
 
     [Test]
-    public async Task OnAppearingAsync_BeforeFirstLoad_DoesNotLoad_AfterNavigation_Reloads()
+    public async Task OnAppearingAsync_BeforeFirstLoad_DoesNotLoad_AfterReturnFromDetails_Reloads()
     {
         _gateway.Setup(g => g.GetTodayAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<VisitSummary>>.Success([Visit("Anna", VisitStatus.Planned)]));
@@ -89,7 +91,9 @@ public class VisitsListViewModelTests
 
         await vm.OnAppearingAsync();
         await vm.OnNavigatedToAsync(new VisitsListRoute());
-        await vm.OnAppearingAsync();
+        await vm.OnAppearingAsync(); // np. po zamknięciu filtra – przeładowuje komunikat, nie pojawienie się
+        await vm.OpenVisitCommand.ExecuteAsync(vm.Visits[0]);
+        await vm.OnAppearingAsync(); // powrót ze szczegółów
 
         _gateway.Verify(g => g.GetTodayAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
     }

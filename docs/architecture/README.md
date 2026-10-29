@@ -36,6 +36,14 @@ Reguły pilnują testy architektury w `tests/FieldService.Tests/LayerDependencyT
 `Application_DoesNotDependOnInfrastructure`, `Presentation_DoesNotReferenceMaui`,
 `Presentation_DoesNotUseAggregateOrRepository`). Czerwony test oznacza złamaną regułę, a nie zły test.
 
+## Moduły
+
+Moduły odpowiadają modelom z mapy kontekstów i są przestrzeniami nazw w pierścieniach: `Visits`, `Parts`/`Inventory`,
+`Orders`, `Protocols`. Każdy moduł prezentacji ma jeden punkt rejestracji (`VisitsModule`, `OrdersModule` – ViewModele
+i trasy), a w UI swoje strony (`VisitsPages`, `OrdersPages`). Kierunek zależności między modułami jest taki jak na mapie
+(downstream zna upstream – tylko tam, gdzie relację realizuje kod w telefonie; `VisitCompleted` do Zleceń płynie przez
+serwer, więc `Visits` i `Orders` się nie znają) – pilnują go `ModuleBoundaryTests` i `ModuleSharedStateTests`.
+
 ## Przepływ żądania
 
 Przykład: technik kończy wizytę jako „naprawioną” (reguła R5).

@@ -1,6 +1,8 @@
 using FieldService.Presentation.Feedback;
 using FieldService.Presentation.Navigation;
+using FieldService.Presentation.Orders;
 using FieldService.Presentation.Session;
+using FieldService.Presentation.State;
 using FieldService.Presentation.Visits;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,9 +18,13 @@ public static class DependencyInjection
 
         var routes = new RouteMap().Map<LoginRoute, LoginViewModel>();
         services.AddSingleton(routes);
+        services.AddSingleton<IAppState, AppState>();
         services.AddTransient<LoginViewModel>();
+        services.AddTransient<StartupNavigator>();
 
+        // Moduły = modele z mapy kontekstów, które mają ekrany w aplikacji
         services.AddVisitsPresentation(routes);
+        services.AddOrdersPresentation(routes);
         return services;
     }
 }

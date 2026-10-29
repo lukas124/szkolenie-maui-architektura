@@ -4,7 +4,8 @@ Wszechobecny język: te same słowa w rozmowie z biznesem, na ekranie, w testach
 
 | Pojęcie | Znaczenie w FieldService | W kodzie |
 |---|---|---|
-| Zlecenie | sprawa klienta: urządzenie, adres, usterka, termin SLA; należy do modelu Zlecenia (serwer) | `VisitDetails.WorkOrderNumber` (tylko numer – model na serwerze) |
+| Zlecenie | sprawa klienta: urządzenie, adres, usterka, termin SLA; należy do modelu Zlecenia (serwer) | `Orders/WorkOrderSummary` („Moje zlecenia”), `VisitDetails.WorkOrderNumber` |
+| Spóźniona wizyta | zaplanowana, a jej okno już się zaczęło | `OverdueVisitSpecification`, `VisitSummary.IsLate`, filtr „Tylko spóźnione” |
 | Wizyta | jedna obecność technika u klienta w ramach zlecenia; ma przebieg, zakres prac, podpis i wynik | `Visit` (agregat, `VisitId`) |
 | Zakres prac | to, co klient podpisuje: czynności i zużyte części; zmienia się w trakcie wizyty | `VisitScope`, `Visit.ScopeVersion` |
 | Czynność | wykonana praca (kod czynności i opis) | `Activity`, `Visit.RecordActivity` |

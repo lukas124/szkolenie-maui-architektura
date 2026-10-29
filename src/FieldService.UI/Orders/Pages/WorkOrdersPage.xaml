@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- „Moje zlecenia” (moduł Orders) – model odczytu z serwera -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:orders="clr-namespace:FieldService.Presentation.Orders;assembly=FieldService.Presentation"
+                xmlns:queries="clr-namespace:FieldService.Application.Orders.Queries;assembly=FieldService.Application"
+                x:Class="FieldService.UI.Orders.Pages.WorkOrdersPage"
+                x:DataType="orders:WorkOrdersViewModel"
+                Title="{loc:Translate WorkOrders_Title}"
+                CanNavigateBack="True">
+    <CollectionView ItemsSource="{Binding WorkOrders}" SelectionMode="None">
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="queries:WorkOrderSummary">
+                <Border Style="{StaticResource Card}" Margin="16,6">
+                    <VerticalStackLayout Spacing="4">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="{Binding Number}" Style="{StaticResource SectionHeader}" />
+                            <Label Grid.Column="1" Text="{Binding Status, Converter={StaticResource ResourceText}, ConverterParameter=Orders_Status_}" Style="{StaticResource Caption}" />
+                        </Grid>
+                        <Label Text="{Binding CustomerName}" Style="{StaticResource CardTitle}" />
+                        <Label Text="{Binding Address}" Style="{StaticResource Body}" />
+                        <Label Text="{Binding SlaDueAt, StringFormat={loc:TranslateFormat WorkOrders_SlaDue}}" Style="{StaticResource Caption}" />
+                        <Label Text="{Binding VisitCount, StringFormat={loc:TranslateFormat WorkOrders_VisitCount}}" Style="{StaticResource Caption}" />
+                    </VerticalStackLayout>
+                </Border>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</pages:BasePage>

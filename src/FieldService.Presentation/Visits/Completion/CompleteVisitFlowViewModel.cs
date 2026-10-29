@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FieldService.Application.Abstractions;
 using FieldService.Application.Visits.Commands;
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Visits;
@@ -19,11 +20,14 @@ public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigat
     private readonly IUserFeedback _feedback;
     private readonly INavigationService _navigation;
     private readonly ILocalizer _localizer;
+    private readonly IFlowDraftStore _drafts;
 
     public CompleteVisitFlowViewModel(CompletionDraft draft, ActivitiesStepViewModel activities, PartsStepViewModel parts,
         SignatureStepViewModel signature, SummaryStepViewModel summary, GetVisitDetailsHandler details,
-        CompleteVisitHandler complete, IUserFeedback feedback, INavigationService navigation, ILocalizer localizer)
+        CompleteVisitHandler complete, IUserFeedback feedback, INavigationService navigation, ILocalizer localizer,
+        IFlowDraftStore drafts)
     {
+        _drafts = drafts;
         _draft = draft;
         _details = details;
         _complete = complete;
@@ -56,15 +60,20 @@ public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigat
     {
         _draft.VisitId = route.Id;
         var details = await _details.HandleAsync(new GetVisitDetails(route.Id), CancellationToken.None);
-        if (!details.IsSuccess)
+        if (!details.IsSuccess || details.Value.Status != VisitStatus.InProgress)
         {
-            await _feedback.ShowErrorAsync(details.Error!);
-            await _navigation.CloseModalAsync(); // pusty kreator nic nie da – wracamy do szczegółów
+            // wizyty nie ma albo nie jest w trakcie (np. zakończona na drugim telefonie) – szkic nieaktualny
+            if (!details.IsSuccess) await _feedback.ShowErrorAsync(details.Error!);
+            await _drafts.ClearAsync(CancellationToken.None);
+            await _navigation.CloseModalAsync();
             return;
         }
 
         _draft.Details = details.Value;
-        await ShowAsync(0);
+        // Powrót po ubiciu procesu: zapisany szkic tej wizyty → ten sam krok (zapisane czynności i części są w wizycie)
+        var saved = await _drafts.GetAsync(CancellationToken.None);
+        var step = saved?.VisitId == route.Id ? Math.Clamp(saved.StepIndex, 0, Steps.Count - 1) : 0;
+        await ShowAsync(step);
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
@@ -83,7 +92,11 @@ public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigat
 
     // Przerwanie kreatora: to, co technik już zapisał w krokach (czynności, części), zostaje w wizycie
     [RelayCommand]
-    private Task CancelAsync() => _navigation.CloseModalAsync();
+    private async Task CancelAsync()
+    {
+        await _drafts.ClearAsync(CancellationToken.None);
+        await _navigation.CloseModalAsync();
+    }
 
     // Ostatni krok: przypadek użycia zakończenia wizyty, po zapisie zamykamy kreator i wracamy na listę
     private async Task FinishAsync()
@@ -95,6 +108,7 @@ public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigat
             return;
         }
 
+        await _drafts.ClearAsync(CancellationToken.None);
         await _navigation.CloseModalAsync();
         await _navigation.GoBackAsync();
     }
@@ -105,6 +119,8 @@ public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigat
         CurrentIndex = index;
         CurrentStep = Steps[index];
         CurrentStep.PropertyChanged += OnStepChanged;
+        // Szkic zapisany od razu po zmianie kroku – system może ubić proces w tle, zanim okno dostanie Stopped
+        await _drafts.SaveAsync(new FlowDraft(_draft.VisitId, index), CancellationToken.None);
         await CurrentStep.OnShownAsync();
         NextCommand.NotifyCanExecuteChanged();
     }

@@ -13,7 +13,8 @@ public partial class LoginViewModel(
     SignInHandler signIn,
     IPreferencesStore preferences,
     IErrorMessageProvider messages,
-    INavigationService navigation) : BaseViewModel
+    INavigationService navigation,
+    StartupNavigator startup) : BaseViewModel
 {
     private const string EmailKey = "last_email";
 
@@ -44,5 +45,6 @@ public partial class LoginViewModel(
         preferences.Set(EmailKey, Email.Trim());
         Pin = string.Empty;
         await navigation.ResetToAsync(new VisitsListRoute());
+        await startup.ResumeAsync();
     }
 }
