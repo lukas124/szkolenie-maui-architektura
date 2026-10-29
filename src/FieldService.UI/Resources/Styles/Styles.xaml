@@ -7,18 +7,14 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <!-- ===== Strony i nawigacja ===== -->
-    <!-- Systemowy pasek nawigacji z tytułem strony (własny nagłówek – szablon PageTemplate – dojdzie w Bloku 03) -->
+    <!-- NavigationPage.HasNavigationBar = False: systemowy pasek nawigacji ukryty — nagłówek rysuje szablon PageTemplate (Templates/PageTemplate.xaml) -->
     <Style x:Key="PageStyle" TargetType="Page">
+        <Setter Property="NavigationPage.HasNavigationBar" Value="False" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}" />
     </Style>
-    <!-- Uwaga: element dostaje tylko JEDEN styl implicit (najbliższy typ), stąd ApplyToDerivedTypes i BasedOn -->
+    <!-- Uwaga: element dostaje tylko JEDEN styl implicit (najbliższy typ), stąd BasedOn w stylu BasePage (App.xaml) -->
     <Style TargetType="Page" ApplyToDerivedTypes="True" BasedOn="{StaticResource PageStyle}" />
-    <!-- Pasek nawigacji: kolory tła i tekstu (tytuł, przycisk wstecz, przyciski paska) -->
-    <Style TargetType="NavigationPage">
-        <Setter Property="BarBackgroundColor" Value="{AppThemeBinding Light={StaticResource BackgroundLight}, Dark={StaticResource BackgroundDark}}" />
-        <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
-    </Style>
 
     <!-- ===== Tekst ===== -->
     <!-- implicit: bez x:Key – dotyczy WSZYSTKICH Label w aplikacji -->
@@ -40,7 +36,7 @@
         <Setter Property="FontSize" Value="20" />
     </Style>
 
-    <!-- Tytuł w nagłówku strony -->
+    <!-- Tytuł w nagłówku strony (PageTemplate) -->
     <Style x:Key="HeaderTitle" TargetType="Label">
         <Setter Property="FontFamily" Value="MonoBold" />
         <Setter Property="FontSize" Value="17" />

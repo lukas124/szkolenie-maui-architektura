@@ -1,15 +1,8 @@
-using FieldService.Presentation.Session;
+using FieldService.UI.Pages;
 
 namespace FieldService.UI.Session.Pages;
 
-public partial class LoginPage : ContentPage
+public partial class LoginPage : BasePage
 {
-    public LoginPage(LoginViewModel viewModel)
-    {
-        InitializeComponent();
-        BindingContext = ViewModel = viewModel;
-    }
-
-    // App (korzeń kompozycji) reaguje na SignedIn i pokazuje listę wizyt
-    public LoginViewModel ViewModel { get; }
+    public LoginPage() => InitializeComponent();
 }

@@ -1,12 +1,8 @@
-using FieldService.Presentation.Visits;
+using FieldService.UI.Pages;
 
 namespace FieldService.UI.Visits.Pages;
 
-public partial class VisitDetailsPage : ContentPage
+public partial class VisitDetailsPage : BasePage
 {
-    public VisitDetailsPage(VisitItem visit)
-    {
-        InitializeComponent();
-        BindingContext = visit;
-    }
+    public VisitDetailsPage() => InitializeComponent();
 }

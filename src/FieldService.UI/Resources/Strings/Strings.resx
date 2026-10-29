@@ -10,18 +10,23 @@
   <data name="Error_Network" xml:space="preserve"><value>Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie.</value></data>
   <data name="Error_Unauthorized" xml:space="preserve"><value>Sesja wygasła. Zaloguj się ponownie.</value></data>
   <data name="Error_Unexpected" xml:space="preserve"><value>Nieoczekiwany błąd. Spróbuj ponownie za chwilę.</value></data>
-  <data name="Login_InvalidCredentials" xml:space="preserve"><value>Nieprawidłowy e-mail lub PIN.</value></data>
+  <data name="Error_Auth.InvalidCredentials" xml:space="preserve"><value>Nieprawidłowy e-mail lub PIN.</value></data>
   <data name="Visits_Status_Planned" xml:space="preserve"><value>Zaplanowana</value></data>
   <data name="Visits_Status_Late" xml:space="preserve"><value>Spóźniona</value></data>
   <data name="Visits_Status_InProgress" xml:space="preserve"><value>W trakcie</value></data>
   <data name="Visits_Status_Completed" xml:space="preserve"><value>Zakończona</value></data>
   <data name="Visits_Status_Cancelled" xml:space="preserve"><value>Anulowana</value></data>
-  <data name="Visits_StartsIn" xml:space="preserve"><value>{0} · za {1} min</value></data>
+  <data name="Visits_StartsIn" xml:space="preserve"><value>za {0} min</value></data>
   <data name="Visits_Summary" xml:space="preserve"><value>Zakończone: {0} z {1} · do zrobienia: {2}</value></data>
   <data name="Visits_Empty" xml:space="preserve"><value>Brak wizyt na dziś</value></data>
   <data name="Visits_LastUpdated" xml:space="preserve"><value>Aktualizacja: {0}</value></data>
+  <data name="Common_Yes" xml:space="preserve"><value>Tak</value></data>
+  <data name="Common_No" xml:space="preserve"><value>Nie</value></data>
   <data name="Visits_Today" xml:space="preserve"><value>dziś</value></data>
   <data name="Visits_Tomorrow" xml:space="preserve"><value>jutro</value></data>
+  <!-- Wzorce dat i godzin (składnia formatów .NET). Każdy język ma własne, nazwy dni i AM/PM daje kultura. -->
+  <data name="Format_Time" xml:space="preserve"><value>H:mm</value></data>
+  <data name="Format_Day" xml:space="preserve"><value>ddd dd.MM</value></data>
   <!-- Napisy stron (klucz Ekran_Nazwa). XAML bierze je przez {loc:Translate Klucz}. -->
   <data name="Login_Subtitle" xml:space="preserve"><value>Wizyty serwisowe w terenie. Zaloguj się, żeby zobaczyć wizyty na dziś.</value></data>
   <data name="Login_EmailLabel" xml:space="preserve"><value>E-MAIL</value></data>
@@ -31,8 +36,6 @@
   <data name="Login_SignIn" xml:space="preserve"><value>Zaloguj</value></data>
   <data name="Login_TrainingHint" xml:space="preserve"><value>Szkolenie: dowolny adres e-mail i PIN 1234.</value></data>
   <data name="VisitsList_Title" xml:space="preserve"><value>Wizyty na dziś</value></data>
-  <data name="VisitsList_Refresh" xml:space="preserve"><value>Odśwież</value></data>
-  <data name="VisitsList_Empty" xml:space="preserve"><value>Brak wizyt</value></data>
   <data name="VisitsList_Brigade" xml:space="preserve"><value>Brygada (2 techników)</value></data>
   <data name="VisitDetails_Title" xml:space="preserve"><value>Wizyta</value></data>
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>URZĄDZENIE I USTERKA</value></data>

@@ -2,18 +2,21 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FieldService.Application.Abstractions;
 using FieldService.Application.Session;
-using FieldService.Domain.Common;
 using FieldService.Presentation.Common;
+using FieldService.Presentation.Feedback;
+using FieldService.Presentation.Navigation;
+using FieldService.Presentation.Visits;
 
 namespace FieldService.Presentation.Session;
 
 // Logowanie technika: dowolny e-mail + PIN 1234. Ostatni e-mail zapamiętany w telefonie.
-public partial class LoginViewModel(SignInHandler signIn, IPreferencesStore preferences, ILocalizer localizer) : ObservableObject
+public partial class LoginViewModel(
+    SignInHandler signIn,
+    IPreferencesStore preferences,
+    IErrorMessageProvider messages,
+    INavigationService navigation) : BaseViewModel
 {
     private const string EmailKey = "last_email";
-
-    // Po udanym logowaniu korzeń kompozycji (App) pokazuje listę wizyt
-    public event EventHandler? SignedIn;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SignInCommand))]
@@ -35,17 +38,12 @@ public partial class LoginViewModel(SignInHandler signIn, IPreferencesStore pref
         var result = await signIn.HandleAsync(new SignIn(Email, Pin), ct);
         if (!result.IsSuccess)
         {
-            ErrorMessage = result.Error!.Type switch
-            {
-                ErrorType.Unauthorized => localizer["Login_InvalidCredentials"],
-                ErrorType.Network => localizer["Error_Network"],
-                _ => localizer["Error_Unexpected"]
-            };
+            ErrorMessage = messages.GetMessage(result.Error!);
             return;
         }
 
         preferences.Set(EmailKey, Email.Trim());
         Pin = string.Empty;
-        SignedIn?.Invoke(this, EventArgs.Empty);
+        await navigation.ResetToAsync<VisitsListViewModel>();
     }
 }
