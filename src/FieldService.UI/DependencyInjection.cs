@@ -6,6 +6,7 @@ using FieldService.UI.Platform;
 using FieldService.UI.Session.Pages;
 using FieldService.Presentation.Session;
 using FieldService.UI.Orders;
+using FieldService.UI.Parts;
 using FieldService.UI.Visits;
 
 namespace FieldService.UI;
@@ -37,6 +38,7 @@ public static class DependencyInjection
         services.AddPage<LoginPage, LoginViewModel>();
         services.AddVisitsPages();
         services.AddOrdersPages();
+        services.AddPartsPages();
         return services;
     }
 }

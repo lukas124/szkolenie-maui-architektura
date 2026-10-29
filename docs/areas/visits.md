@@ -48,7 +48,8 @@ i nie blokuje `UsePart`.
   (wczytaj → model → zapisz → `Result`);
 - zapytania (`Queries`): `GetTodayVisits(OnlyOverdue, Status)` → `TodayVisits` (`VisitSummary` + `OfflineSince` – bez sieci z migawki; filtr i „spóźniona” według
   `OverdueVisitSpecification` z Domain), `GetVisitDetails` → `VisitDetails`, `GetVisitProtocol` → `VisitProtocol`
-  (z migawką `CustomerSnapshot`).
+  (z migawką `CustomerSnapshot`), `GetVisitHistory(Page, PageSize)` → `VisitHistoryPageResult` (historia – zakończone
+  i anulowane z poprzednich dni, `GET api/visits/history`).
 
 ## Porty i adaptery
 
@@ -94,8 +95,11 @@ zdjęcie, Zakończ wizytę → kreator) i kreator zakończenia w `Visits/Complet
 `ActivitiesStepViewModel`, `PartsStepViewModel`, `SignatureStepViewModel`, `SummaryStepViewModel`, stan `CompletionDraft`)
 w `src/FieldService.Presentation/Visits`; protokół w ostatnim kroku z zapytania `GetVisitProtocol` (ceny z katalogu
 części `IInventoryGateway.GetPartCatalogAsync` – `GET api/parts`). Trasy modułu: `VisitsModule` (`VisitsListRoute`, `VisitDetailsRoute`,
-`CompleteVisitRoute`). Strony: `VisitsListPage`, `VisitDetailsPage`, `CompleteVisitPage` w `src/FieldService.UI/Visits/Pages`
-(rejestr: `VisitsPages`).
+`CompleteVisitRoute`, `VisitHistoryRoute`). Historia: `VisitHistoryViewModel` (stronicowanie – `RemainingItemsThreshold`,
+`BatchObservableCollection.AddRange`), wiersz `VisitHistoryItem` z komendą w modelu elementu (`OpenCommand`),
+`IVisitItemFactory.CreateHistory`. Strony: `VisitsListPage`, `VisitDetailsPage`, `CompleteVisitPage`, `VisitHistoryPage`
+w `src/FieldService.UI/Visits/Pages` (rejestr: `VisitsPages`); status w wierszu historii – kontrolka
+`src/FieldService.UI/Controls/StatusBadge`. Lista przeglądu XAML: [`docs/ai/review-xaml.md`](../ai/review-xaml.md).
 
 ## Testy
 

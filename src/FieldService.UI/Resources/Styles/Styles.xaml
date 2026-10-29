@@ -145,6 +145,55 @@
         <Setter Property="Padding" Value="16" />
     </Style>
 
+    <!-- Wiersz listy: jeden Grid na wiersz (płaski układ – mało elementów do zmierzenia) -->
+    <Style x:Key="ListRow" TargetType="Grid">
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="ColumnSpacing" Value="12" />
+        <Setter Property="RowSpacing" Value="2" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}" />
+    </Style>
+
+    <!-- ===== Plakietki statusu (Controls/StatusBadge) – tło (Badge.*) i tekst (BadgeText.*) według tonu, oba z AppThemeBinding ===== -->
+    <Style x:Key="Badge" TargetType="Border">
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 6" />
+        <Setter Property="Padding" Value="8,2" />
+    </Style>
+    <Style x:Key="Badge.Neutral" TargetType="Border" BasedOn="{StaticResource Badge}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BadgeNeutralLight}, Dark={StaticResource BadgeNeutralDark}}" />
+    </Style>
+    <Style x:Key="Badge.Info" TargetType="Border" BasedOn="{StaticResource Badge}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BadgeInfoLight}, Dark={StaticResource BadgeInfoDark}}" />
+    </Style>
+    <Style x:Key="Badge.Success" TargetType="Border" BasedOn="{StaticResource Badge}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BadgeSuccessLight}, Dark={StaticResource BadgeSuccessDark}}" />
+    </Style>
+    <Style x:Key="Badge.Warning" TargetType="Border" BasedOn="{StaticResource Badge}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BadgeWarningLight}, Dark={StaticResource BadgeWarningDark}}" />
+    </Style>
+    <Style x:Key="Badge.Danger" TargetType="Border" BasedOn="{StaticResource Badge}">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BadgeDangerLight}, Dark={StaticResource BadgeDangerDark}}" />
+    </Style>
+    <Style x:Key="BadgeText" TargetType="Label">
+        <Setter Property="FontFamily" Value="PlexSemiBold" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style x:Key="BadgeText.Neutral" TargetType="Label" BasedOn="{StaticResource BadgeText}">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource BadgeNeutralTextLight}, Dark={StaticResource BadgeNeutralTextDark}}" />
+    </Style>
+    <Style x:Key="BadgeText.Info" TargetType="Label" BasedOn="{StaticResource BadgeText}">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource BadgeInfoTextLight}, Dark={StaticResource BadgeInfoTextDark}}" />
+    </Style>
+    <Style x:Key="BadgeText.Success" TargetType="Label" BasedOn="{StaticResource BadgeText}">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource BadgeSuccessTextLight}, Dark={StaticResource BadgeSuccessTextDark}}" />
+    </Style>
+    <Style x:Key="BadgeText.Warning" TargetType="Label" BasedOn="{StaticResource BadgeText}">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource BadgeWarningTextLight}, Dark={StaticResource BadgeWarningTextDark}}" />
+    </Style>
+    <Style x:Key="BadgeText.Danger" TargetType="Label" BasedOn="{StaticResource BadgeText}">
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource BadgeDangerTextLight}, Dark={StaticResource BadgeDangerTextDark}}" />
+    </Style>
+
     <!-- Wypełnienie pola tekstowego (Entry w ramce) -->
     <Style x:Key="InputFrame" TargetType="Border">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceRaisedDark}}" />

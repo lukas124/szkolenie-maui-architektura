@@ -71,6 +71,9 @@
   <data name="Startup_ResumeMessage" xml:space="preserve"><value>Zamykanie wizyty zostało przerwane. Wrócić do kreatora?</value></data>
   <data name="Startup_Resume" xml:space="preserve"><value>Wróć</value></data>
   <data name="Startup_Discard" xml:space="preserve"><value>Nie, porzuć</value></data>
+  <data name="Visits_Outcome_Fixed" xml:space="preserve"><value>Naprawione</value></data>
+  <data name="Visits_Outcome_NeedsFollowUp" xml:space="preserve"><value>Potrzebna kolejna wizyta</value></data>
+  <data name="Visits_Outcome_NotFixed" xml:space="preserve"><value>Nie naprawiono</value></data>
   <data name="Visits_OfflineSince" xml:space="preserve"><value>Bez sieci – dane z {0}</value></data>
   <data name="Visits_PendingSync" xml:space="preserve"><value>Oczekuje na wysłanie ({0})</value></data>
   <data name="Error_Sync.Conflict" xml:space="preserve"><value>Dyspozytor zmienił wizytę, zanim dotarły zmiany z telefonu. Zmiany odrzucone – widzisz stan z serwera.</value></data>
@@ -92,6 +95,8 @@
   <data name="VisitsList_Filter" xml:space="preserve"><value>Filtr</value></data>
   <data name="VisitsList_FilterOn" xml:space="preserve"><value>Filtr włączony</value></data>
   <data name="VisitsList_WorkOrders" xml:space="preserve"><value>Moje zlecenia</value></data>
+  <data name="VisitsList_History" xml:space="preserve"><value>Historia</value></data>
+  <data name="VisitsList_VanStock" xml:space="preserve"><value>Auto technika</value></data>
   <data name="VisitsList_SendNow" xml:space="preserve"><value>Wyślij teraz</value></data>
   <data name="VisitDetails_Title" xml:space="preserve"><value>Wizyta</value></data>
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>URZĄDZENIE I USTERKA</value></data>
@@ -122,4 +127,12 @@
   <data name="VisitFilter_StatusSection" xml:space="preserve"><value>STATUS</value></data>
   <data name="VisitFilter_Apply" xml:space="preserve"><value>Zastosuj</value></data>
   <data name="VisitFilter_Clear" xml:space="preserve"><value>Wyczyść filtr</value></data>
+  <data name="VisitHistory_Title" xml:space="preserve"><value>Historia wizyt</value></data>
+  <data name="VisitHistory_Empty" xml:space="preserve"><value>Brak wizyt w historii</value></data>
+  <data name="VanStock_Title" xml:space="preserve"><value>Auto technika</value></data>
+  <data name="VanStock_Todo" xml:space="preserve"><value>Ekran do zrobienia z makiety</value></data>
+  <data name="VanStock_Heading" xml:space="preserve"><value>Części w aucie</value></data>
+  <data name="VanStock_Empty" xml:space="preserve"><value>Brak części w aucie</value></data>
+  <data name="VanStock_Quantity" xml:space="preserve"><value>{0} szt.</value></data>
+  <data name="VanStock_QuantityDescription" xml:space="preserve"><value>Sztuk w aucie: {0}</value></data>
 </root>

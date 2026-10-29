@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Historia wizyt – ekran wygenerowany przez LLM z promptu „zrób historię wizyt w XAML” (bez ograniczeń).
+     TODO: Ćwiczenie 12 – przejrzyj ze ściągą docs/ai/review-xaml.md i popraw (karta docs/cwiczenia/12-ui-ai.md);
+     RelativeTimeConverter zostaw – zmierzymy go w Bloku 14. -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                x:Class="FieldService.UI.Visits.Pages.VisitHistoryPage"
+                Title="Historia wizyt"
+                CanNavigateBack="True">
+    <ScrollView>
+        <StackLayout Padding="0,8">
+            <Label Text="Twoje wizyty" FontSize="20" FontAttributes="Bold" TextColor="#212121" Margin="16,8" />
+            <CollectionView ItemsSource="{Binding Visits}" RemainingItemsThreshold="5"
+                            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout Padding="16,8" BackgroundColor="#FFFFFF">
+                            <StackLayout Orientation="Horizontal" Spacing="12">
+                                <Image Source="{Binding PhotoUrl}" WidthRequest="56" HeightRequest="56" Aspect="AspectFill" />
+                                <StackLayout>
+                                    <StackLayout Orientation="Horizontal">
+                                        <Label Text="{Binding CustomerName}" FontSize="16" FontAttributes="Bold" TextColor="#212121" HeightRequest="22" />
+                                        <Label Text="{Binding StatusText}" FontSize="13" TextColor="#D32F2F" HeightRequest="20" HorizontalOptions="EndAndExpand" />
+                                    </StackLayout>
+                                    <Label Text="{Binding VisitDate, Converter={StaticResource RelativeTime}}" FontSize="13" TextColor="#757575" HeightRequest="18" />
+                                    <Label Text="{Binding City}" FontSize="13" TextColor="#757575" HeightRequest="18" />
+                                    <Label Text="{Binding DeviceName}" FontSize="13" TextColor="#757575" HeightRequest="18" />
+                                </StackLayout>
+                            </StackLayout>
+                            <StackLayout.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenVisitCommand}"
+                                                      CommandParameter="{Binding .}" />
+                            </StackLayout.GestureRecognizers>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </StackLayout>
+    </ScrollView>
+</pages:BasePage>

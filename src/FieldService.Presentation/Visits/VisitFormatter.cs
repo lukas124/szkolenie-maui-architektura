@@ -33,6 +33,15 @@ public sealed class VisitFormatter(ILocalizer localizer, IClock clock) : IVisitF
         _ => "Visits_Status_Cancelled"
     }];
 
+    public string FormatOutcome(VisitStatus status, VisitOutcomeType? outcome) => localizer[(status, outcome) switch
+    {
+        (VisitStatus.Cancelled, _) => "Visits_Status_Cancelled",
+        (_, VisitOutcomeType.Fixed) => "Visits_Outcome_Fixed",
+        (_, VisitOutcomeType.NeedsFollowUp) => "Visits_Outcome_NeedsFollowUp",
+        (_, VisitOutcomeType.NotFixed) => "Visits_Outcome_NotFixed",
+        _ => "Visits_Status_Completed"
+    }];
+
     public string? FormatStartsIn(DateTimeOffset from)
     {
         var minutes = (int)Math.Ceiling((from - clock.Now).TotalMinutes);

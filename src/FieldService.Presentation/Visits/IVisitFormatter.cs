@@ -12,6 +12,9 @@ public interface IVisitFormatter
     // „Zaplanowana”, „Spóźniona”, „W trakcie”, „Zakończona”, „Anulowana”
     string FormatStatus(VisitStatus status, bool isLate);
 
+    // historia: „Naprawione”, „Potrzebna kolejna wizyta”, „Nie naprawiono”, „Anulowana”
+    string FormatOutcome(VisitStatus status, VisitOutcomeType? outcome);
+
     // „za 17 min”, gdy wizyta zaczyna się w ciągu godziny; inaczej null
     string? FormatStartsIn(DateTimeOffset from);
 

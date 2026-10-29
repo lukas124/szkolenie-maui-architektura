@@ -41,6 +41,30 @@
     <Color x:Key="InfoColor">#4A90C8</Color>
     <Color x:Key="SuccessColor">#4C9E5F</Color>
 
+    <!-- Tła plakietek statusu (StatusBadge): delikatny odcień koloru znaczeniowego, mocniejszy w trybie ciemnym -->
+    <Color x:Key="BadgeNeutralLight">#1F8C97A0</Color>
+    <Color x:Key="BadgeNeutralDark">#338C97A0</Color>
+    <Color x:Key="BadgeInfoLight">#1F4A90C8</Color>
+    <Color x:Key="BadgeInfoDark">#334A90C8</Color>
+    <Color x:Key="BadgeSuccessLight">#1F4C9E5F</Color>
+    <Color x:Key="BadgeSuccessDark">#334C9E5F</Color>
+    <Color x:Key="BadgeWarningLight">#1FE09B2D</Color>
+    <Color x:Key="BadgeWarningDark">#33E09B2D</Color>
+    <Color x:Key="BadgeDangerLight">#1FE5484D</Color>
+    <Color x:Key="BadgeDangerDark">#33E5484D</Color>
+
+    <!-- Tekst plakietek: w trybie jasnym ciemniejszy odcień (kontrast ≥ 4,5:1 na tle plakietki), w ciemnym jaśniejszy -->
+    <Color x:Key="BadgeNeutralTextLight">#4B555C</Color>
+    <Color x:Key="BadgeNeutralTextDark">#B6C0C7</Color>
+    <Color x:Key="BadgeInfoTextLight">#1D5A87</Color>
+    <Color x:Key="BadgeInfoTextDark">#8CC2EA</Color>
+    <Color x:Key="BadgeSuccessTextLight">#2B6638</Color>
+    <Color x:Key="BadgeSuccessTextDark">#86CF97</Color>
+    <Color x:Key="BadgeWarningTextLight">#7A4E00</Color>
+    <Color x:Key="BadgeWarningTextDark">#F2BE6B</Color>
+    <Color x:Key="BadgeDangerTextLight">#A3201C</Color>
+    <Color x:Key="BadgeDangerTextDark">#FF9599</Color>
+
     <Color x:Key="White">#FFFFFF</Color>
     <Color x:Key="Black">#000000</Color>
 </ResourceDictionary>

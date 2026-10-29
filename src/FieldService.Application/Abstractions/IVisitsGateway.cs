@@ -11,4 +11,7 @@ public interface IVisitsGateway
 
     // Wizyta z serwera: stan (model) + migawka danych do wyświetlenia
     Task<Result<RemoteVisit>> GetVisitAsync(VisitId id, CancellationToken ct);
+
+    // Historia wizyt technika – jedna strona
+    Task<Result<VisitHistoryPageResult>> GetHistoryAsync(int page, int pageSize, CancellationToken ct);
 }

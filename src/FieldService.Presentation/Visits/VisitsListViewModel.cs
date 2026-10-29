@@ -109,6 +109,12 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
     [RelayCommand]
     private Task OpenWorkOrdersAsync() => _navigation.NavigateAsync(new WorkOrdersRoute());
 
+    [RelayCommand]
+    private Task OpenHistoryAsync() => _navigation.NavigateAsync(new VisitHistoryRoute());
+
+    [RelayCommand]
+    private Task OpenVanStockAsync() => _navigation.NavigateAsync(new VanStockRoute());
+
     // true = lista pokazuje tylko część wizyt (widać to na ekranie)
     public bool IsFiltered => _appState.Filter.OnlyOverdue || _appState.Filter.Status is not null;
 

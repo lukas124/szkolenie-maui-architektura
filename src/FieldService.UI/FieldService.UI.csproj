@@ -24,6 +24,10 @@
 
     <!-- Compiled bindings także dla bindingów z ustawionym Source (x:Reference, RelativeSource) -->
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+
+    <!-- Binding bez x:DataType (XC0022, XC0025) = błąd buildu: ostrzeżenia kompilatora XAML nie podlegają
+         TreatWarningsAsErrors, a bariera dla XAML ma działać jak test architektury dla C# -->
+    <MSBuildWarningsAsErrors>$(MSBuildWarningsAsErrors);XC0022;XC0025</MSBuildWarningsAsErrors>
   </PropertyGroup>
 
   <!-- Debug = DEV: osobna aplikacja obok wersji produkcyjnej na tym samym telefonie -->

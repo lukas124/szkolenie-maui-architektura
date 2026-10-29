@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Plakietka statusu – wersja od LLM (prompt: „StatusBadge jako ContentView z BindableProperty Tone i Text”).
+     Do poprawy w ćwiczeniu 12 – trzy błędy (karta docs/cwiczenia/12-ui-ai.md, krok 3), potem użyj kontrolki w wierszu historii. -->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:FieldService.UI.Controls"
+             x:Class="FieldService.UI.Controls.StatusBadge"
+             x:DataType="controls:StatusBadge">
+    <Border Style="{StaticResource Badge}" BackgroundColor="{Binding Tone}" HorizontalOptions="Start">
+        <Label Style="{StaticResource BadgeText}" Text="{Binding Text}" TextColor="White" />
+    </Border>
+</ContentView>

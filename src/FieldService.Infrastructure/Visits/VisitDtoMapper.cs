@@ -50,6 +50,23 @@ internal static class VisitDtoMapper
         return new RemoteVisit(visit, snapshot);
     }
 
+    public static VisitHistoryPageResult ToHistoryPage(VisitHistoryPageDto dto) => new(
+        dto.Items.Select(i => new VisitHistoryEntry(
+            i.Id,
+            i.WorkOrderNumber,
+            ToStatus(i.Status),
+            i.PlannedStart,
+            i.CompletedAt,
+            i.CustomerName,
+            i.City,
+            i.DeviceName,
+            Enum.TryParse<VisitOutcomeType>(i.Outcome, ignoreCase: true, out var outcome) ? outcome : null,
+            i.ThumbnailUrl,
+            // pełny obraz (w liście nie używamy – pułapka startu ćwiczenia 12): ten sam adres bez parametru miniatury
+            i.ThumbnailUrl.Replace("?size=thumb", "", StringComparison.Ordinal))).ToList(),
+        dto.Page,
+        dto.TotalCount);
+
     private static VisitStatus ToStatus(string status) =>
         Enum.TryParse<VisitStatus>(status, ignoreCase: true, out var value) ? value : VisitStatus.Planned;
 }

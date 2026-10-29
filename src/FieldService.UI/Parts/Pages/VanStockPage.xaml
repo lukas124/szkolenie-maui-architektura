@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- „Auto technika” (moduł Parts) – ekran do zrobienia z makiety (docs/ai/makiety/van-stock.png) promptem
+     docs/ai/prompt-xaml.md; ViewModel gotowy: VanStockViewModel. -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:parts="clr-namespace:FieldService.Presentation.Parts;assembly=FieldService.Presentation"
+                x:Class="FieldService.UI.Parts.Pages.VanStockPage"
+                x:DataType="parts:VanStockViewModel"
+                Title="{loc:Translate VanStock_Title}"
+                CanNavigateBack="True">
+    <Label Text="{loc:Translate VanStock_Todo}" Style="{StaticResource Caption}" Margin="16" />
+</pages:BasePage>
