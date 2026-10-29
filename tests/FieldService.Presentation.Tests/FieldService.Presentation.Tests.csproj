@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FieldService.Presentation\FieldService.Presentation.csproj" />
+    <ProjectReference Include="..\FieldService.TestDoubles\FieldService.TestDoubles.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,7 +3,8 @@ using FieldService.UI.Dialogs;
 
 namespace FieldService.UI.Platform;
 
-// Adapter portu IDialogService: dialog jako własna strona modalna (DialogPage) – ten sam wygląd na Androidzie i iOS.
+// Adapter portu IDialogService: dialog i wybór z listy jako własne strony modalne (DialogPage, ChoicePage) – ten sam
+// wygląd na Androidzie i iOS.
 // Port z Bloku 02 zostaje, zmienił się tylko adapter (wcześniej systemowe DisplayAlertAsync).
 public sealed class MauiDialogService : IDialogService
 {
@@ -14,6 +15,24 @@ public sealed class MauiDialogService : IDialogService
 
     public Task<bool> ConfirmAsync(string title, string message, string accept, string cancel) =>
         ShowAsync(title, message, accept, cancel);
+
+    // Wybór z listy: też własna strona modalna (ChoicePage) – bez systemowego arkusza akcji
+    public Task<string?> ChooseAsync(string title, string cancel, IReadOnlyList<string> options) =>
+        MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            if (_isOpen) return null;
+            _isOpen = true;
+            try
+            {
+                var choice = new ChoicePage(title, cancel, options);
+                await CurrentNavigation.PushModalAsync(choice, false);
+                return await choice.Result;
+            }
+            finally
+            {
+                _isOpen = false;
+            }
+        });
 
     private Task<bool> ShowAsync(string title, string message, string accept, string? cancel) =>
         MainThread.InvokeOnMainThreadAsync(async () =>

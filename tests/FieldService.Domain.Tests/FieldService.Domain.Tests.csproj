@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Testy jednostkowe: NUnit + Moq, net10.0, bez emulatora -->
+  <!-- Testy jednostkowe: NUnit bez atrap (agregat testujemy komendami), net10.0, bez emulatora -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
@@ -12,12 +12,10 @@
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="NUnit.Analyzers" />
-    <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="NUnit.Framework" />
-    <Using Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>

@@ -24,6 +24,15 @@ public sealed class VisitFormatter(ILocalizer localizer, IClock clock) : IVisitF
         return $"{day} {start.ToString(time, culture)}–{end.ToString(time, culture)}";
     }
 
+    public string FormatStatus(VisitStatus status, bool isLate) => localizer[status switch
+    {
+        VisitStatus.Planned when isLate => "Visits_Status_Late",
+        VisitStatus.Planned => "Visits_Status_Planned",
+        VisitStatus.InProgress => "Visits_Status_InProgress",
+        VisitStatus.Completed => "Visits_Status_Completed",
+        _ => "Visits_Status_Cancelled"
+    }];
+
     public string? FormatStartsIn(DateTimeOffset from)
     {
         var minutes = (int)Math.Ceiling((from - clock.Now).TotalMinutes);

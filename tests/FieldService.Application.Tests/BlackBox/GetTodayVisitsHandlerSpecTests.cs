@@ -23,8 +23,13 @@ public class GetTodayVisitsHandlerSpecTests
     public void SetUp()
     {
         _gateway = new Mock<IVisitsGateway>();
-        _handler = new GetTodayVisitsHandler(_gateway.Object, Mock.Of<IClock>(c => c.Now == Now));
+        _handler = new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IClock>(c => c.Now == Now));
     }
+
+    // 07: wizyty zmienione w telefonie – tu żadnych
+    private static IVisitReplica EmptyReplica() =>
+        Mock.Of<IVisitReplica>(r => r.GetLocallyChangedStatusesAsync(It.IsAny<CancellationToken>())
+            == Task.FromResult<IReadOnlyDictionary<Guid, VisitStatus>>(new Dictionary<Guid, VisitStatus>()));
 
     private void GatewayReturns(params VisitSummary[] visits) =>
         _gateway.Setup(g => g.GetTodayAsync(It.IsAny<CancellationToken>()))

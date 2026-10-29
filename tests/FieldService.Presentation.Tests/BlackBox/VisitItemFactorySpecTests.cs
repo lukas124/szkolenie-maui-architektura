@@ -24,7 +24,16 @@ public class VisitItemFactorySpecTests
         _formatter = new Mock<IVisitFormatter>();
         _formatter.Setup(f => f.FormatTimeWindow(It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>())).Returns(WindowText);
         _formatter.Setup(f => f.FormatStartsIn(It.IsAny<DateTimeOffset>())).Returns(StartsInText);
-        _factory = new VisitItemFactory(_formatter.Object, new SpecLocalizer());
+        // 07: tekst statusu z formattera (FormatStatus) – atrapa zwraca teksty jak w zasobach
+        _formatter.Setup(f => f.FormatStatus(It.IsAny<VisitStatus>(), It.IsAny<bool>()))
+            .Returns((VisitStatus status, bool isLate) => isLate ? SpecLocalizer.StatusLate : status switch
+            {
+                VisitStatus.InProgress => SpecLocalizer.StatusInProgress,
+                VisitStatus.Completed => SpecLocalizer.StatusCompleted,
+                VisitStatus.Cancelled => SpecLocalizer.StatusCancelled,
+                _ => SpecLocalizer.StatusPlanned
+            });
+        _factory = new VisitItemFactory(_formatter.Object);
     }
 
     [TestCase(VisitStatus.Planned, VisitTone.Neutral, SpecLocalizer.StatusPlanned)]

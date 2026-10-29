@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FieldService.Application.Visits.Queries;
+using FieldService.Domain.Visits;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
 using FieldService.Presentation.Navigation;
@@ -29,7 +30,17 @@ public partial class VisitsListViewModel(
     [ObservableProperty]
     public partial string LastUpdated { get; set; } = "";
 
-    public override Task OnNavigatedToAsync(object? parameter) => LoadAsync(CancellationToken.None);
+    // true = lista była już załadowana (wejście na ekran), kolejne pojawienie się = powrót z innej strony
+    private bool _loaded;
+
+    public override async Task OnNavigatedToAsync(object? parameter)
+    {
+        await LoadAsync(CancellationToken.None);
+        _loaded = true;
+    }
+
+    // Powrót ze szczegółów: technik mógł zmienić wizytę (status z lokalnej repliki) – lista od nowa
+    public override Task OnAppearingAsync() => _loaded ? LoadAsync(CancellationToken.None) : Task.CompletedTask;
 
     [RelayCommand]
     private async Task RefreshAsync(CancellationToken ct)
@@ -39,7 +50,7 @@ public partial class VisitsListViewModel(
     }
 
     [RelayCommand]
-    private Task OpenVisitAsync(VisitItem item) => navigation.NavigateToAsync<VisitDetailsViewModel>(item);
+    private Task OpenVisitAsync(VisitItem item) => navigation.NavigateToAsync<VisitDetailsViewModel>(new VisitId(item.Id));
 
     private async Task LoadAsync(CancellationToken ct)
     {

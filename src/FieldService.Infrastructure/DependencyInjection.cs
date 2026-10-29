@@ -1,5 +1,8 @@
 using FieldService.Application.Abstractions;
+using FieldService.Domain.Visits;
 using FieldService.Infrastructure.Auth;
+using FieldService.Infrastructure.Inventory;
+using FieldService.Infrastructure.Persistence;
 using FieldService.Infrastructure.Visits;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,8 +16,17 @@ public static class DependencyInjection
         services.AddSingleton(options);
         services.AddSingleton<IClock, SystemClock>();
 
+        // lokalna replika wizyt w SQLite: ten sam obiekt jako repozytorium (zapis) i replika (odczyt szczegółów)
+        services.AddSingleton<SqliteDb>();
+        services.AddSingleton<SqliteVisitRepository>();
+        services.AddSingleton<IVisitRepository>(sp => sp.GetRequiredService<SqliteVisitRepository>());
+        services.AddSingleton<IVisitReplica>(sp => sp.GetRequiredService<SqliteVisitRepository>());
+        services.AddSingleton<IVisitPhotoStore, SqliteVisitPhotoStore>();
+        services.AddSingleton<ILocalTechnicianData, SqliteTechnicianData>();
+
         services.AddHttpClient<IVisitsGateway, HttpVisitsGateway>(http => Configure(http, options));
         services.AddHttpClient<IAuthGateway, HttpAuthGateway>(http => Configure(http, options));
+        services.AddHttpClient<IInventoryGateway, HttpInventoryGateway>(http => Configure(http, options));
         return services;
     }
 

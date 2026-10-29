@@ -2,6 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Zdjęcie wizyty: bez opisu iOS zamyka aplikację przy pierwszym użyciu aparatu, a Apple odrzuca build -->
+	<key>NSCameraUsageDescription</key>
+	<string>Aparat służy do robienia zdjęć urządzenia i wykonanych prac dołączanych do wizyty serwisowej.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

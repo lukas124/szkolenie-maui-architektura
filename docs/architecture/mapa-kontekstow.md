@@ -42,11 +42,11 @@ flowchart LR
 
 | Relacja (upstream → downstream) | Strategia | Uzasadnienie | Gdzie w kodzie aplikacji |
 |---|---|---|---|
-| Planowanie → Realizacja wizyty | Customer-Supplier + ACL w aplikacji | Realizacja może prosić o zmiany API planowania; ACL chroni model wizyty przed strukturami grafiku | `Infrastructure/Visits/VisitDtoMapper` (format API → `VisitSummary`) |
-| Realizacja wizyty → Zlecenia | Published Language: zdarzenie publiczne `VisitCompleted(outcome)` | Zlecenia same decydują o zamknięciu („zlecenie nie zamyka się samo”); zdarzenie niesie odpowiedź, nie szczegóły | jeszcze brak w kodzie |
-| Magazyn części → Realizacja wizyty | Open-Host Service Magazynu (komendy `Reserve`, `ReportUsage`) + Conformist po stronie aplikacji | generyk obsługuje wielu klientów (Zlecenia, Realizacja, Zakupy) → OHS z pragmatyczną komendą; konformizm wobec dobrego API generyka jest w porządku | jeszcze brak w kodzie |
-| Realizacja wizyty → Protokoły | Conformist (w procesie, w aplikacji) | transformata przyjmuje migawkę zakresu wizyty; jeden zespół, wspólny cykl wydań | jeszcze brak w kodzie |
-| Klienci i urządzenia → Realizacja wizyty | ACL (migawka klienta w modelu odczytu) | dane klienta to migawka z innego źródła prawdy | `VisitSummary` (nazwa klienta, adres, urządzenie – migawka z listy wizyt) |
+| Planowanie → Realizacja wizyty | Customer-Supplier + ACL w aplikacji | Realizacja może prosić o zmiany API planowania; ACL chroni model wizyty przed strukturami grafiku | `Infrastructure/Visits/VisitDtoMapper` (format API → `VisitSummary`, szczegóły → `Visit` + `VisitSnapshot`) |
+| Realizacja wizyty → Zlecenia | Published Language: zdarzenie publiczne `VisitCompleted(outcome)` | Zlecenia same decydują o zamknięciu („zlecenie nie zamyka się samo”); zdarzenie niesie odpowiedź, nie szczegóły | zdarzenie domenowe `Domain/Visits/Events` `VisitCompleted`; wysyłki na serwer jeszcze brak w kodzie |
+| Magazyn części → Realizacja wizyty | Open-Host Service Magazynu (komendy `Reserve`, `ReportUsage`) + Conformist po stronie aplikacji | generyk obsługuje wielu klientów (Zlecenia, Realizacja, Zakupy) → OHS z pragmatyczną komendą; konformizm wobec dobrego API generyka jest w porządku | `Infrastructure/Inventory/HttpInventoryGateway` (stan auta technika → `VanStockItem`); rezerwacji jeszcze brak w kodzie |
+| Realizacja wizyty → Protokoły | Conformist (w procesie, w aplikacji) | transformata przyjmuje migawkę zakresu wizyty; jeden zespół, wspólny cykl wydań | `Domain/Protocols/VisitProtocolBuilder` (migawka `VisitScope` → `VisitProtocol`) |
+| Klienci i urządzenia → Realizacja wizyty | ACL (migawka klienta w modelu odczytu) | dane klienta to migawka z innego źródła prawdy | `VisitSummary` (lista wizyt) i `CustomerSnapshot` w `VisitDetails` – migawki danych klienta |
 | Tożsamość → wszystkie | Conformist | zewnętrzny standard, zmiany nie bolą | `Infrastructure/Auth/HttpAuthGateway` |
 | Zlecenia, Planowanie → Powiadomienia | OHS Powiadomień (komenda „wyślij”) | generyk nie słucha zdarzeń wszystkich procesów | – (serwer) |
 

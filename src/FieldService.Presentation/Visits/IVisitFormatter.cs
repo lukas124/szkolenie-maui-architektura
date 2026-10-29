@@ -1,4 +1,5 @@
 using FieldService.Application.Visits.Queries;
+using FieldService.Domain.Visits;
 
 namespace FieldService.Presentation.Visits;
 
@@ -7,6 +8,9 @@ public interface IVisitFormatter
 {
     // „dziś 10:00–11:30”, „jutro 8:00–9:30”, „sob. 14.11 14:00–15:30”
     string FormatTimeWindow(DateTimeOffset from, DateTimeOffset to);
+
+    // „Zaplanowana”, „Spóźniona”, „W trakcie”, „Zakończona”, „Anulowana”
+    string FormatStatus(VisitStatus status, bool isLate);
 
     // „za 17 min”, gdy wizyta zaczyna się w ciągu godziny; inaczej null
     string? FormatStartsIn(DateTimeOffset from);

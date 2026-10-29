@@ -12,5 +12,6 @@
     <Project Path="tests/FieldService.Infrastructure.Tests/FieldService.Infrastructure.Tests.csproj" />
     <Project Path="tests/FieldService.Presentation.Tests/FieldService.Presentation.Tests.csproj" />
     <Project Path="tests/FieldService.Tests/FieldService.Tests.csproj" />
+    <Project Path="tests/FieldService.TestDoubles/FieldService.TestDoubles.csproj" />
   </Folder>
 </Solution>

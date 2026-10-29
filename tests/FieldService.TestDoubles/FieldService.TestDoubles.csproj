@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Fałszywki do testów (zachowują się jak prawdziwe implementacje – LSP): repozytorium w pamięci, stały zegar -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FieldService.Application\FieldService.Application.csproj" />
+  </ItemGroup>
+
+</Project>
