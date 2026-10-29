@@ -36,7 +36,7 @@ public class LoginViewModelSpecTests
         _messages = new Mock<IErrorMessageProvider>();
         _messages.Setup(m => m.GetMessage(It.IsAny<Error>())).Returns(InvalidCredentialsText);
         _navigation = new Mock<INavigationService>();
-        _navigation.Setup(n => n.ResetToAsync<VisitsListViewModel>()).Returns(Task.CompletedTask);
+        _navigation.Setup(n => n.ResetToAsync(It.IsAny<VisitsListRoute>())).ReturnsAsync(NavigationResult.Success);
 
         _vm = new LoginViewModel(new SignInHandler(_auth.Object, Mock.Of<IPreferencesStore>(), Mock.Of<ILocalTechnicianData>()), _preferences.Object, _messages.Object, _navigation.Object);
     }
@@ -113,7 +113,7 @@ public class LoginViewModelSpecTests
 
         await _vm.SignInCommand.ExecuteAsync(null);
 
-        _navigation.Verify(n => n.ResetToAsync<VisitsListViewModel>(), Times.Once);
+        _navigation.Verify(n => n.ResetToAsync(new VisitsListRoute()), Times.Once);
     }
 
     [Test]
@@ -177,8 +177,8 @@ public class LoginViewModelSpecTests
 
         await _vm.SignInCommand.ExecuteAsync(null);
 
-        _navigation.Verify(n => n.ResetToAsync<VisitsListViewModel>(), Times.Never);
-        _navigation.Verify(n => n.NavigateToAsync<VisitsListViewModel>(It.IsAny<object?>()), Times.Never);
+        _navigation.Verify(n => n.ResetToAsync(It.IsAny<VisitsListRoute>()), Times.Never);
+        _navigation.Verify(n => n.NavigateAsync(It.IsAny<VisitsListRoute>()), Times.Never);
         _preferences.Verify(p => p.Set(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 }

@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddTransient<CompleteVisitHandler>();
         services.AddTransient<AddVisitPhotoHandler>();
         services.AddTransient<GetVanStockHandler>();
+        services.AddTransient<GetVisitProtocolHandler>();
         return services;
     }
 }

@@ -1,17 +1,21 @@
-using FieldService.Presentation.Common;
-
 namespace FieldService.Presentation.Navigation;
 
-// Nawigacja ViewModel-first: ViewModel mówi „pokaż szczegóły tej wizyty” typem docelowego ViewModelu,
-// a nie stroną MAUI. Którą stronę pokazać, wie tylko UI (NavigationService). Wersja minimalna – pełna w checkpoincie 09-navigation.
+// Nawigacja ViewModel-first: ViewModel prosi o cel (trasę), usługa nawigacji (UI) dobiera ViewModel z RouteMap
+// i stronę z rejestru stron, wstawia ją na jeden stos okna i woła haki. Wersja pełna (Blok 09).
 public interface INavigationService
 {
-    // Strona dla TViewModel na stos, parameter trafia do OnNavigatedToAsync nowego ViewModelu
-    Task NavigateToAsync<TViewModel>(object? parameter = null) where TViewModel : BaseViewModel;
+    // Strona trasy na stos
+    Task<NavigationResult> NavigateAsync<TRoute>(TRoute route) where TRoute : IRoute;
 
-    // Stos od nowa: strona dla TViewModel zostaje jedyną (np. lista po zalogowaniu – „wstecz” nie wraca do logowania)
-    Task ResetToAsync<TViewModel>() where TViewModel : BaseViewModel;
+    // Strona trasy jako modal, we własnym zakresie kontenera (Scoped = „na przepływ”, np. szkic kreatora)
+    Task<NavigationResult> OpenModalAsync<TRoute>(TRoute route) where TRoute : IRoute;
 
-    // Poprzednia strona
+    // Zamyka górny modal (zakres przepływu jest sprzątany)
+    Task CloseModalAsync();
+
+    // Wstecz: najpierw modal, potem stos
     Task GoBackAsync();
+
+    // Stos od nowa: strona trasy zostaje jedyną (np. lista po zalogowaniu – „wstecz” nie wraca do logowania)
+    Task<NavigationResult> ResetToAsync<TRoute>(TRoute route) where TRoute : IRoute;
 }

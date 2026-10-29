@@ -5,7 +5,6 @@ using FieldService.Application.Session;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
 using FieldService.Presentation.Navigation;
-using FieldService.Presentation.Visits;
 
 namespace FieldService.Presentation.Session;
 
@@ -44,6 +43,6 @@ public partial class LoginViewModel(
 
         preferences.Set(EmailKey, Email.Trim());
         Pin = string.Empty;
-        await navigation.ResetToAsync<VisitsListViewModel>();
+        await navigation.ResetToAsync(new VisitsListRoute());
     }
 }

@@ -28,8 +28,6 @@
   <data name="Visits_Today" xml:space="preserve"><value>dziś</value></data>
   <data name="Visits_Tomorrow" xml:space="preserve"><value>jutro</value></data>
   <data name="Common_Cancel" xml:space="preserve"><value>Anuluj</value></data>
-  <data name="Visit_SignTitle" xml:space="preserve"><value>Podpis klienta</value></data>
-  <data name="Visit_SignMessage" xml:space="preserve"><value>Klient potwierdza podpisem zakres prac widoczny na ekranie?</value></data>
   <data name="Visit_ChoosePart" xml:space="preserve"><value>Część z auta</value></data>
   <data name="Permission_CameraTitle" xml:space="preserve"><value>Aparat</value></data>
   <data name="Permission_CameraExplain" xml:space="preserve"><value>Zdjęcie dokumentuje stan urządzenia i wykonane prace. Za chwilę system zapyta o dostęp do aparatu – to ostatnia prośba, potem zostaną tylko Ustawienia telefonu.</value></data>
@@ -52,6 +50,19 @@
   <data name="Error_Visit.ReasonRequired" xml:space="preserve"><value>Podaj powód.</value></data>
   <data name="Error_Visit.ActivityCodeRequired" xml:space="preserve"><value>Wybierz kod czynności.</value></data>
   <data name="Error_Photo.CameraUnavailable" xml:space="preserve"><value>To urządzenie nie ma dostępnego aparatu.</value></data>
+  <data name="Completion_Title" xml:space="preserve"><value>Zakończenie wizyty</value></data>
+  <data name="Completion_ActivitiesTitle" xml:space="preserve"><value>Wykonane czynności</value></data>
+  <data name="Completion_PartsTitle" xml:space="preserve"><value>Zużyte części</value></data>
+  <data name="Completion_SignatureTitle" xml:space="preserve"><value>Podpis klienta</value></data>
+  <data name="Completion_SummaryTitle" xml:space="preserve"><value>Protokół</value></data>
+  <data name="Completion_StepOf" xml:space="preserve"><value>KROK {0} Z {1}</value></data>
+  <data name="Completion_Next" xml:space="preserve"><value>Dalej</value></data>
+  <data name="Completion_Finish" xml:space="preserve"><value>Zakończ wizytę</value></data>
+  <data name="Completion_ChooseActivity" xml:space="preserve"><value>Wybierz czynność</value></data>
+  <data name="Activity_DIAG" xml:space="preserve"><value>Diagnostyka</value></data>
+  <data name="Activity_NAPR" xml:space="preserve"><value>Naprawa</value></data>
+  <data name="Activity_CZYSZ" xml:space="preserve"><value>Czyszczenie</value></data>
+  <data name="Activity_TEST" xml:space="preserve"><value>Test działania</value></data>
   <!-- Wzorce dat i godzin (składnia formatów .NET). Każdy język ma własne, nazwy dni i AM/PM daje kultura. -->
   <data name="Format_Time" xml:space="preserve"><value>H:mm</value></data>
   <data name="Format_Day" xml:space="preserve"><value>ddd dd.MM</value></data>
@@ -69,13 +80,21 @@
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>URZĄDZENIE I USTERKA</value></data>
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>ZAKRES PRAC</value></data>
   <data name="VisitDetails_Start" xml:space="preserve"><value>Rozpocznij wizytę</value></data>
-  <data name="VisitDetails_AddPart" xml:space="preserve"><value>Dodaj część</value></data>
-  <data name="VisitDetails_Remove" xml:space="preserve"><value>Usuń</value></data>
-  <data name="VisitDetails_Signature" xml:space="preserve"><value>Podpis klienta</value></data>
   <data name="VisitDetails_AddPhoto" xml:space="preserve"><value>Dodaj zdjęcie</value></data>
-  <data name="VisitDetails_CompleteFixed" xml:space="preserve"><value>Zakończ – naprawione</value></data>
+  <data name="VisitDetails_Complete" xml:space="preserve"><value>Zakończ wizytę</value></data>
   <data name="VisitDetails_WorkOrder" xml:space="preserve"><value>ZLECENIE {0}</value></data>
   <data name="VisitDetails_SignedBy" xml:space="preserve"><value>Podpisano: {0}</value></data>
   <data name="VisitDetails_NoValidSignature" xml:space="preserve"><value>Brak ważnego podpisu klienta</value></data>
   <data name="VisitDetails_PhotoCount" xml:space="preserve"><value>Zdjęcia: {0}</value></data>
+  <data name="CompleteVisit_AddActivity" xml:space="preserve"><value>Dodaj czynność</value></data>
+  <data name="CompleteVisit_Remove" xml:space="preserve"><value>Usuń</value></data>
+  <data name="CompleteVisit_AddPart" xml:space="preserve"><value>Dodaj część</value></data>
+  <data name="CompleteVisit_SignerName" xml:space="preserve"><value>Imię i nazwisko podpisującego</value></data>
+  <data name="CompleteVisit_ClearSignature" xml:space="preserve"><value>Wyczyść</value></data>
+  <data name="CompleteVisit_ActivitiesSection" xml:space="preserve"><value>CZYNNOŚCI</value></data>
+  <data name="CompleteVisit_PartsSection" xml:space="preserve"><value>CZĘŚCI</value></data>
+  <data name="CompleteVisit_Back" xml:space="preserve"><value>Wstecz</value></data>
+  <data name="CompleteVisit_LineTotal" xml:space="preserve"><value> = {0:N2} zł</value></data>
+  <data name="CompleteVisit_PartsTotal" xml:space="preserve"><value>Części razem: {0:N2} zł</value></data>
+  <data name="CompleteVisit_LaborTime" xml:space="preserve"><value>Czas pracy: {0:h\:mm}</value></data>
 </root>

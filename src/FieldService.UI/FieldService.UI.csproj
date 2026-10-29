@@ -51,6 +51,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" />
+    <PackageReference Include="CommunityToolkit.Maui" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />

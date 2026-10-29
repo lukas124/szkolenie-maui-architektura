@@ -43,7 +43,7 @@ public class VisitsListViewModelTests
             .ReturnsAsync(Result<IReadOnlyList<VisitSummary>>.Success([Visit("Anna", VisitStatus.Completed), Visit("Piotr", VisitStatus.Planned)]));
         var vm = CreateViewModel();
 
-        await vm.OnNavigatedToAsync(null);
+        await vm.OnNavigatedToAsync(new VisitsListRoute());
 
         Assert.Multiple(() =>
         {
@@ -60,24 +60,25 @@ public class VisitsListViewModelTests
             .ReturnsAsync(Result<IReadOnlyList<VisitSummary>>.Failure(error));
         var vm = CreateViewModel();
 
-        await vm.OnNavigatedToAsync(null);
+        await vm.OnNavigatedToAsync(new VisitsListRoute());
 
         Assert.That(vm.Visits, Is.Empty);
         _feedback.Verify(f => f.ShowErrorAsync(error), Times.Once);
     }
 
     [Test]
+    [Ignore("Ćwiczenie 09: usuń Ignore po uzupełnieniu TODO")]
     public async Task OpenVisitCommand_NavigatesToDetailsWithVisitId()
     {
         _gateway.Setup(g => g.GetTodayAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<VisitSummary>>.Success([Visit("Anna", VisitStatus.Planned)]));
         var vm = CreateViewModel();
-        await vm.OnNavigatedToAsync(null);
+        await vm.OnNavigatedToAsync(new VisitsListRoute());
         var item = vm.Visits.Single();
 
         await vm.OpenVisitCommand.ExecuteAsync(item);
 
-        _navigation.Verify(n => n.NavigateToAsync<VisitDetailsViewModel>(new VisitId(item.Id)), Times.Once);
+        _navigation.Verify(n => n.NavigateAsync(new VisitDetailsRoute(new VisitId(item.Id))), Times.Once);
     }
 
     [Test]
@@ -88,7 +89,7 @@ public class VisitsListViewModelTests
         var vm = CreateViewModel();
 
         await vm.OnAppearingAsync();
-        await vm.OnNavigatedToAsync(null);
+        await vm.OnNavigatedToAsync(new VisitsListRoute());
         await vm.OnAppearingAsync();
 
         _gateway.Verify(g => g.GetTodayAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));

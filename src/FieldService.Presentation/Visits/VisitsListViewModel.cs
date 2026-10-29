@@ -11,12 +11,14 @@ namespace FieldService.Presentation.Visits;
 
 // Lista wizyt na dziś. ViewModel koordynuje: przypadek użycia → Result → fabryka → kolekcja albo komunikat błędu.
 // Nie formatuje, nie buduje elementów, nie składa tekstów i nie zna stron.
+// TODO: Ćwiczenie 09 – parametr navigation wykorzystasz w TODO, potem usuń tę dyrektywę
+#pragma warning disable CS9113
 public partial class VisitsListViewModel(
     GetTodayVisitsHandler getTodayVisits,
     IVisitItemFactory items,
     IVisitFormatter formatter,
     IUserFeedback feedback,
-    INavigationService navigation) : BaseViewModel
+    INavigationService navigation) : BaseViewModel, INavigatedTo<VisitsListRoute>
 {
     public ObservableCollection<VisitItem> Visits { get; } = [];
 
@@ -33,7 +35,7 @@ public partial class VisitsListViewModel(
     // true = lista była już załadowana (wejście na ekran), kolejne pojawienie się = powrót z innej strony
     private bool _loaded;
 
-    public override async Task OnNavigatedToAsync(object? parameter)
+    public async Task OnNavigatedToAsync(VisitsListRoute route)
     {
         await LoadAsync(CancellationToken.None);
         _loaded = true;
@@ -50,7 +52,8 @@ public partial class VisitsListViewModel(
     }
 
     [RelayCommand]
-    private Task OpenVisitAsync(VisitItem item) => navigation.NavigateToAsync<VisitDetailsViewModel>(new VisitId(item.Id));
+    // TODO: Ćwiczenie 09 – szczegóły wizyty przez trasę: navigation.NavigateAsync(new VisitDetailsRoute(new VisitId(item.Id)))
+    private Task OpenVisitAsync(VisitItem item) => Task.CompletedTask;
 
     private async Task LoadAsync(CancellationToken ct)
     {

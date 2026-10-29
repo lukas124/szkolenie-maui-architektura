@@ -4,7 +4,8 @@ using FieldService.Presentation.Navigation;
 using FieldService.UI.Navigation;
 using FieldService.UI.Platform;
 using FieldService.UI.Session.Pages;
-using FieldService.UI.Visits.Pages;
+using FieldService.Presentation.Session;
+using FieldService.UI.Visits;
 
 namespace FieldService.UI;
 
@@ -27,11 +28,12 @@ public static class DependencyInjection
         return services;
     }
 
+    // Rejestr stron: każda strona z ViewModelem (AddPage), moduły dopisują swoje strony
     public static IServiceCollection AddPages(this IServiceCollection services)
     {
-        services.AddTransient<LoginPage>();
-        services.AddTransient<VisitsListPage>();
-        services.AddTransient<VisitDetailsPage>();
+        services.AddSingleton<PageRegistry>();
+        services.AddPage<LoginPage, LoginViewModel>();
+        services.AddVisitsPages();
         return services;
     }
 }

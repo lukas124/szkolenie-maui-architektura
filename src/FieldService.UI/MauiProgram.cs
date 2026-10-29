@@ -1,4 +1,5 @@
 using System.Reflection;
+using CommunityToolkit.Maui;
 using FieldService.Application;
 using FieldService.Infrastructure;
 using FieldService.Presentation;
@@ -15,6 +16,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseMauiCommunityToolkit() // DrawingView w polu podpisu (SignaturePad)
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("IBMPlexSans-Regular.ttf", "PlexRegular");
@@ -42,11 +44,17 @@ public static class MauiProgram
             .AddPages();
 
 #if DEBUG
+        // Kontener sprawdza się przy starcie: brak rejestracji i Scoped pobrany z korzenia (np. CompletionDraft poza
+        // zakresem modala) to wyjątek od razu, a nie cicha uwięziona zależność
+        builder.ConfigureContainer(new DefaultServiceProviderFactory(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }));
         builder.Logging.AddDebug(); // okno Output w IDE (z debuggerem)
         builder.Logging.AddSimpleConsole(o => o.SingleLine = true); // Android: adb logcat -s DOTNET
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+        // TODO: Ćwiczenie 09 – usuń razem z ServiceLocator
+        FieldService.Presentation.Common.ServiceLocator.Provider = app.Services;
+        return app;
     }
 }

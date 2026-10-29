@@ -68,9 +68,13 @@ Rejestracje: `AddInfrastructure` (`src/FieldService.Infrastructure/DependencyInj
 
 ## Prezentacja
 
-`VisitsListViewModel` (lista na dziś, `VisitItemFactory`, `VisitFormatter`) i `VisitDetailsViewModel` (akcje:
-Rozpocznij, Dodaj część, Usuń część, Podpis, Zakończ, Dodaj zdjęcie) w `src/FieldService.Presentation/Visits`.
-Strony: `VisitsListPage`, `VisitDetailsPage` w `src/FieldService.UI/Visits/Pages`.
+`VisitsListViewModel` (lista na dziś, `VisitItemFactory`, `VisitFormatter`), `VisitDetailsViewModel` (Rozpocznij, Dodaj
+zdjęcie, Zakończ wizytę → kreator) i kreator zakończenia w `Visits/Completion` (`CompleteVisitFlowViewModel` + kroki
+`ActivitiesStepViewModel`, `PartsStepViewModel`, `SignatureStepViewModel`, `SummaryStepViewModel`, stan `CompletionDraft`)
+w `src/FieldService.Presentation/Visits`; protokół w ostatnim kroku z zapytania `GetVisitProtocol` (ceny z katalogu
+części `IInventoryGateway.GetPartCatalogAsync` – `GET api/parts`). Trasy modułu: `VisitsModule` (`VisitsListRoute`, `VisitDetailsRoute`,
+`CompleteVisitRoute`). Strony: `VisitsListPage`, `VisitDetailsPage`, `CompleteVisitPage` w `src/FieldService.UI/Visits/Pages`
+(rejestr: `VisitsPages`).
 
 ## Testy
 
