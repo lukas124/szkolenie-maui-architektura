@@ -63,6 +63,14 @@
   <data name="Activity_NAPR" xml:space="preserve"><value>Naprawa</value></data>
   <data name="Activity_CZYSZ" xml:space="preserve"><value>Czyszczenie</value></data>
   <data name="Activity_TEST" xml:space="preserve"><value>Test działania</value></data>
+  <data name="Visits_ChooseStatus" xml:space="preserve"><value>Status wizyty</value></data>
+  <data name="Visits_Status_All" xml:space="preserve"><value>Wszystkie</value></data>
+  <data name="Orders_Status_Open" xml:space="preserve"><value>Otwarte</value></data>
+  <data name="Orders_Status_Closed" xml:space="preserve"><value>Zamknięte</value></data>
+  <data name="Startup_ResumeTitle" xml:space="preserve"><value>Niedokończona wizyta</value></data>
+  <data name="Startup_ResumeMessage" xml:space="preserve"><value>Zamykanie wizyty zostało przerwane. Wrócić do kreatora?</value></data>
+  <data name="Startup_Resume" xml:space="preserve"><value>Wróć</value></data>
+  <data name="Startup_Discard" xml:space="preserve"><value>Nie, porzuć</value></data>
   <!-- Wzorce dat i godzin (składnia formatów .NET). Każdy język ma własne, nazwy dni i AM/PM daje kultura. -->
   <data name="Format_Time" xml:space="preserve"><value>H:mm</value></data>
   <data name="Format_Day" xml:space="preserve"><value>ddd dd.MM</value></data>
@@ -76,6 +84,9 @@
   <data name="Login_TrainingHint" xml:space="preserve"><value>Szkolenie: dowolny adres e-mail i PIN 1234.</value></data>
   <data name="VisitsList_Title" xml:space="preserve"><value>Wizyty na dziś</value></data>
   <data name="VisitsList_Brigade" xml:space="preserve"><value>Brygada (2 techników)</value></data>
+  <data name="VisitsList_Filter" xml:space="preserve"><value>Filtr</value></data>
+  <data name="VisitsList_FilterOn" xml:space="preserve"><value>Filtr włączony</value></data>
+  <data name="VisitsList_WorkOrders" xml:space="preserve"><value>Moje zlecenia</value></data>
   <data name="VisitDetails_Title" xml:space="preserve"><value>Wizyta</value></data>
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>URZĄDZENIE I USTERKA</value></data>
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>ZAKRES PRAC</value></data>
@@ -97,4 +108,12 @@
   <data name="CompleteVisit_LineTotal" xml:space="preserve"><value> = {0:N2} zł</value></data>
   <data name="CompleteVisit_PartsTotal" xml:space="preserve"><value>Części razem: {0:N2} zł</value></data>
   <data name="CompleteVisit_LaborTime" xml:space="preserve"><value>Czas pracy: {0:h\:mm}</value></data>
+  <data name="WorkOrders_Title" xml:space="preserve"><value>Moje zlecenia</value></data>
+  <data name="WorkOrders_SlaDue" xml:space="preserve"><value>SLA: {0:dd.MM HH:mm}</value></data>
+  <data name="WorkOrders_VisitCount" xml:space="preserve"><value>Wizyty: {0}</value></data>
+  <data name="VisitFilter_Title" xml:space="preserve"><value>Filtr wizyt</value></data>
+  <data name="VisitFilter_OnlyLate" xml:space="preserve"><value>Tylko spóźnione</value></data>
+  <data name="VisitFilter_StatusSection" xml:space="preserve"><value>STATUS</value></data>
+  <data name="VisitFilter_Apply" xml:space="preserve"><value>Zastosuj</value></data>
+  <data name="VisitFilter_Clear" xml:space="preserve"><value>Wyczyść filtr</value></data>
 </root>

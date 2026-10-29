@@ -1,3 +1,4 @@
+using FieldService.Application.Orders.Queries;
 using FieldService.Application.Parts.Queries;
 using FieldService.Application.Session;
 using FieldService.Application.Visits.Commands;
@@ -24,6 +25,7 @@ public static class DependencyInjection
         services.AddTransient<AddVisitPhotoHandler>();
         services.AddTransient<GetVanStockHandler>();
         services.AddTransient<GetVisitProtocolHandler>();
+        services.AddTransient<GetMyWorkOrdersHandler>();
         return services;
     }
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Filtr listy wizyt (modal): stan ekranu do „Zastosuj”, potem stan aplikacji i komunikat dla listy -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:visits="clr-namespace:FieldService.Presentation.Visits;assembly=FieldService.Presentation"
+                x:Class="FieldService.UI.Visits.Pages.VisitFilterPage"
+                x:DataType="visits:VisitFilterViewModel"
+                Title="{loc:Translate VisitFilter_Title}"
+                CanNavigateBack="True">
+    <VerticalStackLayout Padding="16" Spacing="16">
+        <Grid ColumnDefinitions="*,Auto">
+            <Label Text="{loc:Translate VisitFilter_OnlyLate}" Style="{StaticResource Body}" VerticalOptions="Center" />
+            <Switch Grid.Column="1" IsToggled="{Binding OnlyOverdue}" />
+        </Grid>
+        <Label Text="{loc:Translate VisitFilter_StatusSection}" Style="{StaticResource SectionHeader}" />
+        <Button Text="{Binding StatusText}" Command="{Binding ChooseStatusCommand}" Style="{StaticResource SecondaryButton}" />
+        <Button Text="{loc:Translate VisitFilter_Apply}" Command="{Binding ApplyCommand}" />
+        <Button Text="{loc:Translate VisitFilter_Clear}" Command="{Binding ClearCommand}" Style="{StaticResource SecondaryButton}" />
+    </VerticalStackLayout>
+</pages:BasePage>

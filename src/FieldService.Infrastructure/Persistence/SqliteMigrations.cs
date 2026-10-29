@@ -42,6 +42,15 @@ internal static class SqliteMigrations
                 FilePath TEXT NOT NULL,
                 TakenAt TEXT NOT NULL)
             """
+        ],
+        // 2: szkic kreatora zakończenia (jeden wiersz) – przeżywa ubicie procesu przez system
+        [
+            """
+            CREATE TABLE flow_drafts (
+                Id INTEGER PRIMARY KEY CHECK (Id = 1),
+                VisitId TEXT NOT NULL,
+                StepIndex INTEGER NOT NULL)
+            """
         ]
     ];
 

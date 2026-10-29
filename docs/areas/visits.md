@@ -46,7 +46,8 @@ i nie blokuje `UsePart`.
 - komendy (`Commands`): `StartVisit`, `RecordActivity`, `UsePart`, `RemoveUsedPart`, `SignByCustomer`,
   `CompleteVisit`, `AddVisitPhoto` – każda z handlerem `…Handler`; wzór: `CompleteVisitHandler`
   (wczytaj → model → zapisz → `Result`);
-- zapytania (`Queries`): `GetTodayVisits` → `VisitSummary`, `GetVisitDetails` → `VisitDetails`
+- zapytania (`Queries`): `GetTodayVisits(OnlyOverdue, Status)` → `VisitSummary` (filtr i „spóźniona” według
+  `OverdueVisitSpecification` z Domain), `GetVisitDetails` → `VisitDetails`, `GetVisitProtocol` → `VisitProtocol`
   (z migawką `CustomerSnapshot`).
 
 ## Porty i adaptery
@@ -55,6 +56,8 @@ i nie blokuje `UsePart`.
 |---|---|---|---|
 | `IVisitRepository` | Domain | `SqliteVisitRepository` (+ `VisitRow`, `VisitRowMapper`) | Infrastructure/Persistence |
 | `IVisitReplica` | Application/Abstractions | `SqliteVisitRepository` (ten sam obiekt) | Infrastructure/Persistence |
+| `IFlowDraftStore` (szkic kreatora) | Application/Abstractions | `SqliteFlowDraftStore` (tabela `flow_drafts`) | Infrastructure/Persistence |
+| `IPreferencesStore` (filtr listy) | Application/Abstractions | `MauiPreferencesStore` | UI/Platform |
 | `IVisitsGateway` | Application/Abstractions | `HttpVisitsGateway` + `VisitDtoMapper` (ACL) | Infrastructure/Visits |
 | `IVisitPhotoStore` | Application/Abstractions | `SqliteVisitPhotoStore` | Infrastructure/Persistence |
 | `ILocalTechnicianData` (dane technika w telefonie) | Application/Abstractions | `SqliteTechnicianData` | Infrastructure/Persistence |

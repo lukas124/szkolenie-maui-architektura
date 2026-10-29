@@ -63,6 +63,14 @@
   <data name="Activity_NAPR" xml:space="preserve"><value>Repair</value></data>
   <data name="Activity_CZYSZ" xml:space="preserve"><value>Cleaning</value></data>
   <data name="Activity_TEST" xml:space="preserve"><value>Function test</value></data>
+  <data name="Visits_ChooseStatus" xml:space="preserve"><value>Visit status</value></data>
+  <data name="Visits_Status_All" xml:space="preserve"><value>All</value></data>
+  <data name="Orders_Status_Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Orders_Status_Closed" xml:space="preserve"><value>Closed</value></data>
+  <data name="Startup_ResumeTitle" xml:space="preserve"><value>Unfinished visit</value></data>
+  <data name="Startup_ResumeMessage" xml:space="preserve"><value>Completing the visit was interrupted. Return to the wizard?</value></data>
+  <data name="Startup_Resume" xml:space="preserve"><value>Return</value></data>
+  <data name="Startup_Discard" xml:space="preserve"><value>No, discard</value></data>
   <!-- Wzorce dat i godzin (składnia formatów .NET). Każdy język ma własne, nazwy dni i AM/PM daje kultura. -->
   <data name="Format_Time" xml:space="preserve"><value>h:mm tt</value></data>
   <data name="Format_Day" xml:space="preserve"><value>ddd M/d</value></data>
@@ -76,6 +84,9 @@
   <data name="Login_TrainingHint" xml:space="preserve"><value>Training: any e-mail address and PIN 1234.</value></data>
   <data name="VisitsList_Title" xml:space="preserve"><value>Today's visits</value></data>
   <data name="VisitsList_Brigade" xml:space="preserve"><value>Crew (2 technicians)</value></data>
+  <data name="VisitsList_Filter" xml:space="preserve"><value>Filter</value></data>
+  <data name="VisitsList_FilterOn" xml:space="preserve"><value>Filter on</value></data>
+  <data name="VisitsList_WorkOrders" xml:space="preserve"><value>My work orders</value></data>
   <data name="VisitDetails_Title" xml:space="preserve"><value>Visit</value></data>
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>DEVICE AND FAULT</value></data>
   <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>SCOPE OF WORK</value></data>
@@ -97,4 +108,12 @@
   <data name="CompleteVisit_LineTotal" xml:space="preserve"><value> = {0:N2} PLN</value></data>
   <data name="CompleteVisit_PartsTotal" xml:space="preserve"><value>Parts total: {0:N2} PLN</value></data>
   <data name="CompleteVisit_LaborTime" xml:space="preserve"><value>Labor time: {0:h\:mm}</value></data>
+  <data name="WorkOrders_Title" xml:space="preserve"><value>My work orders</value></data>
+  <data name="WorkOrders_SlaDue" xml:space="preserve"><value>SLA: {0:M/d h:mm tt}</value></data>
+  <data name="WorkOrders_VisitCount" xml:space="preserve"><value>Visits: {0}</value></data>
+  <data name="VisitFilter_Title" xml:space="preserve"><value>Visit filter</value></data>
+  <data name="VisitFilter_OnlyLate" xml:space="preserve"><value>Late only</value></data>
+  <data name="VisitFilter_StatusSection" xml:space="preserve"><value>STATUS</value></data>
+  <data name="VisitFilter_Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="VisitFilter_Clear" xml:space="preserve"><value>Clear filter</value></data>
 </root>

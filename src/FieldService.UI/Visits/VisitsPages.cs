@@ -11,5 +11,6 @@ public static class VisitsPages
     public static IServiceCollection AddVisitsPages(this IServiceCollection services) => services
         .AddPage<VisitsListPage, VisitsListViewModel>()
         .AddPage<VisitDetailsPage, VisitDetailsViewModel>()
+        .AddPage<VisitFilterPage, VisitFilterViewModel>()
         .AddPage<CompleteVisitPage, CompleteVisitFlowViewModel>();
 }

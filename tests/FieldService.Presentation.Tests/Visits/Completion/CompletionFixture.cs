@@ -75,7 +75,8 @@ internal sealed class CompletionFixture
         Signature = new SignatureStepViewModel(Draft, new SignByCustomerHandler(Repository, Clock), DetailsHandler(), Feedback.Object, Localizer.Object);
         Summary = new SummaryStepViewModel(Draft, ProtocolHandler(), Feedback.Object, Localizer.Object);
         Flow = new CompleteVisitFlowViewModel(Draft, Activities, Parts, Signature, Summary, DetailsHandler(),
-            new CompleteVisitHandler(Repository, Clock), Feedback.Object, Navigation.Object, Localizer.Object);
+            new CompleteVisitHandler(Repository, Clock), Feedback.Object, Navigation.Object, Localizer.Object,
+            Mock.Of<IFlowDraftStore>());
     }
 
     public GetVisitDetailsHandler DetailsHandler() => new(Replica.Object, VisitsGateway.Object, Photos.Object);

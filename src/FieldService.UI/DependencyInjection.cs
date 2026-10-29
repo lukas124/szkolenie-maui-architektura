@@ -5,6 +5,7 @@ using FieldService.UI.Navigation;
 using FieldService.UI.Platform;
 using FieldService.UI.Session.Pages;
 using FieldService.Presentation.Session;
+using FieldService.UI.Orders;
 using FieldService.UI.Visits;
 
 namespace FieldService.UI;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddSingleton<PageRegistry>();
         services.AddPage<LoginPage, LoginViewModel>();
         services.AddVisitsPages();
+        services.AddOrdersPages();
         return services;
     }
 }

@@ -15,6 +15,17 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 - Zależności (strzałka = „zna”): `UI` → `Presentation` → `Application` → `Domain` oraz
   `UI` → `Infrastructure` → `Application`. **Tylko UI zna MAUI.** Pilnują tego testy w `tests/FieldService.Tests`.
 
+## Moduły i stan
+- Moduł = model z mapy kontekstów (`docs/architecture/mapa-kontekstow.md`), przestrzeń nazw w każdym pierścieniu:
+  `Visits` (Realizacja wizyty), `Parts`/`Inventory` (Magazyn części), `Orders` (Zlecenia), `Protocols` (Protokoły).
+- Zależność między modułami w aplikacji tylko tam, gdzie relację z mapy realizuje kod w telefonie: `Visits` może używać
+  publicznych typów `Parts` (Magazyn jest upstreamem: auto technika, katalog cen). `Parts` i `Orders` nie znają `Visits`,
+  a `Visits` nie zna `Orders` (zdarzenie `VisitCompleted` do Zleceń płynie przez serwer). Wspólne porty, stan i komunikaty
+  leżą poza modułami. Pilnują `tests/FieldService.Tests/ModuleBoundaryTests.cs` i `ModuleSharedStateTests.cs`.
+- Stan aplikacji (dane wspólne, dłuższe niż ekran) w `IAppState` (singleton w kontenerze); o zmianie ViewModel dowiaduje
+  się z komunikatu `WeakReferenceMessenger`, nie z zdarzenia singletona. Stan, który musi przeżyć ubicie procesu, zapisujemy
+  od razu po zmianie (filtr – `IPreferencesStore`, szkic kreatora – `IFlowDraftStore`).
+
 ## Konwencje
 - Nazwy z języka domeny (`docs/architecture/slownik.md`): `Visit`, `VisitScope`, `CustomerSignature`.
 - Komenda `CompleteVisit` + `CompleteVisitHandler`; zapytanie `GetVisitDetails` → model odczytu `VisitDetails`;
@@ -52,6 +63,6 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 - Typy MAUI w ViewModelu (`Color`, `ImageSource`, `Application.Current`) – ViewModel testujemy bez emulatora.
 - `DateTime.Now`, `DateTimeOffset.Now`, `UtcNow` w Domain i Application – czas daje `IClock` albo parametr `now`.
 - `async void` poza `FireAndForget` – wyjątek ginie albo zamyka aplikację.
-- `MessagingCenter` i `StrongReferenceMessenger` – przestarzałe API albo wycieki pamięci.
+- `MessagingCenter`, `StrongReferenceMessenger` i `appState.Filter.PropertyChanged +=` w ViewModelu – przestarzałe API albo wycieki pamięci.
 - DTO poza Infrastructure, agregat w ViewModelu – granice pierścieni; ViewModel dostaje model odczytu.
 - Zmiana testów, żeby kod przeszedł – test jest specyfikacją; najpierw zapytaj.

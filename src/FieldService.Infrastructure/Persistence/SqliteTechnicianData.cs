@@ -4,7 +4,7 @@ namespace FieldService.Infrastructure.Persistence;
 
 // Dane technika w bazie telefonu. Zmiany jeszcze nie wychodzą z telefonu (wysyłka dopiero w Bloku 11), więc nie ma
 // czego chronić przed następnym technikiem – logowanie innego technika po prostu czyści dane poprzedniego.
-// Czyszczenie usuwa wizyty i zdjęcia (wiersze i pliki).
+// Czyszczenie usuwa wizyty, zdjęcia (wiersze i pliki) i szkic kreatora.
 public sealed class SqliteTechnicianData(SqliteDb db) : ILocalTechnicianData
 {
     public Task<bool> HasUnsentChangesAsync(CancellationToken ct) => Task.FromResult(false);
@@ -17,6 +17,7 @@ public sealed class SqliteTechnicianData(SqliteDb db) : ILocalTechnicianData
         {
             c.Execute("DELETE FROM visits");
             c.Execute("DELETE FROM visit_photos");
+            c.Execute("DELETE FROM flow_drafts");
         });
         foreach (var path in photos) DeleteFile(path);
     }
