@@ -17,5 +17,5 @@ public partial class App : Microsoft.Maui.Controls.Application
     // Okno może powstać więcej niż raz w czasie życia procesu (Android), dlatego strona startowa
     // za każdym razem przychodzi z kontenera.
     protected override Window CreateWindow(IActivationState? activationState) =>
-        new(new NavigationPage(_services.GetRequiredService<MainPage>()));
+        new(new NavigationPage(_services.GetRequiredService<LoginPage>()));
 }

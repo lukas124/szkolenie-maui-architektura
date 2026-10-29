@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Logowanie technika: dowolny e-mail (każdy to osobny technik z własnymi wizytami) + PIN 1234 -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FieldService.UI.ViewModels"
+             x:Class="FieldService.UI.Pages.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             NavigationPage.HasNavigationBar="False">
+    <ScrollView>
+        <VerticalStackLayout Padding="24,72,24,32" Spacing="12">
+            <Label Text="~/szkolenie/maui/architektura $" Style="{StaticResource SectionHeader}" />
+            <Label Text="FieldService" Style="{StaticResource Headline}" />
+            <Label Text="Wizyty serwisowe w terenie. Zaloguj się, żeby zobaczyć wizyty na dziś."
+                   Style="{StaticResource Body}" Margin="0,0,0,16" />
+
+            <Label Text="E-MAIL" Style="{StaticResource SectionHeader}" />
+            <Border Style="{StaticResource InputFrame}">
+                <Entry Text="{Binding Email}" Placeholder="jan.kowalski@firma.pl" Keyboard="Email"
+                       IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" ReturnType="Next" />
+            </Border>
+
+            <Label Text="PIN" Style="{StaticResource SectionHeader}" Margin="0,8,0,0" />
+            <Border Style="{StaticResource InputFrame}">
+                <Entry Text="{Binding Pin}" Placeholder="4 cyfry" IsPassword="True" Keyboard="Numeric" MaxLength="4"
+                       ReturnType="Go" ReturnCommand="{Binding SignInCommand}" />
+            </Border>
+
+            <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource DangerColor}" Style="{StaticResource Body}" />
+            <Button Text="Zaloguj" Command="{Binding SignInCommand}" Margin="0,8,0,0" />
+            <ActivityIndicator IsRunning="{Binding SignInCommand.IsRunning}" IsVisible="{Binding SignInCommand.IsRunning}" />
+            <Label Text="Szkolenie: dowolny adres e-mail i PIN 1234." Style="{StaticResource Caption}"
+                   HorizontalTextAlignment="Center" Margin="0,8,0,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

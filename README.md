@@ -43,6 +43,9 @@ dotnet build src/FieldService.UI -t:Run -f net10.0-android
 dotnet build src/FieldService.UI -t:Run -f net10.0-ios
 ```
 
+Logowanie w aplikacji: dowolny adres e-mail (każdy adres to osobny technik z własnymi wizytami) i PIN `1234`.
+API szkoleniowe: https://mobilny.dev/maui/architektura/ (Swagger: `/swagger`).
+
 Logi aplikacji na Androidzie: `adb logcat -s DOTNET`.
 
 ## Checkpointy

@@ -1,5 +1,7 @@
 using System.Reflection;
 using FieldService.UI.Pages;
+using FieldService.UI.Services;
+using FieldService.UI.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -28,7 +30,10 @@ public static class MauiProgram
             builder.Configuration.AddJsonStream(settings);
 
         // Rejestracje w kontenerze. Kolejne pierścienie dojdą tu jako AddApplication(), AddInfrastructure() itd.
-        builder.Services.AddTransient<MainPage>();
+        builder.Services.AddSingleton<ApiSession>();
+        builder.Services.AddSingleton<IVisitStore, VisitStore>();
+        builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<LoginPage>();
 
 #if DEBUG
         builder.Logging.AddDebug(); // okno Output w IDE (z debuggerem)

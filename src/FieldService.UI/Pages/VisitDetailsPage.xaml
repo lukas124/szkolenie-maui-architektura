@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Szczegóły wizyty i „Rozpocznij” -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FieldService.UI.Pages.VisitDetailsPage"
+             Title="Wizyta">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Image x:Name="DeviceImage" HeightRequest="200" Aspect="AspectFill" />
+            <Label x:Name="NumberLabel" Style="{StaticResource SectionHeader}" />
+            <Label x:Name="CustomerLabel" Style="{StaticResource Headline}" />
+            <Label x:Name="AddressLabel" Style="{StaticResource Body}" />
+            <Label x:Name="TimeLabel" Style="{StaticResource Body}" />
+            <Label x:Name="StatusLabel" FontFamily="PlexSemiBold" />
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="URZĄDZENIE I USTERKA" Style="{StaticResource SectionHeader}" />
+                    <Label x:Name="DeviceLabel" Style="{StaticResource CardTitle}" />
+                    <Label x:Name="FaultLabel" Style="{StaticResource Body}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="ZAKRES PRAC" Style="{StaticResource SectionHeader}" />
+                    <Label x:Name="ScopeLabel" Style="{StaticResource Body}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button x:Name="StartButton" Text="Rozpocznij wizytę" Clicked="OnStartClicked" IsVisible="False" />
+            <ActivityIndicator x:Name="Busy" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
