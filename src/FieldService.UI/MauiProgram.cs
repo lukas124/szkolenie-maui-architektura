@@ -1,7 +1,7 @@
 using System.Reflection;
-using FieldService.UI.Pages;
-using FieldService.UI.Services;
-using FieldService.UI.ViewModels;
+using FieldService.Application;
+using FieldService.Infrastructure;
+using FieldService.Presentation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -29,11 +29,17 @@ public static class MauiProgram
         if (settings is not null)
             builder.Configuration.AddJsonStream(settings);
 
-        // Rejestracje w kontenerze. Kolejne pierścienie dojdą tu jako AddApplication(), AddInfrastructure() itd.
-        builder.Services.AddSingleton<ApiSession>();
-        builder.Services.AddSingleton<IVisitStore, VisitStore>();
-        builder.Services.AddTransient<LoginViewModel>();
-        builder.Services.AddTransient<LoginPage>();
+        // Rejestracje pierścieni od środka na zewnątrz – jedyne miejsce, które zna wszystkie projekty
+        var api = new ApiOptions
+        {
+            BaseUrl = builder.Configuration["Api:BaseUrl"] ?? throw new InvalidOperationException("Brak Api:BaseUrl w appsettings.json.")
+        };
+        builder.Services
+            .AddApplication()
+            .AddInfrastructure(api)
+            .AddPresentation()
+            .AddPlatformServices()
+            .AddPages();
 
 #if DEBUG
         builder.Logging.AddDebug(); // okno Output w IDE (z debuggerem)
