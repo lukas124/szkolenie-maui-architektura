@@ -21,6 +21,9 @@ public static class DependencyInjection
         // Jedna usługa nawigacji pod dwoma typami: port dla ViewModeli i klasa dla App (strona startowa)
         services.AddSingleton<NavigationService>();
         services.AddSingleton<INavigationService>(provider => provider.GetRequiredService<NavigationService>());
+        services.AddSingleton<IAppPaths, MauiAppPaths>();
+        services.AddSingleton<IPermissionService, MauiPermissionService>();
+        services.AddSingleton<IPhotoCapture, MauiPhotoCapture>();
         return services;
     }
 

@@ -3,4 +3,13 @@
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
+	<!-- Zdjęcie wizyty: uprawnienie do aparatu; aparat nie jest wymagany do instalacji (tablet bez aparatu) -->
+	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-feature android:name="android.hardware.camera" android:required="false" />
+	<!-- Android 11+: aplikacja musi zadeklarować, że szuka aplikacji aparatu -->
+	<queries>
+		<intent>
+			<action android:name="android.media.action.IMAGE_CAPTURE" />
+		</intent>
+	</queries>
 </manifest>

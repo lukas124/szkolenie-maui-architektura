@@ -38,7 +38,7 @@ public class LoginViewModelSpecTests
         _navigation = new Mock<INavigationService>();
         _navigation.Setup(n => n.ResetToAsync<VisitsListViewModel>()).Returns(Task.CompletedTask);
 
-        _vm = new LoginViewModel(new SignInHandler(_auth.Object), _preferences.Object, _messages.Object, _navigation.Object);
+        _vm = new LoginViewModel(new SignInHandler(_auth.Object, Mock.Of<IPreferencesStore>(), Mock.Of<ILocalTechnicianData>()), _preferences.Object, _messages.Object, _navigation.Object);
     }
 
     private void Fill(string email, string pin)

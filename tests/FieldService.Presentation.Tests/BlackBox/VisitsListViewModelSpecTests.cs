@@ -43,9 +43,14 @@ public class VisitsListViewModelSpecTests
         _navigation = new Mock<INavigationService>();
         _navigation.Setup(n => n.NavigateToAsync<VisitDetailsViewModel>(It.IsAny<object?>())).Returns(Task.CompletedTask);
 
-        var handler = new GetTodayVisitsHandler(_gateway.Object, Mock.Of<IClock>(c => c.Now == Now));
+        var handler = new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IClock>(c => c.Now == Now));
         _vm = new VisitsListViewModel(handler, _items.Object, _formatter.Object, _feedback.Object, _navigation.Object);
     }
+
+    // 07: wizyty zmienione w telefonie – tu żadnych
+    private static IVisitReplica EmptyReplica() =>
+        Mock.Of<IVisitReplica>(r => r.GetLocallyChangedStatusesAsync(It.IsAny<CancellationToken>())
+            == Task.FromResult<IReadOnlyDictionary<Guid, VisitStatus>>(new Dictionary<Guid, VisitStatus>()));
 
     private void GatewayReturns(params VisitSummary[] visits) =>
         _gateway.Setup(g => g.GetTodayAsync(It.IsAny<CancellationToken>()))
@@ -183,13 +188,13 @@ public class VisitsListViewModelSpecTests
     // --- Nawigacja ---
 
     [Test]
-    public async Task OpenVisit_NawigujeDoSzczegolowZElementem()
+    public async Task OpenVisit_NawigujeDoSzczegolowZIdWizyty()
     {
         var item = Item(NewVisit(At(12, 11)));
 
         await _vm.OpenVisitCommand.ExecuteAsync(item);
 
-        _navigation.Verify(n => n.NavigateToAsync<VisitDetailsViewModel>(item), Times.Once);
+        _navigation.Verify(n => n.NavigateToAsync<VisitDetailsViewModel>(new VisitId(item.Id)), Times.Once);
     }
 
     [Test]

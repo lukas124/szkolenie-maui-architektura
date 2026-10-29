@@ -17,7 +17,7 @@ public class SignInHandlerSpecTests
         _auth = new Mock<IAuthGateway>();
         _auth.Setup(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<string>.Success("token-123"));
-        _handler = new SignInHandler(_auth.Object);
+        _handler = new SignInHandler(_auth.Object, Mock.Of<IPreferencesStore>(), Mock.Of<ILocalTechnicianData>());
     }
 
     [TestCase("  jan@firma.pl  ")]

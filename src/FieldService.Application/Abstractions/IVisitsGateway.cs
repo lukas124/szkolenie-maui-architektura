@@ -1,5 +1,6 @@
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Common;
+using FieldService.Domain.Visits;
 
 namespace FieldService.Application.Abstractions;
 
@@ -7,4 +8,7 @@ namespace FieldService.Application.Abstractions;
 public interface IVisitsGateway
 {
     Task<Result<IReadOnlyList<VisitSummary>>> GetTodayAsync(CancellationToken ct);
+
+    // Wizyta z serwera: stan (model) + migawka danych do wyświetlenia
+    Task<Result<RemoteVisit>> GetVisitAsync(VisitId id, CancellationToken ct);
 }

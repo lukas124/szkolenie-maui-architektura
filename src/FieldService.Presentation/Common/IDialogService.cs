@@ -7,4 +7,7 @@ public interface IDialogService
 
     // true = użytkownik wybrał „accept”
     Task<bool> ConfirmAsync(string title, string message, string accept, string cancel);
+
+    // Wybór jednej z opcji; null = anulowano
+    Task<string?> ChooseAsync(string title, string cancel, IReadOnlyList<string> options);
 }

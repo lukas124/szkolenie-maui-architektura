@@ -25,8 +25,8 @@ public class VisitsListViewModelTests
         var localizer = new TestLocalizer();
         var formatter = new VisitFormatter(localizer, clock.Object);
         return new VisitsListViewModel(
-            new GetTodayVisitsHandler(_gateway.Object, clock.Object),
-            new VisitItemFactory(formatter, localizer),
+            new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), clock.Object),
+            new VisitItemFactory(formatter),
             formatter,
             _feedback.Object,
             _navigation.Object);
@@ -67,7 +67,7 @@ public class VisitsListViewModelTests
     }
 
     [Test]
-    public async Task OpenVisitCommand_NavigatesToDetailsWithItem()
+    public async Task OpenVisitCommand_NavigatesToDetailsWithVisitId()
     {
         _gateway.Setup(g => g.GetTodayAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IReadOnlyList<VisitSummary>>.Success([Visit("Anna", VisitStatus.Planned)]));
@@ -77,6 +77,28 @@ public class VisitsListViewModelTests
 
         await vm.OpenVisitCommand.ExecuteAsync(item);
 
-        _navigation.Verify(n => n.NavigateToAsync<VisitDetailsViewModel>(item), Times.Once);
+        _navigation.Verify(n => n.NavigateToAsync<VisitDetailsViewModel>(new VisitId(item.Id)), Times.Once);
+    }
+
+    [Test]
+    public async Task OnAppearingAsync_BeforeFirstLoad_DoesNotLoad_AfterNavigation_Reloads()
+    {
+        _gateway.Setup(g => g.GetTodayAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<IReadOnlyList<VisitSummary>>.Success([Visit("Anna", VisitStatus.Planned)]));
+        var vm = CreateViewModel();
+
+        await vm.OnAppearingAsync();
+        await vm.OnNavigatedToAsync(null);
+        await vm.OnAppearingAsync();
+
+        _gateway.Verify(g => g.GetTodayAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    private static IVisitReplica EmptyReplica()
+    {
+        var replica = new Mock<IVisitReplica>();
+        replica.Setup(r => r.GetLocallyChangedStatusesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<Guid, VisitStatus>());
+        return replica.Object;
     }
 }

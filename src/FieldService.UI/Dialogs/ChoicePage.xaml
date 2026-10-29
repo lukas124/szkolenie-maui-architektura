@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Wybór z listy jako przezroczysta strona modalna (jak DialogPage): przyciemnione tło + karta z tytułem, opcjami i „Anuluj”.
+  Zamiast systemowego arkusza akcji – ten sam wygląd na Androidzie i iOS. Otwiera ją i czeka na wynik MauiDialogService.
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+             x:Class="FieldService.UI.Dialogs.ChoicePage"
+             ios:Page.ModalPresentationStyle="OverFullScreen"
+             BackgroundColor="{AppThemeBinding Light=#80000000, Dark=#CC000000}">
+    <Border Style="{StaticResource Card}" Padding="24,20" WidthRequest="320" HorizontalOptions="Center" VerticalOptions="Center"
+            StrokeShape="RoundRectangle 16"
+            BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceRaisedDark}}">
+        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+            <Label x:Name="TitleLabel" Style="{StaticResource Title}" />
+            <!-- długa lista przewija się w karcie, karta nie wychodzi poza ekran -->
+            <ScrollView Grid.Row="1" MaximumHeightRequest="420">
+                <VerticalStackLayout x:Name="OptionsLayout" Spacing="8" />
+            </ScrollView>
+            <Button Grid.Row="2" x:Name="CancelButton" Style="{StaticResource SecondaryButton}" Clicked="OnCancelClicked" />
+        </Grid>
+    </Border>
+</ContentPage>

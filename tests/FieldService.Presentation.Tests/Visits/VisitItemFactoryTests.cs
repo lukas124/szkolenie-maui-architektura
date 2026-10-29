@@ -15,7 +15,7 @@ public class VisitItemFactoryTests
         var clock = new Mock<IClock>();
         clock.Setup(c => c.Now).Returns(Now);
         var localizer = new TestLocalizer();
-        return new VisitItemFactory(new VisitFormatter(localizer, clock.Object), localizer);
+        return new VisitItemFactory(new VisitFormatter(localizer, clock.Object));
     }
 
     private static VisitSummary Visit(VisitStatus status, DateTimeOffset start, bool isLate = false) =>

@@ -1,20 +1,7 @@
 namespace FieldService.Domain.Common;
 
-// Rodzaj błędu – po nim aplikacja decyduje, co zrobić (np. Network = pokaż dane offline, Unauthorized = logowanie)
-public enum ErrorType
-{
-    Validation,
-    NotFound,
-    Conflict,
-    Unauthorized,
-    Network,
-    Unexpected
-}
-
-// Błąd z kodem (np. "Visits.Network"). Tekst dla człowieka wybiera prezentacja na podstawie kodu.
-public sealed record Error(string Code, ErrorType Type);
-
-// Wynik operacji: sukces albo przewidywalny błąd – bez wyjątków przez granice pierścieni
+// Wynik operacji: sukces albo przewidywalny błąd (naruszona reguła, brak sieci) – bez wyjątków przez granice pierścieni.
+// Wyjątek zostaje dla błędu programisty.
 public class Result
 {
     protected Result(Error? error) => Error = error;
@@ -24,6 +11,8 @@ public class Result
 
     public static Result Success() => new(null);
     public static Result Failure(Error error) => new(error);
+
+    public static implicit operator Result(Error error) => Failure(error);
 }
 
 public sealed class Result<T> : Result
@@ -37,4 +26,6 @@ public sealed class Result<T> : Result
 
     public static Result<T> Success(T value) => new(value);
     public new static Result<T> Failure(Error error) => new(error);
+
+    public static implicit operator Result<T>(Error error) => Failure(error);
 }

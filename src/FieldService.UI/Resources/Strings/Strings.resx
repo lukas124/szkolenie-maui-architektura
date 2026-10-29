@@ -9,6 +9,9 @@
   <data name="Error_Title" xml:space="preserve"><value>Coś poszło nie tak</value></data>
   <data name="Error_Network" xml:space="preserve"><value>Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie.</value></data>
   <data name="Error_Unauthorized" xml:space="preserve"><value>Sesja wygasła. Zaloguj się ponownie.</value></data>
+  <data name="Error_Validation" xml:space="preserve"><value>Sprawdź wprowadzone dane.</value></data>
+  <data name="Error_Conflict" xml:space="preserve"><value>Dane zmieniły się w międzyczasie. Odśwież i spróbuj ponownie.</value></data>
+  <data name="Error_NotFound" xml:space="preserve"><value>Nie znaleziono danych.</value></data>
   <data name="Error_Unexpected" xml:space="preserve"><value>Nieoczekiwany błąd. Spróbuj ponownie za chwilę.</value></data>
   <data name="Error_Auth.InvalidCredentials" xml:space="preserve"><value>Nieprawidłowy e-mail lub PIN.</value></data>
   <data name="Visits_Status_Planned" xml:space="preserve"><value>Zaplanowana</value></data>
@@ -24,6 +27,30 @@
   <data name="Common_No" xml:space="preserve"><value>Nie</value></data>
   <data name="Visits_Today" xml:space="preserve"><value>dziś</value></data>
   <data name="Visits_Tomorrow" xml:space="preserve"><value>jutro</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Anuluj</value></data>
+  <data name="Visit_SignTitle" xml:space="preserve"><value>Podpis klienta</value></data>
+  <data name="Visit_SignMessage" xml:space="preserve"><value>Klient potwierdza podpisem zakres prac widoczny na ekranie?</value></data>
+  <data name="Visit_ChoosePart" xml:space="preserve"><value>Część z auta</value></data>
+  <data name="Permission_CameraTitle" xml:space="preserve"><value>Aparat</value></data>
+  <data name="Permission_CameraExplain" xml:space="preserve"><value>Zdjęcie dokumentuje stan urządzenia i wykonane prace. Za chwilę system zapyta o dostęp do aparatu – to ostatnia prośba, potem zostaną tylko Ustawienia telefonu.</value></data>
+  <data name="Permission_CameraSettings" xml:space="preserve"><value>Dostęp do aparatu jest wyłączony. Włączysz go w Ustawieniach telefonu: Aplikacje → FieldService → Uprawnienia.</value></data>
+  <data name="Permission_Allow" xml:space="preserve"><value>Zezwól</value></data>
+  <data name="Permission_NotNow" xml:space="preserve"><value>Nie teraz</value></data>
+  <data name="Permission_OpenSettings" xml:space="preserve"><value>Otwórz ustawienia</value></data>
+  <data name="Error_Visit.SignatureRequired" xml:space="preserve"><value>Klient musi podpisać aktualny zakres prac.</value></data>
+  <data name="Error_Visit.EmptyScope" xml:space="preserve"><value>Klient podpisuje zakres prac – dodaj najpierw czynność albo część.</value></data>
+  <data name="Error_Visit.NotInProgress" xml:space="preserve"><value>Najpierw rozpocznij wizytę.</value></data>
+  <data name="Error_Visit.InvalidTransition" xml:space="preserve"><value>Tej wizyty nie można już zmienić w ten sposób.</value></data>
+  <data name="Error_Visit.AlreadyCompleted" xml:space="preserve"><value>Wizyta jest już zakończona.</value></data>
+  <data name="Error_Visit.VersionConflict" xml:space="preserve"><value>Wizyta zmieniła się w międzyczasie. Odśwież i spróbuj ponownie.</value></data>
+  <data name="Error_Visit.AnotherInProgress" xml:space="preserve"><value>Masz już wizytę w toku – zakończ ją przed rozpoczęciem kolejnej. Jeśli dyspozytor ją anulował, otwórz jej szczegóły, żeby pobrać aktualny stan.</value></data>
+  <data name="Error_Session.UnsentChangesOfOtherTechnician" xml:space="preserve"><value>W telefonie są zmiany poprzedniego technika, które nie dotarły na serwer. Niech zaloguje się i je wyśle.</value></data>
+  <data name="Error_Visit.NotFound" xml:space="preserve"><value>Nie ma takiej wizyty.</value></data>
+  <data name="Error_Visit.InvalidQuantity" xml:space="preserve"><value>Ilość musi być większa od zera.</value></data>
+  <data name="Error_Visit.SignerRequired" xml:space="preserve"><value>Podaj imię i nazwisko osoby podpisującej.</value></data>
+  <data name="Error_Visit.ReasonRequired" xml:space="preserve"><value>Podaj powód.</value></data>
+  <data name="Error_Visit.ActivityCodeRequired" xml:space="preserve"><value>Wybierz kod czynności.</value></data>
+  <data name="Error_Photo.CameraUnavailable" xml:space="preserve"><value>To urządzenie nie ma dostępnego aparatu.</value></data>
   <!-- Wzorce dat i godzin (składnia formatów .NET). Każdy język ma własne, nazwy dni i AM/PM daje kultura. -->
   <data name="Format_Time" xml:space="preserve"><value>H:mm</value></data>
   <data name="Format_Day" xml:space="preserve"><value>ddd dd.MM</value></data>
@@ -39,5 +66,14 @@
   <data name="VisitsList_Brigade" xml:space="preserve"><value>Brygada (2 techników)</value></data>
   <data name="VisitDetails_Title" xml:space="preserve"><value>Wizyta</value></data>
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>URZĄDZENIE I USTERKA</value></data>
+  <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>ZAKRES PRAC</value></data>
+  <data name="VisitDetails_Start" xml:space="preserve"><value>Rozpocznij wizytę</value></data>
+  <data name="VisitDetails_AddPart" xml:space="preserve"><value>Dodaj część</value></data>
+  <data name="VisitDetails_Signature" xml:space="preserve"><value>Podpis klienta</value></data>
+  <data name="VisitDetails_AddPhoto" xml:space="preserve"><value>Dodaj zdjęcie</value></data>
+  <data name="VisitDetails_CompleteFixed" xml:space="preserve"><value>Zakończ – naprawione</value></data>
   <data name="VisitDetails_WorkOrder" xml:space="preserve"><value>ZLECENIE {0}</value></data>
+  <data name="VisitDetails_SignedBy" xml:space="preserve"><value>Podpisano: {0}</value></data>
+  <data name="VisitDetails_NoValidSignature" xml:space="preserve"><value>Brak ważnego podpisu klienta</value></data>
+  <data name="VisitDetails_PhotoCount" xml:space="preserve"><value>Zdjęcia: {0}</value></data>
 </root>

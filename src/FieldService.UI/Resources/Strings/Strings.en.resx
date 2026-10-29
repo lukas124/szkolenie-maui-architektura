@@ -9,6 +9,9 @@
   <data name="Error_Title" xml:space="preserve"><value>Something went wrong</value></data>
   <data name="Error_Network" xml:space="preserve"><value>No connection to the server. Check your internet connection and try again.</value></data>
   <data name="Error_Unauthorized" xml:space="preserve"><value>Your session has expired. Sign in again.</value></data>
+  <data name="Error_Validation" xml:space="preserve"><value>Check the data you entered.</value></data>
+  <data name="Error_Conflict" xml:space="preserve"><value>The data has changed in the meantime. Refresh and try again.</value></data>
+  <data name="Error_NotFound" xml:space="preserve"><value>No data found.</value></data>
   <data name="Error_Unexpected" xml:space="preserve"><value>Unexpected error. Try again in a moment.</value></data>
   <data name="Error_Auth.InvalidCredentials" xml:space="preserve"><value>Invalid e-mail or PIN.</value></data>
   <data name="Visits_Status_Planned" xml:space="preserve"><value>Planned</value></data>
@@ -24,6 +27,30 @@
   <data name="Common_No" xml:space="preserve"><value>No</value></data>
   <data name="Visits_Today" xml:space="preserve"><value>today</value></data>
   <data name="Visits_Tomorrow" xml:space="preserve"><value>tomorrow</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Visit_SignTitle" xml:space="preserve"><value>Customer signature</value></data>
+  <data name="Visit_SignMessage" xml:space="preserve"><value>Does the customer confirm with a signature the scope of work shown on the screen?</value></data>
+  <data name="Visit_ChoosePart" xml:space="preserve"><value>Part from the van</value></data>
+  <data name="Permission_CameraTitle" xml:space="preserve"><value>Camera</value></data>
+  <data name="Permission_CameraExplain" xml:space="preserve"><value>A photo documents the condition of the device and the work done. In a moment the system will ask for access to the camera – this is the last request, after that only the phone Settings remain.</value></data>
+  <data name="Permission_CameraSettings" xml:space="preserve"><value>Camera access is turned off. Turn it on in the phone Settings: Apps → FieldService → Permissions.</value></data>
+  <data name="Permission_Allow" xml:space="preserve"><value>Allow</value></data>
+  <data name="Permission_NotNow" xml:space="preserve"><value>Not now</value></data>
+  <data name="Permission_OpenSettings" xml:space="preserve"><value>Open settings</value></data>
+  <data name="Error_Visit.SignatureRequired" xml:space="preserve"><value>The customer must sign the current scope of work.</value></data>
+  <data name="Error_Visit.EmptyScope" xml:space="preserve"><value>The customer signs the scope of work – add an activity or a part first.</value></data>
+  <data name="Error_Visit.NotInProgress" xml:space="preserve"><value>Start the visit first.</value></data>
+  <data name="Error_Visit.InvalidTransition" xml:space="preserve"><value>This visit can no longer be changed this way.</value></data>
+  <data name="Error_Visit.AlreadyCompleted" xml:space="preserve"><value>The visit is already completed.</value></data>
+  <data name="Error_Visit.VersionConflict" xml:space="preserve"><value>The visit has changed in the meantime. Refresh and try again.</value></data>
+  <data name="Error_Visit.AnotherInProgress" xml:space="preserve"><value>You already have a visit in progress – complete it before starting another one. If the dispatcher cancelled it, open its details to get the current state.</value></data>
+  <data name="Error_Session.UnsentChangesOfOtherTechnician" xml:space="preserve"><value>The phone holds changes made by the previous technician that have not reached the server. Ask them to sign in and send them.</value></data>
+  <data name="Error_Visit.NotFound" xml:space="preserve"><value>There is no such visit.</value></data>
+  <data name="Error_Visit.InvalidQuantity" xml:space="preserve"><value>The quantity must be greater than zero.</value></data>
+  <data name="Error_Visit.SignerRequired" xml:space="preserve"><value>Enter the full name of the person signing.</value></data>
+  <data name="Error_Visit.ReasonRequired" xml:space="preserve"><value>Enter the reason.</value></data>
+  <data name="Error_Visit.ActivityCodeRequired" xml:space="preserve"><value>Choose an activity code.</value></data>
+  <data name="Error_Photo.CameraUnavailable" xml:space="preserve"><value>This device has no camera available.</value></data>
   <!-- Wzorce dat i godzin (składnia formatów .NET). Każdy język ma własne, nazwy dni i AM/PM daje kultura. -->
   <data name="Format_Time" xml:space="preserve"><value>h:mm tt</value></data>
   <data name="Format_Day" xml:space="preserve"><value>ddd M/d</value></data>
@@ -39,5 +66,14 @@
   <data name="VisitsList_Brigade" xml:space="preserve"><value>Crew (2 technicians)</value></data>
   <data name="VisitDetails_Title" xml:space="preserve"><value>Visit</value></data>
   <data name="VisitDetails_DeviceSection" xml:space="preserve"><value>DEVICE AND FAULT</value></data>
+  <data name="VisitDetails_ScopeSection" xml:space="preserve"><value>SCOPE OF WORK</value></data>
+  <data name="VisitDetails_Start" xml:space="preserve"><value>Start visit</value></data>
+  <data name="VisitDetails_AddPart" xml:space="preserve"><value>Add part</value></data>
+  <data name="VisitDetails_Signature" xml:space="preserve"><value>Customer signature</value></data>
+  <data name="VisitDetails_AddPhoto" xml:space="preserve"><value>Add photo</value></data>
+  <data name="VisitDetails_CompleteFixed" xml:space="preserve"><value>Complete – fixed</value></data>
   <data name="VisitDetails_WorkOrder" xml:space="preserve"><value>WORK ORDER {0}</value></data>
+  <data name="VisitDetails_SignedBy" xml:space="preserve"><value>Signed by: {0}</value></data>
+  <data name="VisitDetails_NoValidSignature" xml:space="preserve"><value>No valid customer signature</value></data>
+  <data name="VisitDetails_PhotoCount" xml:space="preserve"><value>Photos: {0}</value></data>
 </root>

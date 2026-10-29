@@ -1,4 +1,6 @@
+using FieldService.Application.Parts.Queries;
 using FieldService.Application.Session;
+using FieldService.Application.Visits.Commands;
 using FieldService.Application.Visits.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +14,14 @@ public static class DependencyInjection
         services.AddSingleton<AccessTokenStore>();
         services.AddTransient<GetTodayVisitsHandler>();
         services.AddTransient<SignInHandler>();
+        services.AddTransient<GetVisitDetailsHandler>();
+        services.AddTransient<StartVisitHandler>();
+        services.AddTransient<RecordActivityHandler>();
+        services.AddTransient<UsePartHandler>();
+        services.AddTransient<SignByCustomerHandler>();
+        services.AddTransient<CompleteVisitHandler>();
+        services.AddTransient<AddVisitPhotoHandler>();
+        services.AddTransient<GetVanStockHandler>();
         return services;
     }
 }
