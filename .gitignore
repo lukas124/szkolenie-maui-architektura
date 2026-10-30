@@ -496,3 +496,8 @@ $RECYCLE.BIN/
 .DS_Store
 .idea/
 *.DotSettings.user
+
+# zrzuty pamięci i ślady profilowania – lokalne pliki z Bloku 14
+*.gcdump
+*.nettrace
+*.speedscope.json

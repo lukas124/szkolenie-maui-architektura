@@ -7,11 +7,13 @@ using FieldService.Domain.Common;
 using FieldService.Domain.Visits;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
+using FieldService.Presentation.State;
 using FieldService.Presentation.Navigation;
 
 namespace FieldService.Presentation.Visits;
 
 // Szczegóły wizyty: rozpoczęcie, zdjęcie i wejście w kreator zakończenia (części, podpis i zakończenie są w kreatorze).
+// Po wysyłce zmian szczegóły od nowa (zdarzenie AppState.SyncCompleted).
 public partial class VisitDetailsViewModel(
     GetVisitDetailsHandler getDetails,
     StartVisitHandler startVisit,
@@ -43,8 +45,15 @@ public partial class VisitDetailsViewModel(
     public async Task OnNavigatedToAsync(VisitDetailsRoute route)
     {
         _visitId = route.Id;
+        AppState.SyncCompleted += OnSyncCompleted;
         await LoadAsync(refresh: true);
         _loaded = true;
+    }
+
+    // wysyłka zmian skończona – status wizyty mógł się zmienić (wysłana, odrzucona, konflikt)
+    private void OnSyncCompleted(object? sender, EventArgs e)
+    {
+        if (_loaded) _ = LoadAsync();
     }
 
     // Powrót z kreatora (przerwanego): zakres i podpis mogły się zmienić – świeże dane z repliki

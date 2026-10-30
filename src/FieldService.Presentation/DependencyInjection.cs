@@ -1,4 +1,6 @@
+using FieldService.Presentation.Diagnostics;
 using FieldService.Presentation.Feedback;
+using FieldService.Presentation.Settings;
 using FieldService.Presentation.Navigation;
 using FieldService.Presentation.Orders;
 using FieldService.Presentation.Parts;
@@ -27,6 +29,12 @@ public static class DependencyInjection
         services.AddVisitsPresentation(routes);
         services.AddOrdersPresentation(routes);
         services.AddPartsPresentation(routes);
+
+        // Ustawienia i Diagnostyka – trasa Diagnostyki zawsze w mapie, strona tylko w Debug i Test (rejestruje ją UI)
+        services.AddTransient<SettingsViewModel>();
+        routes.Map<SettingsRoute, SettingsViewModel>();
+        services.AddTransient<DiagnosticsViewModel>();
+        routes.Map<DiagnosticsRoute, DiagnosticsViewModel>();
         return services;
     }
 }

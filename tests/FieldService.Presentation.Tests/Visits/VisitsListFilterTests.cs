@@ -66,7 +66,8 @@ public class VisitsListFilterTests
     {
         var handler = new GetTodayVisitsHandler(_gateway.Object, _replica.Object, Mock.Of<IVisitListSnapshotStore>(), _clock.Object);
         _viewModel = new VisitsListViewModel(handler, new Mock<IVisitItemFactory>().Object, new Mock<IVisitFormatter>().Object,
-            new Mock<IUserFeedback>().Object, _navigation.Object, _appState.Object, Mock.Of<ISyncScheduler>());
+            new Mock<IUserFeedback>().Object, _navigation.Object, _appState.Object, Mock.Of<ISyncScheduler>(),
+            VisitsListTestDeps.Logger());
         return _viewModel;
     }
 

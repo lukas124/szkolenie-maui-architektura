@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace FieldService.UI.Converters;
 
@@ -12,13 +13,15 @@ public sealed class RelativeTimeConverter : IValueConverter
 
         var polish = new CultureInfo("pl-PL");
         var days = (DateTime.Today - date.LocalDateTime.Date).Days;
-        return days switch
+        var text = days switch
         {
             0 => "dziś",
             1 => "wczoraj",
             < 7 => string.Format(polish, "{0} dni temu", days),
-            _ => date.LocalDateTime.ToString("d.MM.yyyy", polish)
+            _ => date.LocalDateTime.ToString("dd.MM.yyyy", polish)
         };
+        // „05.10.2026” → „5.10.2026”: dzień bez zera na początku
+        return new Regex(@"^0(\d)\.").Replace(text, "$1.");
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

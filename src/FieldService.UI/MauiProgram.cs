@@ -36,9 +36,15 @@ public static class MauiProgram
         {
             BaseUrl = builder.Configuration["Api:BaseUrl"] ?? throw new InvalidOperationException("Brak Api:BaseUrl w appsettings.json.")
         };
+        var caching = new CachingOptions
+        {
+#if DIAGNOSTICS
+            CountRequests = true // licznik żądań w Diagnostyce (Debug i Test)
+#endif
+        };
         builder.Services
             .AddApplication()
-            .AddInfrastructure(api)
+            .AddInfrastructure(api, caching)
             .AddPresentation()
             .AddPlatformServices()
             .AddPages();
@@ -50,6 +56,9 @@ public static class MauiProgram
         builder.Logging.AddDebug(); // okno Output w IDE (z debuggerem)
         builder.Logging.AddSimpleConsole(o => o.SingleLine = true); // Android: adb logcat -s DOTNET
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
+#elif DIAGNOSTICS
+        // Test: pomiary w logu (http.requests, visits.list.shown) – adb logcat -s DOTNET
+        builder.Logging.AddSimpleConsole(o => o.SingleLine = true);
 #endif
 
         return builder.Build();

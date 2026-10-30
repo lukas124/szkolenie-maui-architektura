@@ -81,6 +81,16 @@
   <data name="Error_Inventory.InvalidQuantity" xml:space="preserve"><value>Ilość musi być większa od zera.</value></data>
   <data name="Error_Session.Expired" xml:space="preserve"><value>Sesja wygasła – zaloguj się ponownie. Niewysłane zmiany czekają w telefonie.</value></data>
   <data name="Visits_OfflineSince" xml:space="preserve"><value>Bez sieci – dane z {0}</value></data>
+  <data name="Visits_SnapshotFrom" xml:space="preserve"><value>Dane z {0}</value></data>
+  <data name="Time_Today" xml:space="preserve"><value>dziś</value></data>
+  <data name="Time_Yesterday" xml:space="preserve"><value>wczoraj</value></data>
+  <data name="Time_DaysAgo" xml:space="preserve"><value>{0} dni temu</value></data>
+  <data name="Settings_SignOutTitle" xml:space="preserve"><value>Wylogować się?</value></data>
+  <data name="Settings_SignOutMessage" xml:space="preserve"><value>Aby dalej pracować z wizytami, trzeba będzie zalogować się ponownie.</value></data>
+  <data name="Settings_SignOutPendingMessage" xml:space="preserve"><value>W telefonie czekają niewysłane zmiany. Zostaną wysłane, gdy ten sam technik zaloguje się ponownie.</value></data>
+  <data name="Diagnostics_Requests" xml:space="preserve"><value>Żądania: {0} · 200: {1} · 304: {2} · {3:0.0} KB</value></data>
+  <data name="Diagnostics_Cache" xml:space="preserve"><value>Wpisy cache: {0}</value></data>
+  <data name="Diagnostics_LiveViewModels" xml:space="preserve"><value>Żywe ViewModele: szczegóły wizyty {0}, kreator {1}</value></data>
   <data name="Visits_PendingSync" xml:space="preserve"><value>Oczekuje na wysłanie ({0})</value></data>
   <data name="Error_Sync.Conflict" xml:space="preserve"><value>Dyspozytor zmienił wizytę, zanim dotarły zmiany z telefonu. Zmiany odrzucone – widzisz stan z serwera.</value></data>
   <data name="Error_Sync.Rejected" xml:space="preserve"><value>Serwer nie przyjął zmian wizyty z telefonu. Zmiany odrzucone – widzisz stan z serwera.</value></data>
@@ -147,4 +157,19 @@
   <data name="ReservePart_Reserve" xml:space="preserve"><value>Zarezerwuj</value></data>
   <data name="ReservePart_Close" xml:space="preserve"><value>Zamknij</value></data>
   <data name="ReservePart_Quantity" xml:space="preserve"><value>Ilość: {0}</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Ustawienia</value></data>
+  <data name="Settings_Technician" xml:space="preserve"><value>Technik</value></data>
+  <data name="Settings_Environment" xml:space="preserve"><value>Środowisko</value></data>
+  <data name="Settings_Version" xml:space="preserve"><value>Wersja</value></data>
+  <data name="Settings_Diagnostics" xml:space="preserve"><value>Diagnostyka</value></data>
+  <data name="Settings_SignOut" xml:space="preserve"><value>Wyloguj</value></data>
+  <data name="Diagnostics_Title" xml:space="preserve"><value>Diagnostyka</value></data>
+  <data name="Diagnostics_RequestsSection" xml:space="preserve"><value>Żądania HTTP</value></data>
+  <data name="Diagnostics_OpenParts" xml:space="preserve"><value>10 × otwórz Części</value></data>
+  <data name="Diagnostics_RefreshList" xml:space="preserve"><value>Odśwież listę 5×</value></data>
+  <data name="Diagnostics_ResetCounters" xml:space="preserve"><value>Wyzeruj liczniki</value></data>
+  <data name="Diagnostics_CacheSection" xml:space="preserve"><value>Cache</value></data>
+  <data name="Diagnostics_MemorySection" xml:space="preserve"><value>Pamięć</value></data>
+  <data name="Diagnostics_ForceGc" xml:space="preserve"><value>Wymuś GC</value></data>
+  <data name="Diagnostics_Refresh" xml:space="preserve"><value>Odśwież</value></data>
 </root>

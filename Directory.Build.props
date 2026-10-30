@@ -7,4 +7,8 @@
     <!-- Ostrzeżenie = błąd kompilacji: kod szkoleniowy buduje się bez ostrzeżeń -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <!-- Test = optymalizacje jak w Release (pomiary wydajności), ale z Diagnostyką i osobnym pakietem aplikacji -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Test'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
 </Project>

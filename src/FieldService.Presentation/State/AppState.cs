@@ -23,6 +23,11 @@ public sealed class AppState : IAppState
 
     public VisitFilterState Filter { get; }
 
+    // „Szczegóły mają się odświeżyć po wysyłce” – dopisane na szybko: zdarzenie statyczne żyje tyle co proces
+    public static event EventHandler? SyncCompleted;
+
+    public static void NotifySyncCompleted() => SyncCompleted?.Invoke(null, EventArgs.Empty);
+
     public void ApplyFilter(bool onlyOverdue, VisitStatus? status)
     {
         Filter.OnlyOverdue = onlyOverdue;

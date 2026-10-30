@@ -2,6 +2,7 @@ using FieldService.Application.Abstractions;
 using FieldService.Domain.Visits;
 using FieldService.Infrastructure.Api;
 using FieldService.Infrastructure.Auth;
+using FieldService.Infrastructure.Caching;
 using FieldService.Infrastructure.Http;
 using FieldService.Infrastructure.Inventory;
 using FieldService.Infrastructure.Orders;
@@ -16,7 +17,8 @@ namespace FieldService.Infrastructure;
 // Rejestracje adapterów (porty z Application → implementacje tutaj)
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, ApiOptions options)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, ApiOptions options,
+        CachingOptions caching)
     {
         services.AddSingleton(options);
         services.AddSingleton<IClock, SystemClock>();
@@ -36,21 +38,36 @@ public static class DependencyInjection
         services.AddSingleton<Func<OutboxProcessor>>(sp => sp.GetRequiredService<OutboxProcessor>);
         services.AddSingleton<ISyncScheduler, SyncScheduler>();
 
-        services.AddApiClients(options);
+        services.AddCaching(caching);
+        services.AddApiClients(options, caching);
         return services;
     }
 
-    // Klient API generowany z OpenAPI (FieldServiceApiClient) z potokiem handlerów: najpierw token, potem korelacja,
-    // na końcu odporność (Polly). Bramy są Transient (typed client) – singletony biorą je przez Func<…> (OutboxProcessor).
-    public static IServiceCollection AddApiClients(this IServiceCollection services, ApiOptions options)
+    // Katalog części (na razie bez cache), czyszczenie cache technika, liczniki żądań do pomiarów
+    public static IServiceCollection AddCaching(this IServiceCollection services, CachingOptions caching)
+    {
+        services.AddSingleton(caching);
+        services.AddTransient<IPartsCatalog, PartsCatalog>();
+        services.AddSingleton<ILocalCaches, LocalCaches>();
+        services.AddSingleton<RequestStatistics>();
+        services.AddSingleton<IRequestStatistics>(sp => sp.GetRequiredService<RequestStatistics>());
+        return services;
+    }
+
+    // Klient API generowany z OpenAPI (FieldServiceApiClient) z potokiem handlerów: token, [licznik żądań],
+    // korelacja, na końcu odporność (Polly). Bramy są Transient (typed client) – singletony biorą je przez Func<…>.
+    public static IServiceCollection AddApiClients(this IServiceCollection services, ApiOptions options,
+        CachingOptions caching)
     {
         services.AddSingleton<ApiExecutor>();
         services.AddTransient<AuthHeaderHandler>();
+        services.AddTransient<RequestCounterHandler>();
         services.AddTransient<CorrelationIdHandler>();
 
-        services.AddHttpClient<FieldServiceApiClient>(http => ConfigureApi(http, options))
-            .AddHttpMessageHandler<AuthHeaderHandler>()       // 1. token (401 → odświeżenie i jedno ponowienie)
-            .AddHttpMessageHandler<CorrelationIdHandler>()
+        var api = services.AddHttpClient<FieldServiceApiClient>(http => ConfigureApi(http, options))
+            .AddHttpMessageHandler<AuthHeaderHandler>();      // 1. token (401 → odświeżenie i jedno ponowienie)
+        if (caching.CountRequests) api.AddHttpMessageHandler<RequestCounterHandler>(); // pomiar: to, co idzie do serwera
+        api.AddHttpMessageHandler<CorrelationIdHandler>()
             .AddStandardResilienceHandler(ConfigureResilience); // 2. Polly: retry, limity czasu, bezpiecznik
 
         // logowanie i odświeżenie tokenu: bez AuthHeaderHandler (odświeżenie nie może wywołać odświeżenia)

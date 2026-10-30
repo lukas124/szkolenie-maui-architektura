@@ -29,3 +29,9 @@ public sealed record VanStockRoute : IRoute;
 
 // Rezerwacja części z magazynu dla wizyty – modal (moduł Parts)
 public sealed record ReservePartRoute(Guid VisitId) : IRoute;
+
+// Ustawienia (ikona w nagłówku listy wizyt)
+public sealed record SettingsRoute : IRoute;
+
+// Diagnostyka – liczniki do pomiarów (strona tylko w Debug i Test)
+public sealed record DiagnosticsRoute : IRoute;

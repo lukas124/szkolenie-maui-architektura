@@ -6,6 +6,9 @@ namespace FieldService.Presentation.Common;
 // mówi mu o tym BasePage (OnAppearingAsync, OnDisappearingAsync, OnClosed) i usługa nawigacji (INavigatedTo<TRoute>).
 public abstract partial class BaseViewModel : ObservableObject
 {
+    // każdy ViewModel w rejestrze żywych instancji (słaba referencja – Diagnostyka)
+    protected BaseViewModel() => ViewModelTracker.Track(this);
+
     // true = pokaż wskaźnik ładowania (w szablonie strony)
     [ObservableProperty]
     public partial bool IsBusy { get; set; }

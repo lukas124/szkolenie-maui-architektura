@@ -24,6 +24,8 @@
     <!-- Application i Infrastructure: rejestracje w kontenerze, klient HTTP -->
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
     <!-- Klient API generowany w buildzie z pliku OpenAPI (Infrastructure) -->
     <PackageVersion Include="NSwag.ApiDescription.Client" Version="14.7.1" />
     <!-- Odporność HTTP: retry, limity czasu, bezpiecznik (Infrastructure) -->

@@ -17,7 +17,9 @@ public static class SessionErrors
 public sealed class SignInHandler(IAuthGateway auth, IPreferencesStore preferences, ILocalTechnicianData localData,
     AccessTokenStore tokens, ISessionStore session)
 {
-    private const string OwnerKey = "local_data_owner";
+    public const string OwnerKey = "local_data_owner";
+    // imię i nazwisko technika (Ustawienia)
+    public const string TechnicianNameKey = "technician_name";
 
     public async Task<Result<string>> HandleAsync(SignIn command, CancellationToken ct)
     {
@@ -32,6 +34,7 @@ public sealed class SignInHandler(IAuthGateway auth, IPreferencesStore preferenc
 
         if (otherTechnician) await localData.ClearAsync(ct);
         preferences.Set(OwnerKey, email);
+        preferences.Set(TechnicianNameKey, result.Value.TechnicianName);
         tokens.AccessToken = result.Value.AccessToken;
         await session.SaveRefreshTokenAsync(result.Value.RefreshToken);
         return Result<string>.Success(result.Value.TechnicianName);

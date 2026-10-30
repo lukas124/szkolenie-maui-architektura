@@ -39,7 +39,8 @@ public class VisitsListOfflineTests
         _viewModel = new VisitsListViewModel(
             new GetTodayVisitsHandler(gateway.Object, replica.Object, _snapshots.Object, _clock),
             new VisitItemFactory(formatter), formatter, _feedback.Object, Mock.Of<INavigationService>(), appState.Object,
-            Mock.Of<ISyncScheduler>());
+            Mock.Of<ISyncScheduler>(),
+            VisitsListTestDeps.Logger());
     }
 
     [TearDown]

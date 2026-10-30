@@ -81,7 +81,7 @@ internal sealed class CompletionFixture
 
     public GetVisitDetailsHandler DetailsHandler() => new(Replica.Object, VisitsGateway.Object, Photos.Object);
 
-    public GetVisitProtocolHandler ProtocolHandler() => new(Repository, Inventory.Object, Clock);
+    public GetVisitProtocolHandler ProtocolHandler() => new(Repository, new GatewayPartsCatalog(Inventory.Object), Clock);
 
     // Wizyta w toku w repozytorium (Id kreatora = Id tej wizyty)
     public void SeedInProgressVisit() => VisitId = TestData.SeedInProgress(Repository, TestData.Start);

@@ -10,6 +10,7 @@ using FieldService.Presentation.Navigation;
 using FieldService.Presentation.Parts;
 using Moq;
 using NUnit.Framework;
+using FieldService.TestDoubles;
 
 namespace FieldService.Presentation.Tests.Parts;
 
@@ -58,7 +59,7 @@ public class ReservePartViewModelTests
         _navigation = new Mock<INavigationService>();
 
         _viewModel = new ReservePartViewModel(
-            new GetPartCatalogHandler(_inventory.Object),
+            new GetPartCatalogHandler(new GatewayPartsCatalog(_inventory.Object)),
             new GetWarehousesHandler(_inventory.Object),
             new ReservePartHandler(_inventory.Object),
             _feedback.Object,

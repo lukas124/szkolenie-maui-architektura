@@ -32,7 +32,8 @@ public class VisitsListViewModelTests
             _feedback.Object,
             _navigation.Object,
             new AppState(Mock.Of<IPreferencesStore>()),
-            Mock.Of<ISyncScheduler>());
+            Mock.Of<ISyncScheduler>(),
+            VisitsListTestDeps.Logger());
     }
 
     private static VisitSummary Visit(string customer, VisitStatus status) =>

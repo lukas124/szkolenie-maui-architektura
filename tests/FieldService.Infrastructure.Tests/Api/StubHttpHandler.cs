@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
@@ -28,7 +29,8 @@ public sealed class StubHttpHandler : HttpMessageHandler
 
     public RecordedRequest LastRequest => Requests[^1];
 
-    public StubHttpHandler Respond(HttpStatusCode status, string? json = null, string contentType = "application/json")
+    public StubHttpHandler Respond(HttpStatusCode status, string? json = null, string contentType = "application/json",
+        string? etag = null)
     {
         _responses.Enqueue(() =>
         {
@@ -37,7 +39,21 @@ public sealed class StubHttpHandler : HttpMessageHandler
             {
                 response.Content = new StringContent(json, Encoding.UTF8, contentType);
             }
+            if (etag is not null)
+            {
+                response.Headers.ETag = new EntityTagHeaderValue(etag);
+            }
             return response;
+        });
+        return this;
+    }
+
+    // odpowiedź binarna (np. obrazek PNG)
+    public StubHttpHandler RespondBytes(HttpStatusCode status, byte[] bytes, string contentType = "image/png")
+    {
+        _responses.Enqueue(() => new HttpResponseMessage(status)
+        {
+            Content = new ByteArrayContent(bytes) { Headers = { ContentType = new MediaTypeHeaderValue(contentType) } }
         });
         return this;
     }

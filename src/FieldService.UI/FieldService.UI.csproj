@@ -7,6 +7,8 @@
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">$(TargetFrameworks);net10.0-ios</TargetFrameworks>
 
     <OutputType>Exe</OutputType>
+    <!-- trzy konfiguracje: Debug (DEV), Test (pomiary), Release (sklep) – .NET Meteor pokazuje je na pasku stanu -->
+    <Configurations>Debug;Release;Test</Configurations>
     <RootNamespace>FieldService.UI</RootNamespace>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
@@ -34,6 +36,25 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <ApplicationId>pl.szkolenie.fieldservice.dev</ApplicationId>
     <ApplicationTitle>FieldService DEV</ApplicationTitle>
+  </PropertyGroup>
+  <!-- Test = pomiary: jak Release (AOT, przycinanie), ale osobna aplikacja (.test) ze stroną Diagnostyka; APK do adb install -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Test'">
+    <ApplicationId>pl.szkolenie.fieldservice.test</ApplicationId>
+    <ApplicationTitle>FieldService TEST</ApplicationTitle>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <!-- to, co Release dostaje domyślnie: przycięcie zestawów i profilowane AOT – mierzymy to, co dostaje użytkownik -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+  </PropertyGroup>
+  <!-- iOS: Test bez generowania kodu w locie – z ustawieniami Test (przycinanie) aplikacja na iOS inaczej pada przy starcie -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Test' And $(TargetFramework.Contains('-ios'))">
+    <DynamicCodeSupport>false</DynamicCodeSupport>
+  </PropertyGroup>
+  <!-- Diagnostyka (strona, licznik żądań HTTP) tylko w Debug i Test – nigdy w wersji do sklepu -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Test'">
+    <DefineConstants>$(DefineConstants);DIAGNOSTICS</DefineConstants>
   </PropertyGroup>
   <!-- Release = PROD: wersja do sklepu -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

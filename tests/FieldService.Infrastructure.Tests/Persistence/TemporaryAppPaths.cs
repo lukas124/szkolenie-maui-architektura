@@ -2,16 +2,19 @@ using FieldService.Application.Abstractions;
 
 namespace FieldService.Infrastructure.Tests.Persistence;
 
-// Katalog danych w unikalnym folderze tymczasowym; Dispose sprząta po teście.
+// Katalog danych (i cache w podkatalogu) w unikalnym folderze tymczasowym; Dispose sprząta po teście.
 public sealed class TemporaryAppPaths : IAppPaths, IDisposable
 {
     public TemporaryAppPaths()
     {
         DataDirectory = Path.Combine(Path.GetTempPath(), "fieldservice-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(DataDirectory);
+        CacheDirectory = Path.Combine(DataDirectory, "cache");
     }
 
     public string DataDirectory { get; }
+
+    public string CacheDirectory { get; }
 
     public void Dispose()
     {

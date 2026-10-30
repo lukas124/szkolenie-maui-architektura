@@ -4,8 +4,8 @@ namespace FieldService.Infrastructure.Persistence;
 
 // Dane technika w bazie telefonu: niewysłane zmiany = wiadomości czekające w outbox.
 // Czyszczenie usuwa wizyty, zdjęcia (wiersze i pliki), szkic kreatora, kolejkę (same wysłane albo odrzucone)
-// i migawkę listy.
-public sealed class SqliteTechnicianData(SqliteDb db) : ILocalTechnicianData
+// i migawkę listy, a na końcu cache technika (ILocalCaches).
+public sealed class SqliteTechnicianData(SqliteDb db, ILocalCaches caches) : ILocalTechnicianData
 {
     public async Task<bool> HasUnsentChangesAsync(CancellationToken ct)
     {
@@ -26,6 +26,7 @@ public sealed class SqliteTechnicianData(SqliteDb db) : ILocalTechnicianData
             c.Execute("DELETE FROM visit_list_snapshot");
         });
         foreach (var path in photos) DeleteFile(path);
+        await caches.ClearAsync(ct);
     }
 
     // Plik zdjęcia mógł zniknąć albo być zablokowany – logowanie nie może się przez to wywrócić

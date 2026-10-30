@@ -19,7 +19,11 @@ public sealed class SyncTriggers
             if (e.NetworkAccess == NetworkAccess.Internet) _sync.RequestSync();
         };
         _sync.Completed += (_, result) =>
-            MainThread.BeginInvokeOnMainThread(() => WeakReferenceMessenger.Default.Send(new SyncCompletedMessage(result)));
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                WeakReferenceMessenger.Default.Send(new SyncCompletedMessage(result));
+                Presentation.State.AppState.NotifySyncCompleted();
+            });
     }
 
     // Okno może powstać więcej niż raz w czasie życia procesu (Android) – każde dostaje wyzwalacz powrotu z tła

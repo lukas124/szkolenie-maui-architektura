@@ -53,7 +53,8 @@ public class VisitsListSyncTests
 
         var handler = new GetTodayVisitsHandler(_gateway.Object, _replica.Object, Mock.Of<IVisitListSnapshotStore>(), new FixedClock());
         _viewModel = new VisitsListViewModel(handler, _itemFactory.Object, _formatter.Object, _feedback.Object,
-            _navigation.Object, _appState.Object, _sync.Object);
+            _navigation.Object, _appState.Object, _sync.Object,
+            VisitsListTestDeps.Logger());
     }
 
     [TearDown]

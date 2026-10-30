@@ -1,6 +1,7 @@
 using FieldService.Domain.Visits;
 using FieldService.Presentation.Visits;
 using static FieldService.Presentation.Tests.BlackBox.SpecVisitData;
+using FieldService.Application.Abstractions;
 
 namespace FieldService.Presentation.Tests.BlackBox;
 

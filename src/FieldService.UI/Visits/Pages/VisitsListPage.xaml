@@ -8,7 +8,9 @@
                 xmlns:selectors="clr-namespace:FieldService.UI.Selectors"
                 x:Class="FieldService.UI.Visits.Pages.VisitsListPage"
                 x:DataType="visits:VisitsListViewModel"
-                Title="{loc:Translate VisitsList_Title}">
+                Title="{loc:Translate VisitsList_Title}"
+                ActionIcon="{AppThemeBinding Light=icon_settings_dark.png, Dark=icon_settings_light.png}"
+                ActionCommand="{Binding OpenSettingsCommand}">
 
     <pages:BasePage.Resources>
         <DataTemplate x:Key="ActiveVisit" x:DataType="visits:VisitItem">

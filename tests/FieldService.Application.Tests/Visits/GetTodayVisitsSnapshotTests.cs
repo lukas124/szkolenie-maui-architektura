@@ -39,7 +39,7 @@ public class GetTodayVisitsSnapshotTests
 
         var result = await _handler.HandleAsync(new GetTodayVisits(), CancellationToken.None);
 
-        Assert.That(result.Value.OfflineSince, Is.Null);
+        Assert.That(result.Value.SnapshotAt, Is.Null);
         _snapshots.Verify(s => s.SaveAsync(
             It.Is<VisitListSnapshot>(x => x.SavedAt == _clock.Now && x.Visits.Single().Id == visit.Id),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -61,7 +61,7 @@ public class GetTodayVisitsSnapshotTests
         Assert.Multiple(() =>
         {
             Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Value.OfflineSince, Is.EqualTo(savedAt));
+            Assert.That(result.Value.SnapshotAt, Is.EqualTo(savedAt));
             Assert.That(result.Value.Visits.Single().Status, Is.EqualTo(VisitStatus.InProgress));
         });
     }

@@ -62,6 +62,11 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 - Sesja: 401 → `TokenRefresher` (jedno odświeżenie naraz) i jedno ponowienie żądania; nieudane odświeżenie →
   `ISessionExpiry` → ekran logowania, outbox zostaje. Refresh token tylko w `ISessionStore` (`SecureStorage`).
 
+## Konfiguracje
+- Debug (`.dev`, Diagnostyka), **Test** (`.test`: optymalizacje jak Release – przycinanie, profilowane AOT – plus
+  Diagnostyka; pomiary), Release (sklep). Stała `DIAGNOSTICS` w Debug i Test: strona Diagnostyka (Ustawienia),
+  `RequestCounterHandler`, log `http.requests` i `visits.list.shown`. Mierzymy w Test, nie w Debug.
+
 ## Konwencje
 - Nazwy z języka domeny (`docs/architecture/slownik.md`): `Visit`, `VisitScope`, `CustomerSignature`.
 - Komenda `CompleteVisit` + `CompleteVisitHandler`; zapytanie `GetVisitDetails` → model odczytu `VisitDetails`;
