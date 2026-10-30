@@ -12,6 +12,7 @@ public sealed class TestLocalizer : ILocalizer
         ["Format_Time"] = "H:mm",
         ["Format_Day"] = "ddd dd.MM",
         ["Format_DayTime"] = "d.MM H:mm",
+        ["Format_Date"] = "d.MM.yyyy",
         ["Visits_Today"] = "dziś",
         ["Visits_Tomorrow"] = "jutro",
         ["Visits_StartsIn"] = "za {0} min",

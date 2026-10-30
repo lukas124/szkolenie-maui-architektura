@@ -28,7 +28,7 @@ public class GetVisitProtocolHandlerTests
             .ReturnsAsync(TestData.Ok(catalog));
     }
 
-    private GetVisitProtocolHandler CreateHandler() => new(_repository, _inventory.Object, _clock);
+    private GetVisitProtocolHandler CreateHandler() => new(_repository, new GatewayPartsCatalog(_inventory.Object), _clock);
 
     private Task UsePartAsync(VisitId id, string partId, int quantity) =>
         new UsePartHandler(_repository, _clock).HandleAsync(new UsePart(id, new PartId(partId), quantity), CancellationToken.None);

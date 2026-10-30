@@ -60,11 +60,28 @@ public sealed class VisitFormatter(ILocalizer localizer, IClock clock) : IVisitF
         string.Format(localizer["Visits_LastUpdated"],
             Local(clock.Now).ToString(localizer["Format_Time"], localizer.CurrentCulture));
 
-    public string FormatOfflineSince(DateTimeOffset savedAt)
+    public string FormatOfflineSince(DateTimeOffset savedAt) => FormatSaved("Visits_OfflineSince", savedAt);
+
+    public string FormatSnapshot(DateTimeOffset savedAt) => FormatSaved("Visits_SnapshotFrom", savedAt);
+
+    public string FormatRelativeDate(DateTimeOffset date)
+    {
+        var local = Local(date);
+        return (Local(clock.Now).Date - local.Date).Days switch
+        {
+            0 => localizer["Time_Today"],
+            1 => localizer["Time_Yesterday"],
+            > 1 and < 7 and var days => string.Format(localizer.CurrentCulture, localizer["Time_DaysAgo"], days),
+            _ => local.ToString(localizer["Format_Date"], localizer.CurrentCulture)
+        };
+    }
+
+    // godzina zapisu migawki; z innego dnia – z datą
+    private string FormatSaved(string key, DateTimeOffset savedAt)
     {
         var local = Local(savedAt);
         var format = localizer[local.Date == Local(clock.Now).Date ? "Format_Time" : "Format_DayTime"];
-        return string.Format(localizer["Visits_OfflineSince"], local.ToString(format, localizer.CurrentCulture));
+        return string.Format(localizer[key], local.ToString(format, localizer.CurrentCulture));
     }
 
     public string FormatPending(int count) => string.Format(localizer.CurrentCulture, localizer["Visits_PendingSync"], count);

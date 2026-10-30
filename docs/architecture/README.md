@@ -92,6 +92,18 @@ Rejestracja: `AddApiClients` w `src/FieldService.Infrastructure/DependencyInject
 `ApiErrorMapper` (409 z kodem z `ProblemDetails`, np. `Inventory.OutOfStock`). Wygenerowany kod i bramy są `internal` –
 DTO nie wychodzą z Infrastructure.
 
+## Cache
+
+| Co | Gdzie | Jak długo |
+|---|---|---|
+| katalog cen części | `PartsCatalog`: pamięć (TTL 5 min) → API → SQLite `parts_catalog` (bez internetu od razu SQLite) | pamięć: do TTL; SQLite: do wylogowania |
+| odpowiedzi GET z ETagiem (JSON: lista, historia, szczegóły, katalog, zlecenia) | `ETagCacheHandler`: SQLite `http_cache`, `If-None-Match` → 304 | do wylogowania |
+| lista wizyt | migawka `visit_list_snapshot` (Blok 11) – od razu na ekranie, potem sieć | do wylogowania |
+| miniatury | `ThumbnailCache`: pamięć z limitem 50 MB → pliki w `IAppPaths.CacheDirectory` | pamięć: do wyparcia; pliki: do wylogowania |
+
+Wszystko w czystym .NET (Infrastructure); z platformy pochodzi tylko katalog plików cache (`MauiAppPaths`).
+`ILocalCaches` czyści wszystko naraz – przy wylogowaniu i zmianie technika.
+
 ## Gdzie szukać dalej
 
 - obszar wizyt (typy, reguły R1–R7, porty, testy): [`../areas/visits.md`](../areas/visits.md);

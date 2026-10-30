@@ -15,9 +15,10 @@ public sealed class VisitHistoryItem
     public required VisitTone Tone { get; init; }
     public bool IsCancelled { get; init; }
 
-    // data wizyty; „3 dni temu” robi konwerter w UI
-    public required DateTimeOffset VisitDate { get; init; }
+    // „3 dni temu” – liczone raz w fabryce, nie przy każdym wiązaniu wiersza
+    public required string WhenText { get; init; }
     public required string ThumbnailUrl { get; init; }
+    public required Func<CancellationToken, Task<Stream>> Thumbnail { get; init; }
     // pełne zdjęcie – nie do listy (w liście miniatura ThumbnailUrl)
     public required string PhotoUrl { get; init; }
     public required IAsyncRelayCommand OpenCommand { get; init; }

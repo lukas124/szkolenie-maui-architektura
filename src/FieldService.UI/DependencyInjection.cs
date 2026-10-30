@@ -28,8 +28,10 @@ public static class DependencyInjection
         services.AddSingleton<IPermissionService, MauiPermissionService>();
         services.AddSingleton<IPhotoCapture, MauiPhotoCapture>();
         services.AddSingleton<SyncTriggers>();
+        services.AddSingleton<INetworkStatus, MauiNetworkStatus>();
         services.AddSingleton<ISessionStore, SecureSessionStore>();
         services.AddSingleton<ISessionExpiry, SessionExpiryNavigator>();
+        services.AddSingleton<IAppEnvironment, MauiAppEnvironment>();
         return services;
     }
 
@@ -41,6 +43,10 @@ public static class DependencyInjection
         services.AddVisitsPages();
         services.AddOrdersPages();
         services.AddPartsPages();
+        services.AddPage<Settings.SettingsPage, Presentation.Settings.SettingsViewModel>();
+#if DIAGNOSTICS
+        services.AddPage<Diagnostics.DiagnosticsPage, Presentation.Diagnostics.DiagnosticsViewModel>(); // Debug i Test
+#endif
         return services;
     }
 }

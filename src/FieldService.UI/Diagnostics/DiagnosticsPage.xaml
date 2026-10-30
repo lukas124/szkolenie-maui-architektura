@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Diagnostyka (Debug i Test): liczniki do pomiarów „przed / po” i przyciski, które powtarzają scenariusz pomiaru. -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:diagnostics="clr-namespace:FieldService.Presentation.Diagnostics;assembly=FieldService.Presentation"
+                x:Class="FieldService.UI.Diagnostics.DiagnosticsPage"
+                x:DataType="diagnostics:DiagnosticsViewModel"
+                Title="{loc:Translate Diagnostics_Title}"
+                CanNavigateBack="True">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Label Text="{loc:Translate Diagnostics_RequestsSection}" Style="{StaticResource SectionHeader}" />
+            <Label Text="{Binding RequestsText}" Style="{StaticResource Body}" />
+            <Button Text="{loc:Translate Diagnostics_OpenParts}" Command="{Binding OpenPartsTenTimesCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Text="{loc:Translate Diagnostics_RefreshList}" Command="{Binding RefreshListFiveTimesCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Text="{loc:Translate Diagnostics_ResetCounters}" Command="{Binding ResetCommand}" Style="{StaticResource SecondaryButton}" />
+
+            <Label Text="{loc:Translate Diagnostics_CacheSection}" Style="{StaticResource SectionHeader}" />
+            <Label Text="{Binding CacheText}" Style="{StaticResource Body}" />
+
+            <Label Text="{loc:Translate Diagnostics_MemorySection}" Style="{StaticResource SectionHeader}" />
+            <Label Text="{Binding LiveViewModelsText}" Style="{StaticResource Body}" />
+            <Button Text="{loc:Translate Diagnostics_ForceGc}" Command="{Binding ForceGcCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Text="{loc:Translate Diagnostics_Refresh}" Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</pages:BasePage>

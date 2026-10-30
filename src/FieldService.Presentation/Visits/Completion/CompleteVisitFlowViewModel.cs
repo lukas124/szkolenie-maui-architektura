@@ -1,18 +1,21 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using FieldService.Application.Abstractions;
 using FieldService.Application.Visits.Commands;
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Visits;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
+using FieldService.Presentation.Messages;
 using FieldService.Presentation.Navigation;
 
 namespace FieldService.Presentation.Visits.Completion;
 
 // Kreator zakończenia wizyty: jedna strona, kroki jako ViewModele komponentów, stan przepływu w CompletionDraft.
 // Kreator przesuwa kroki i woła przypadek użycia – o poprawności i tekście przycisku decyduje krok.
-public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigatedTo<CompleteVisitRoute>
+public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigatedTo<CompleteVisitRoute>,
+    IRecipient<SyncCompletedMessage>
 {
     private readonly CompletionDraft _draft;
     private readonly GetVisitDetailsHandler _details;
@@ -37,6 +40,16 @@ public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigat
         Title = localizer["Completion_Title"];
         Steps = [activities, parts, signature, summary];
         CurrentStep = activities;
+        // wysyłka zmian w tle; słaby posłaniec nie trzyma kreatora po zamknięciu
+        WeakReferenceMessenger.Default.RegisterAll(this);
+    }
+
+    // Serwer odrzucił zmiany tej wizyty (konflikt z dyspozytorem, odrzucenie) – kończenie nie ma sensu, stan wizyty
+    // jest z serwera. Kreator się zamyka; komunikat pokazuje lista wizyt (ten sam komunikat).
+    public void Receive(SyncCompletedMessage message)
+    {
+        var visitId = _draft.VisitId;
+        if (message.Result.Conflicts.Contains(visitId) || message.Result.Rejected.Contains(visitId)) _ = CancelAsync();
     }
 
     public string Title { get; }
@@ -130,6 +143,10 @@ public sealed partial class CompleteVisitFlowViewModel : BaseViewModel, INavigat
         if (e.PropertyName == nameof(CompletionStep.IsValid)) NextCommand.NotifyCanExecuteChanged();
     }
 
-    // Kreator zamknięty – kroki są w zakresie przepływu, ale odpinamy subskrypcję jawnie
-    public override void OnClosed() => CurrentStep.PropertyChanged -= OnStepChanged;
+    // Kreator zamknięty – kroki są w zakresie przepływu, ale odpinamy subskrypcje jawnie
+    public override void OnClosed()
+    {
+        CurrentStep.PropertyChanged -= OnStepChanged;
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+    }
 }

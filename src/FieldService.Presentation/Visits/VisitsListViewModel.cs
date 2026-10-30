@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -10,6 +11,7 @@ using FieldService.Presentation.Feedback;
 using FieldService.Presentation.Messages;
 using FieldService.Presentation.Navigation;
 using FieldService.Presentation.State;
+using Microsoft.Extensions.Logging;
 
 namespace FieldService.Presentation.Visits;
 
@@ -17,6 +19,7 @@ namespace FieldService.Presentation.Visits;
 // Nie formatuje, nie buduje elementów, nie składa tekstów i nie zna stron. Filtr bierze ze stanu aplikacji (IAppState),
 // a o jego zmianie dowiaduje się z komunikatu – słaby posłaniec nie trzyma listy w pamięci po zamknięciu ekranu.
 // Pokazuje też, ile zmian czeka na wysłanie – nie obiecujemy wysyłki w tle, dajemy „Wyślij teraz”.
+// Stale-while-revalidate: pusta lista → najpierw migawka z telefonu (od razu), zaraz potem świeża lista z sieci.
 public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsListRoute>, IRecipient<FilterChangedMessage>,
     IRecipient<SyncCompletedMessage>
 {
@@ -27,9 +30,11 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
     private readonly INavigationService _navigation;
     private readonly IAppState _appState;
     private readonly ISyncScheduler _sync;
+    private readonly ILogger<VisitsListViewModel> _logger;
 
     public VisitsListViewModel(GetTodayVisitsHandler getTodayVisits, IVisitItemFactory items, IVisitFormatter formatter,
-        IUserFeedback feedback, INavigationService navigation, IAppState appState, ISyncScheduler sync)
+        IUserFeedback feedback, INavigationService navigation, IAppState appState, ISyncScheduler sync,
+        ILogger<VisitsListViewModel> logger)
     {
         _getTodayVisits = getTodayVisits;
         _items = items;
@@ -38,6 +43,7 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
         _navigation = navigation;
         _appState = appState;
         _sync = sync;
+        _logger = logger;
         // wszystkie komunikaty, które lista odbiera (IRecipient<…>)
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
@@ -115,6 +121,10 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
     [RelayCommand]
     private Task OpenVanStockAsync() => _navigation.NavigateAsync(new VanStockRoute());
 
+    // ikona w nagłówku: Ustawienia (technik, wersja, Diagnostyka, wylogowanie)
+    [RelayCommand]
+    private Task OpenSettingsAsync() => _navigation.NavigateAsync(new SettingsRoute());
+
     // true = lista pokazuje tylko część wizyt (widać to na ekranie)
     public bool IsFiltered => _appState.Filter.OnlyOverdue || _appState.Filter.Status is not null;
 
@@ -137,11 +147,25 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
 
     private async Task LoadAsync(CancellationToken ct)
     {
+        var shown = Stopwatch.StartNew(); // pomiar: od wejścia do pokazania wizyt
         // licznik z bazy telefonu – aktualny także bez sieci
         PendingCount = await _sync.GetPendingCountAsync(ct);
-
         var filter = _appState.Filter;
-        var result = await _getTodayVisits.HandleAsync(new GetTodayVisits(filter.OnlyOverdue, filter.Status), ct);
+        var query = new GetTodayVisits(filter.OnlyOverdue, filter.Status);
+
+        // pusta lista (wejście, zimny start) → migawka od razu, z godziną. Brak migawki – czekamy na sieć
+        if (Visits.Count == 0)
+        {
+            var cached = await _getTodayVisits.HandleAsync(query with { FromSnapshot = true }, ct);
+            if (cached.IsSuccess)
+            {
+                Show(cached.Value);
+                LastUpdated = _formatter.FormatSnapshot(cached.Value.SnapshotAt!.Value);
+                _logger.LogInformation("visits.list.shown {Ms} {Source}", shown.ElapsedMilliseconds, "snapshot");
+            }
+        }
+
+        var result = await _getTodayVisits.HandleAsync(query, ct);
         if (!result.IsSuccess)
         {
             await _feedback.ShowErrorAsync(result.Error!);
@@ -149,9 +173,16 @@ public partial class VisitsListViewModel : BaseViewModel, INavigatedTo<VisitsLis
         }
 
         var today = result.Value;
+        Show(today);
+        // bez sieci: lista z migawki – technik widzi, z kiedy są dane
+        LastUpdated = today.SnapshotAt is { } since ? _formatter.FormatOfflineSince(since) : _formatter.FormatUpdatedNow();
+        _logger.LogInformation("visits.list.shown {Ms} {Source}", shown.ElapsedMilliseconds,
+            today.SnapshotAt is null ? "network" : "offline");
+    }
+
+    private void Show(TodayVisits today)
+    {
         Visits.ReplaceWith(today.Visits.Select(_items.Create));
         Summary = _formatter.FormatDaySummary(today.Visits);
-        // bez sieci: lista z migawki – technik widzi, z kiedy są dane
-        LastUpdated = today.OfflineSince is { } since ? _formatter.FormatOfflineSince(since) : _formatter.FormatUpdatedNow();
     }
 }

@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddSingleton<AccessTokenStore>();
         services.AddTransient<GetTodayVisitsHandler>();
         services.AddTransient<SignInHandler>();
+        services.AddTransient<SignOutHandler>();
         services.AddTransient<GetVisitDetailsHandler>();
         services.AddTransient<GetVisitHistoryHandler>();
         services.AddTransient<StartVisitHandler>();

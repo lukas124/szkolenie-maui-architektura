@@ -49,8 +49,9 @@ public class VisitHistoryViewModelTests
         WorkOrderNumber = entry.WorkOrderNumber,
         StatusText = "status",
         Tone = VisitTone.Success,
-        VisitDate = entry.CompletedAt ?? entry.PlannedStart,
+        WhenText = "wczoraj",
         ThumbnailUrl = entry.ThumbnailUrl,
+        Thumbnail = _ => Task.FromResult(Stream.Null),
         PhotoUrl = entry.PhotoUrl,
         OpenCommand = new AsyncRelayCommand(open)
     };

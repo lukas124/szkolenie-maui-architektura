@@ -1,6 +1,7 @@
 using FieldService.Domain.Visits;
 using FieldService.Presentation.Visits;
 using static FieldService.Presentation.Tests.BlackBox.SpecVisitData;
+using FieldService.Application.Abstractions;
 
 namespace FieldService.Presentation.Tests.BlackBox;
 
@@ -33,7 +34,7 @@ public class VisitItemFactorySpecTests
                 VisitStatus.Cancelled => SpecLocalizer.StatusCancelled,
                 _ => SpecLocalizer.StatusPlanned
             });
-        _factory = new VisitItemFactory(_formatter.Object);
+        _factory = new VisitItemFactory(_formatter.Object, Mock.Of<IThumbnailCache>());
     }
 
     [TestCase(VisitStatus.Planned, VisitTone.Neutral, SpecLocalizer.StatusPlanned)]

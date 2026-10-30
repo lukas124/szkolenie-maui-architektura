@@ -3,6 +3,7 @@ using FieldService.Application.Parts.Queries;
 using FieldService.Domain.Common;
 using Moq;
 using NUnit.Framework;
+using FieldService.TestDoubles;
 
 namespace FieldService.Application.Tests.Parts;
 
@@ -16,7 +17,7 @@ public class GetPartCatalogHandlerTests
     public void SetUp()
     {
         _inventory = new Mock<IInventoryGateway>();
-        _handler = new GetPartCatalogHandler(_inventory.Object);
+        _handler = new GetPartCatalogHandler(new GatewayPartsCatalog(_inventory.Object));
     }
 
     // Katalog posortowany po nazwie

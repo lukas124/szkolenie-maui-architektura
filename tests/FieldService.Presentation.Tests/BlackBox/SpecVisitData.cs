@@ -50,5 +50,6 @@ internal static class SpecVisitData
         IsBrigade = visit.IsBrigade,
         IsCancelled = visit.Status == VisitStatus.Cancelled,
         ThumbnailUrl = visit.ThumbnailUrl,
+        Thumbnail = _ => Task.FromResult(Stream.Null),
     };
 }

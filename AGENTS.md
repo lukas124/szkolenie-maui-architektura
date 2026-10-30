@@ -62,6 +62,23 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 - Sesja: 401 → `TokenRefresher` (jedno odświeżenie naraz) i jedno ponowienie żądania; nieudane odświeżenie →
   `ISessionExpiry` → ekran logowania, outbox zostaje. Refresh token tylko w `ISessionStore` (`SecureStorage`).
 
+## Cache i wydajność
+- Cache to czysty .NET w Infrastructure, za portami z Application: `IPartsCatalog` → `PartsCatalog` (pamięć z TTL →
+  API → tabela SQLite `parts_catalog`; bez internetu – `INetworkStatus` – od razu SQLite, bez HTTP i ponowień),
+  `ETagCacheHandler` w potoku `HttpClient` (GET z `If-None-Match`, 304 → zapamiętana treść z tabeli `http_cache`),
+  `IThumbnailCache` → `ThumbnailCache` (pamięć z limitem rozmiaru → plik w katalogu cache z `IAppPaths.CacheDirectory`
+  → sieć). Cache bez limitu to wyciek z ładną nazwą.
+- Lista wizyt: stale-while-revalidate w `VisitsListViewModel` – pusta lista → `GetTodayVisits(FromSnapshot: true)`
+  (migawka z Bloku 11, „Dane z 7:42 – odświeżanie…”), potem lista z sieci.
+- Czyszczenie: `ILocalCaches.ClearAsync` przy wylogowaniu (Ustawienia → „Wyloguj”, `SignOutHandler`) i zmianie technika
+  (`SqliteTechnicianData`); wizyty i niewysłane zmiany zostają.
+- Tekst elementu listy liczy fabryka raz (`VisitItemFactory`, `IVisitFormatter.FormatRelativeDate`), nie konwerter
+  przy każdym wiązaniu. Subskrypcje w ViewModelu: `WeakReferenceMessenger` + `UnregisterAll` w `OnClosed()`;
+  test wycieku – `tests/FieldService.Presentation.Tests/LeakTests.cs` (`WeakReference`, pełny GC).
+- Konfiguracje: Debug (`.dev`, Diagnostyka), **Test** (`.test`: optymalizacje jak Release – przycinanie, profilowane AOT –
+  plus Diagnostyka; pomiary), Release (sklep). Stała `DIAGNOSTICS` w Debug i Test: strona Diagnostyka (Ustawienia),
+  `RequestCounterHandler`, log `http.requests` i `visits.list.shown`. Mierzymy w Test, nie w Debug.
+
 ## Konwencje
 - Nazwy z języka domeny (`docs/architecture/slownik.md`): `Visit`, `VisitScope`, `CustomerSignature`.
 - Komenda `CompleteVisit` + `CompleteVisitHandler`; zapytanie `GetVisitDetails` → model odczytu `VisitDetails`;
@@ -100,6 +117,7 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 - Typy MAUI w ViewModelu (`Color`, `ImageSource`, `Application.Current`) – ViewModel testujemy bez emulatora.
 - `DateTime.Now`, `DateTimeOffset.Now`, `UtcNow` w Domain i Application – czas daje `IClock` albo parametr `now`.
 - `async void` poza `FireAndForget` – wyjątek ginie albo zamyka aplikację.
+- Zdarzenie singletona albo statyczne zdarzenie subskrybowane w ViewModelu bez odpięcia – smycz: ViewModel nie zostanie zebrany.
 - `MessagingCenter`, `StrongReferenceMessenger` i `appState.Filter.PropertyChanged +=` w ViewModelu – przestarzałe API albo wycieki pamięci.
 - DTO poza Infrastructure, agregat w ViewModelu – granice pierścieni; ViewModel dostaje model odczytu.
 - `try/catch` wokół wywołania API w bramie i edycja wygenerowanego klienta – od tego jest `ApiExecutor` i specyfikacja.

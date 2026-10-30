@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Ustawienia: technik, środowisko, wersja, Diagnostyka (Debug i Test), wylogowanie. -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:settings="clr-namespace:FieldService.Presentation.Settings;assembly=FieldService.Presentation"
+                x:Class="FieldService.UI.Settings.SettingsPage"
+                x:DataType="settings:SettingsViewModel"
+                Title="{loc:Translate Settings_Title}"
+                CanNavigateBack="True">
+    <ScrollView>
+        <VerticalStackLayout Padding="16,16,16,32" Spacing="16">
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{loc:Translate Settings_Technician}" Style="{StaticResource SectionHeader}" />
+                    <Label Text="{Binding TechnicianName}" Style="{StaticResource CardTitle}" />
+                    <Label Text="{Binding Email}" Style="{StaticResource Caption}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="10">
+                    <Label Text="{loc:Translate Settings_Environment}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                    <Label Grid.Column="1" Text="{Binding EnvironmentName}" FontFamily="MonoBold" HorizontalOptions="End" />
+                    <Label Grid.Row="1" Text="{loc:Translate Settings_Version}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding VersionText}" FontFamily="MonoRegular" HorizontalOptions="End" />
+                </Grid>
+            </Border>
+
+            <!-- tylko Debug i Test: liczniki do pomiarów (w Release przycisk jest ukryty) -->
+            <Button Text="{loc:Translate Settings_Diagnostics}" Style="{StaticResource SecondaryButton}" Command="{Binding OpenDiagnosticsCommand}"
+                    IsVisible="{Binding IsDiagnostics}" />
+
+            <Button Text="{loc:Translate Settings_SignOut}" Style="{StaticResource SecondaryButton}" Command="{Binding SignOutCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</pages:BasePage>

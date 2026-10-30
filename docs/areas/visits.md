@@ -67,9 +67,13 @@ i nie blokuje `UsePart`.
 | `IVisitListSnapshotStore` (lista bez sieci) | Application/Abstractions | `SqliteVisitListSnapshotStore` (tabela `visit_list_snapshot`) | Infrastructure/Persistence |
 | `IClock` | Application/Abstractions | `SystemClock` | Infrastructure |
 | `IInventoryGateway` | Application/Abstractions | `ApiInventoryGateway` (także rezerwacja części – `ReserveAsync`) | Infrastructure/Inventory |
+| `IPartsCatalog` (ceny do protokołu) | Application/Abstractions | `PartsCatalog` (pamięć → API → SQLite `parts_catalog`) | Infrastructure/Inventory |
+| `IThumbnailCache` (miniatury listy i historii) | Application/Abstractions | `ThumbnailCache` (pamięć z limitem → pliki → sieć) | Infrastructure/Caching |
+| `ILocalCaches` (czyszczenie cache) | Application/Abstractions | `LocalCaches` | Infrastructure/Caching |
 | `ISessionStore` (refresh token) | Application/Abstractions | `SecureSessionStore` (`SecureStorage`) | UI/Platform |
 | `ISessionExpiry` (sesja wygasła) | Application/Abstractions | `SessionExpiryNavigator` (ekran logowania; outbox zostaje) | UI/Platform |
 | `IPermissionService` | Application/Abstractions | `MauiPermissionService` | UI/Platform |
+| `INetworkStatus` (katalog części bez internetu) | Application/Abstractions | `MauiNetworkStatus` | UI/Platform |
 | `IPhotoCapture` | Application/Abstractions | `MauiPhotoCapture` | UI/Platform |
 
 Mapa wiadomość → żądanie (`ApiVisitsGateway.SendAsync`, nagłówki `Idempotency-Key`, `If-Match` i `X-If-Match`):
@@ -120,6 +124,9 @@ w `src/FieldService.UI/Visits/Pages` (rejestr: `VisitsPages`); status w wierszu 
 | odpowiedź i wyjątki → `Result`, statusy HTTP | `tests/FieldService.Infrastructure.Tests/Api/ApiExecutorTests.cs`, `ApiErrorMapperTests.cs` |
 | token i sesja (401 → odświeżenie) | `tests/FieldService.Infrastructure.Tests/Http/AuthHeaderHandlerTests.cs`, `tests/FieldService.Application.Tests/Session/TokenRefresherTests.cs`, `RestoreSessionHandlerTests.cs`, `SignInHandlerSessionTests.cs`, `tests/FieldService.Presentation.Tests/Session/LoginRestoreTests.cs`, `StartupNavigatorDeepLinkTests.cs` |
 | rezerwacja części | `tests/FieldService.Application.Tests/Parts/ReservePartHandlerTests.cs`, `tests/FieldService.Infrastructure.Tests/Api/ApiInventoryGatewayTests.cs`, `tests/FieldService.Presentation.Tests/Parts/ReservePartViewModelTests.cs` |
+| cache (katalog, ETag, miniatury, czyszczenie) | `tests/FieldService.Infrastructure.Tests/Inventory/PartsCatalogTests.cs`, `Http/ETagCacheHandlerTests.cs`, `Caching/*Tests.cs` |
+| lista z migawki od razu (stale-while-revalidate) | `tests/FieldService.Presentation.Tests/Visits/VisitsListViewModelCacheTests.cs`, `tests/FieldService.Application.Tests/Visits/GetTodayVisitsSnapshotFromSnapshotTests.cs` |
+| wycieki ViewModeli | `tests/FieldService.Presentation.Tests/LeakTests.cs` |
 | ViewModele | `tests/FieldService.Presentation.Tests/Visits/*Tests.cs` |
 | reguła zależności | `tests/FieldService.Tests/LayerDependencyTests.cs` |
 

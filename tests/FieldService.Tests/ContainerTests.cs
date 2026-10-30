@@ -24,7 +24,7 @@ public class ContainerTests
 
         var services = new ServiceCollection();
         services.AddApplication()
-            .AddInfrastructure(new ApiOptions { BaseUrl = "https://example.invalid/" })
+            .AddInfrastructure(new ApiOptions { BaseUrl = "https://example.invalid/" }, new CachingOptions())
             .AddPresentation();
 
         // Porty z warstwy UI – atrapy
@@ -32,11 +32,13 @@ public class ContainerTests
         services.AddSingleton(localizer.Object);
         services.AddSingleton(Mock.Of<IPreferencesStore>());
         services.AddSingleton(Mock.Of<INavigationService>());
-        services.AddSingleton(Mock.Of<IAppPaths>());
+        services.AddSingleton(Mock.Of<IAppPaths>(p => p.DataDirectory == Path.GetTempPath() && p.CacheDirectory == Path.GetTempPath()));
         services.AddSingleton(Mock.Of<IPermissionService>());
         services.AddSingleton(Mock.Of<IPhotoCapture>());
         services.AddSingleton(Mock.Of<ISessionStore>());
         services.AddSingleton(Mock.Of<ISessionExpiry>());
+        services.AddSingleton(Mock.Of<IAppEnvironment>());
+        services.AddSingleton(Mock.Of<INetworkStatus>());
 
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
     }

@@ -8,7 +8,9 @@
                 xmlns:selectors="clr-namespace:FieldService.UI.Selectors"
                 x:Class="FieldService.UI.Visits.Pages.VisitsListPage"
                 x:DataType="visits:VisitsListViewModel"
-                Title="{loc:Translate VisitsList_Title}">
+                Title="{loc:Translate VisitsList_Title}"
+                ActionIcon="{AppThemeBinding Light=icon_settings_dark.png, Dark=icon_settings_light.png}"
+                ActionCommand="{Binding OpenSettingsCommand}">
 
     <pages:BasePage.Resources>
         <DataTemplate x:Key="ActiveVisit" x:DataType="visits:VisitItem">
@@ -19,7 +21,7 @@
                         CommandParameter="{Binding .}" />
                 </Border.GestureRecognizers>
                 <Grid ColumnDefinitions="56,*" ColumnSpacing="12">
-                    <Image Source="{Binding ThumbnailUrl}" WidthRequest="56" HeightRequest="56" Aspect="AspectFill" />
+                    <Image Source="{Binding Thumbnail, Converter={StaticResource Thumbnail}}" WidthRequest="56" HeightRequest="56" Aspect="AspectFill" />
                     <VerticalStackLayout Grid.Column="1" Spacing="2">
                         <Grid ColumnDefinitions="*,Auto">
                             <Label Text="{Binding CustomerName}" Style="{StaticResource CardTitle}" />

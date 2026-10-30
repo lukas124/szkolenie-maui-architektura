@@ -20,7 +20,7 @@ public class SqliteTechnicianDataTests
         _paths = new TemporaryAppPaths();
         _db = new SqliteDb(_paths);
         _visits = new SqliteVisitRepository(_db, Mock.Of<ISyncScheduler>());
-        _data = new SqliteTechnicianData(_db);
+        _data = new SqliteTechnicianData(_db, Mock.Of<ILocalCaches>());
     }
 
     [TearDown]

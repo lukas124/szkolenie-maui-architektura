@@ -36,9 +36,18 @@ public static class MauiProgram
         {
             BaseUrl = builder.Configuration["Api:BaseUrl"] ?? throw new InvalidOperationException("Brak Api:BaseUrl w appsettings.json.")
         };
+        // Caching:ThumbnailMemoryLimitMb = 0 → miniatury bez limitu (tylko do pomiaru „przed”); brak klucza → 50 MB
+        var thumbnailLimitMb = long.TryParse(builder.Configuration["Caching:ThumbnailMemoryLimitMb"], out var mb) ? mb : 50;
+        var caching = new CachingOptions
+        {
+            ThumbnailMemoryLimitBytes = thumbnailLimitMb * 1024 * 1024,
+#if DIAGNOSTICS
+            CountRequests = true // licznik żądań w Diagnostyce (Debug i Test)
+#endif
+        };
         builder.Services
             .AddApplication()
-            .AddInfrastructure(api)
+            .AddInfrastructure(api, caching)
             .AddPresentation()
             .AddPlatformServices()
             .AddPages();
@@ -50,6 +59,9 @@ public static class MauiProgram
         builder.Logging.AddDebug(); // okno Output w IDE (z debuggerem)
         builder.Logging.AddSimpleConsole(o => o.SingleLine = true); // Android: adb logcat -s DOTNET
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
+#elif DIAGNOSTICS
+        // Test: pomiary w logu (http.requests, visits.list.shown) – adb logcat -s DOTNET
+        builder.Logging.AddSimpleConsole(o => o.SingleLine = true);
 #endif
 
         return builder.Build();

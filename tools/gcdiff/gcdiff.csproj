@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- gcdiff: porównanie dwóch zrzutów sterty .gcdump – które typy przybyło (liczba obiektów i rozmiar).
+       Działa na macOS, Windows i Linux. Czytnik zrzutu z zainstalowanego dotnet-gcdump 9.0.661903
+       (katalog narzędzi globalnych w katalogu domowym użytkownika – na każdym systemie ten sam układ).
+       Jak uruchomić – komentarz na początku Program.cs. Projekt nie należy do FieldService.slnx. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserHome>$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))</UserHome>
+    <GcDumpDir>$(UserHome)/.dotnet/tools/.store/dotnet-gcdump/9.0.661903/dotnet-gcdump/9.0.661903/tools/net8.0/any</GcDumpDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="dotnet-gcdump" HintPath="$(GcDumpDir)/dotnet-gcdump.dll" />
+    <Reference Include="Microsoft.Diagnostics.FastSerialization" HintPath="$(GcDumpDir)/Microsoft.Diagnostics.FastSerialization.dll" />
+    <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent" HintPath="$(GcDumpDir)/Microsoft.Diagnostics.Tracing.TraceEvent.dll" />
+  </ItemGroup>
+</Project>

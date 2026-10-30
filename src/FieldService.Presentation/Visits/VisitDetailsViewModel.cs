@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using FieldService.Application.Abstractions;
 using FieldService.Application.Visits.Commands;
 using FieldService.Application.Visits.Queries;
@@ -7,11 +8,13 @@ using FieldService.Domain.Common;
 using FieldService.Domain.Visits;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
+using FieldService.Presentation.Messages;
 using FieldService.Presentation.Navigation;
 
 namespace FieldService.Presentation.Visits;
 
 // Szczegóły wizyty: rozpoczęcie, zdjęcie i wejście w kreator zakończenia (części, podpis i zakończenie są w kreatorze).
+// Po wysyłce zmian (SyncCompletedMessage) szczegóły od nowa – słaby posłaniec nie trzyma ekranu po zamknięciu.
 public partial class VisitDetailsViewModel(
     GetVisitDetailsHandler getDetails,
     StartVisitHandler startVisit,
@@ -19,7 +22,7 @@ public partial class VisitDetailsViewModel(
     IPermissionService permissions,
     IVisitFormatter formatter,
     IUserFeedback feedback,
-    INavigationService navigation) : BaseViewModel, INavigatedTo<VisitDetailsRoute>
+    INavigationService navigation) : BaseViewModel, INavigatedTo<VisitDetailsRoute>, IRecipient<SyncCompletedMessage>
 {
     private VisitId _visitId;
 
@@ -43,9 +46,18 @@ public partial class VisitDetailsViewModel(
     public async Task OnNavigatedToAsync(VisitDetailsRoute route)
     {
         _visitId = route.Id;
+        WeakReferenceMessenger.Default.RegisterAll(this);
         await LoadAsync(refresh: true);
         _loaded = true;
     }
+
+    // wysyłka zmian skończona – status wizyty mógł się zmienić (wysłana, odrzucona, konflikt)
+    public void Receive(SyncCompletedMessage message)
+    {
+        if (_loaded) _ = LoadAsync();
+    }
+
+    public override void OnClosed() => WeakReferenceMessenger.Default.UnregisterAll(this);
 
     // Powrót z kreatora (przerwanego): zakres i podpis mogły się zmienić – świeże dane z repliki
     public override Task OnAppearingAsync() => _loaded ? LoadAsync() : Task.CompletedTask;

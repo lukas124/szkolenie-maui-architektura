@@ -39,6 +39,9 @@ dotnet test
 # Android: build, instalacja i uruchomienie (-t:Run) na emulatorze lub podłączonym telefonie
 dotnet build src/FieldService.UI -t:Run -f net10.0-android
 
+# pomiary wydajności: konfiguracja Test (optymalizacje jak Release + strona Diagnostyka, osobna aplikacja .test)
+dotnet build src/FieldService.UI -t:Run -f net10.0-android -c Test
+
 # iOS: to samo na symulatorze (tylko macOS; tam target net10.0-ios jest dodawany automatycznie)
 dotnet build src/FieldService.UI -t:Run -f net10.0-ios
 ```

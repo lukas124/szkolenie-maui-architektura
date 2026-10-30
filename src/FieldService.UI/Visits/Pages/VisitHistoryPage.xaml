@@ -33,13 +33,13 @@
                             <Setter Property="Opacity" Value="0.6" />
                         </DataTrigger>
                     </Grid.Triggers>
-                    <Image Grid.RowSpan="2" Source="{Binding ThumbnailUrl}" WidthRequest="56" HeightRequest="56" Aspect="AspectFill" />
+                    <Image Grid.RowSpan="2" Source="{Binding Thumbnail, Converter={StaticResource Thumbnail}}" WidthRequest="56" HeightRequest="56" Aspect="AspectFill" />
                     <Label Grid.Column="1" Text="{Binding CustomerName}" Style="{StaticResource CardTitle}" MaxLines="1" />
                     <Label Grid.Column="1" Grid.Row="1" Style="{StaticResource Caption}" LineBreakMode="TailTruncation">
                         <Label.FormattedText>
                             <FormattedString>
-                                <!-- RelativeTime liczy przy każdym wiązaniu – celowo zostaje, zmierzymy go w ćwiczeniu 14 -->
-                                <Span Text="{Binding VisitDate, Converter={StaticResource RelativeTime}}" />
+                                <!-- tekst policzony raz w fabryce elementu (VisitItemFactory), nie przy każdym wiązaniu -->
+                                <Span Text="{Binding WhenText}" />
                                 <Span Text=" · " />
                                 <Span Text="{Binding City}" />
                                 <Span Text=" · " />

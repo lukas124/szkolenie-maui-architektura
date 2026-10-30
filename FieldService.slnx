@@ -1,4 +1,9 @@
 <Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="Test" />
+  </Configurations>
   <Folder Name="/src/">
     <Project Path="src/FieldService.Domain/FieldService.Domain.csproj" />
     <Project Path="src/FieldService.Application/FieldService.Application.csproj" />

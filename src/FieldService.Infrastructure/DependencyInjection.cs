@@ -2,6 +2,7 @@ using FieldService.Application.Abstractions;
 using FieldService.Domain.Visits;
 using FieldService.Infrastructure.Api;
 using FieldService.Infrastructure.Auth;
+using FieldService.Infrastructure.Caching;
 using FieldService.Infrastructure.Http;
 using FieldService.Infrastructure.Inventory;
 using FieldService.Infrastructure.Orders;
@@ -16,7 +17,8 @@ namespace FieldService.Infrastructure;
 // Rejestracje adapterów (porty z Application → implementacje tutaj)
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, ApiOptions options)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, ApiOptions options,
+        CachingOptions caching)
     {
         services.AddSingleton(options);
         services.AddSingleton<IClock, SystemClock>();
@@ -36,22 +38,49 @@ public static class DependencyInjection
         services.AddSingleton<Func<OutboxProcessor>>(sp => sp.GetRequiredService<OutboxProcessor>);
         services.AddSingleton<ISyncScheduler, SyncScheduler>();
 
-        services.AddApiClients(options);
+        services.AddCaching(caching);
+        services.AddApiClients(options, caching);
         return services;
     }
 
-    // Klient API generowany z OpenAPI (FieldServiceApiClient) z potokiem handlerów: najpierw token, potem korelacja,
-    // na końcu odporność (Polly). Bramy są Transient (typed client) – singletony biorą je przez Func<…> (OutboxProcessor).
-    public static IServiceCollection AddApiClients(this IServiceCollection services, ApiOptions options)
+    // Cache w czystym .NET: katalog części (pamięć + SQLite), miniatury (pamięć z limitem + pliki), wspólne czyszczenie.
+    // Singletony trzymają tylko dane; HttpClient biorą z fabryki przy każdym użyciu (bez uwięzionej zależności).
+    public static IServiceCollection AddCaching(this IServiceCollection services, CachingOptions caching)
+    {
+        services.AddSingleton(caching);
+        services.AddMemoryCache();
+        services.AddTransient<PartsCatalog>();
+        services.AddTransient<IPartsCatalog>(sp => sp.GetRequiredService<PartsCatalog>());
+        services.AddHttpClient(ThumbnailsClient, http => http.Timeout = TimeSpan.FromSeconds(20));
+        services.AddSingleton(sp => new ThumbnailCache(
+            () => sp.GetRequiredService<IHttpClientFactory>().CreateClient(ThumbnailsClient),
+            sp.GetRequiredService<IAppPaths>(), caching));
+        services.AddSingleton<IThumbnailCache>(sp => sp.GetRequiredService<ThumbnailCache>());
+        services.AddSingleton<ILocalCaches, LocalCaches>();
+        services.AddSingleton<RequestStatistics>();
+        services.AddSingleton<IRequestStatistics>(sp => sp.GetRequiredService<RequestStatistics>());
+        return services;
+    }
+
+    private const string ThumbnailsClient = "thumbnails";
+
+    // Klient API generowany z OpenAPI (FieldServiceApiClient) z potokiem handlerów: token, cache ETag, [licznik żądań],
+    // korelacja, na końcu odporność (Polly). Bramy są Transient (typed client) – singletony biorą je przez Func<…>.
+    public static IServiceCollection AddApiClients(this IServiceCollection services, ApiOptions options,
+        CachingOptions caching)
     {
         services.AddSingleton<ApiExecutor>();
         services.AddTransient<AuthHeaderHandler>();
+        services.AddTransient<ETagCacheHandler>();
+        services.AddTransient<RequestCounterHandler>();
         services.AddTransient<CorrelationIdHandler>();
 
-        services.AddHttpClient<FieldServiceApiClient>(http => ConfigureApi(http, options))
+        var api = services.AddHttpClient<FieldServiceApiClient>(http => ConfigureApi(http, options))
             .AddHttpMessageHandler<AuthHeaderHandler>()       // 1. token (401 → odświeżenie i jedno ponowienie)
-            .AddHttpMessageHandler<CorrelationIdHandler>()
-            .AddStandardResilienceHandler(ConfigureResilience); // 2. Polly: retry, limity czasu, bezpiecznik
+            .AddHttpMessageHandler<ETagCacheHandler>();       // 2. If-None-Match → 304 = treść z SQLite
+        if (caching.CountRequests) api.AddHttpMessageHandler<RequestCounterHandler>(); // pomiar: to, co idzie do serwera
+        api.AddHttpMessageHandler<CorrelationIdHandler>()
+            .AddStandardResilienceHandler(ConfigureResilience); // 3. Polly: retry, limity czasu, bezpiecznik
 
         // logowanie i odświeżenie tokenu: bez AuthHeaderHandler (odświeżenie nie może wywołać odświeżenia)
         services.AddHttpClient(AuthClient, http => ConfigureApi(http, options))

@@ -11,14 +11,14 @@ public sealed record GetVisitProtocol(VisitId VisitId);
 
 // Nazwy i ceny części z katalogu; bez sieci protokół i tak powstaje (nazwa = kod części, cena 0 – transformata
 // VisitProtocolBuilder tak traktuje część spoza katalogu). Czas pracy liczony od rozpoczęcia wizyty.
-public sealed class GetVisitProtocolHandler(IVisitRepository visits, IInventoryGateway inventory, IClock clock)
+public sealed class GetVisitProtocolHandler(IVisitRepository visits, IPartsCatalog partsCatalog, IClock clock)
 {
     public async Task<Result<VisitProtocol>> HandleAsync(GetVisitProtocol query, CancellationToken ct)
     {
         var visit = await visits.GetAsync(query.VisitId, ct);
         if (visit is null) return VisitErrors.NotFound;
 
-        var catalog = await inventory.GetPartCatalogAsync(ct);
+        var catalog = await partsCatalog.GetAsync(ct);
         IReadOnlyDictionary<PartId, PartInfo> parts = catalog.IsSuccess
             ? catalog.Value.ToDictionary(p => new PartId(p.PartId), p => new PartInfo(p.Name, p.UnitPrice))
             : new Dictionary<PartId, PartInfo>();

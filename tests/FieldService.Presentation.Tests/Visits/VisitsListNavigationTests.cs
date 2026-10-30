@@ -31,7 +31,8 @@ public class VisitsListNavigationTests
         var handler = new GetTodayVisitsHandler(new Mock<IVisitsGateway>().Object, new Mock<IVisitReplica>().Object,
             new Mock<IVisitListSnapshotStore>().Object, clock.Object);
         _viewModel = new VisitsListViewModel(handler, new Mock<IVisitItemFactory>().Object, new Mock<IVisitFormatter>().Object,
-            new Mock<IUserFeedback>().Object, _navigation.Object, appState.Object, new Mock<ISyncScheduler>().Object);
+            new Mock<IUserFeedback>().Object, _navigation.Object, appState.Object, new Mock<ISyncScheduler>().Object,
+            VisitsListTestDeps.Logger());
     }
 
     [TearDown]

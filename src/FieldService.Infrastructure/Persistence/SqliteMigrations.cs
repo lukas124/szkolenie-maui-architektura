@@ -75,6 +75,22 @@ internal static class SqliteMigrations
                 VisitsJson TEXT NOT NULL,
                 SavedAt TEXT NOT NULL)
             """
+        ],
+        // 5: cache – katalog cen części (offline) i odpowiedzi HTTP z ETagiem (If-None-Match → 304)
+        [
+            """
+            CREATE TABLE parts_catalog (
+                PartId TEXT PRIMARY KEY,
+                Name TEXT NOT NULL,
+                UnitPrice TEXT NOT NULL)
+            """,
+            """
+            CREATE TABLE http_cache (
+                Url TEXT PRIMARY KEY,
+                ETag TEXT NOT NULL,
+                Body TEXT NOT NULL,
+                StoredAt TEXT NOT NULL)
+            """
         ]
     ];
 

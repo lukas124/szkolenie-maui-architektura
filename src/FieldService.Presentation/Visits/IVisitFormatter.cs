@@ -27,6 +27,12 @@ public interface IVisitFormatter
     // „Bez sieci – dane z 9:12” (z innego dnia: „Bez sieci – dane z 28.10 9:12”)
     string FormatOfflineSince(DateTimeOffset savedAt);
 
+    // „Dane z 7:42” – lista z migawki pokazana od razu, zanim przyjdzie świeża z sieci (stale-while-revalidate)
+    string FormatSnapshot(DateTimeOffset savedAt);
+
+    // data względem dziś: „dziś”, „wczoraj”, „3 dni temu”, dalej „12.10.2026” – liczone raz, w fabryce elementu
+    string FormatRelativeDate(DateTimeOffset date);
+
     // „Oczekuje na wysłanie (2)”
     string FormatPending(int count);
 }

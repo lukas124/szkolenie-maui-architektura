@@ -1,0 +1,32 @@
+{
+  // .NET Meteor 6.2.9 (VS Code): uruchomienie, ślad (speedscope) i zrzut sterty (.gcdump) – Blok 14.
+  // Konfigurację buildu (Debug / Test / Release) wybiera się na pasku stanu Meteora; profiler działa bez debugera.
+  // Wynik profilera trafia do katalogu projektu. Plan B bez Meteora: dotnet-trace / dotnet-gcdump z --dsrouter.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Meteor: Debug",
+      "type": "dotnet-meteor.debugger",
+      "request": "launch",
+      "preLaunchTask": "dotnet-meteor: Build"
+    },
+    {
+      // ślad wydajności: na pasku stanu konfiguracja Test (jak Release + Diagnostyka)
+      "name": "Meteor: Profiler (trace)",
+      "type": "dotnet-meteor.debugger",
+      "request": "launch",
+      "profilerMode": "trace",
+      "noDebug": true,
+      "preLaunchTask": "dotnet-meteor: Build"
+    },
+    {
+      // zrzut sterty przy szukaniu wycieku: na pasku stanu konfiguracja Debug (licznik żywych ViewModeli)
+      "name": "Meteor: GC Dump",
+      "type": "dotnet-meteor.debugger",
+      "request": "launch",
+      "profilerMode": "gcdump",
+      "noDebug": true,
+      "preLaunchTask": "dotnet-meteor: Build"
+    }
+  ]
+}

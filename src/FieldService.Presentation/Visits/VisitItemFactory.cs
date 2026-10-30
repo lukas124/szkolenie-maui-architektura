@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.Input;
+using FieldService.Application.Abstractions;
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Visits;
 
 namespace FieldService.Presentation.Visits;
 
-// Fabryka: VisitSummary (model odczytu) → VisitItem (model prezentacji) – teksty z formattera, ton ze statusu
-public sealed class VisitItemFactory(IVisitFormatter formatter) : IVisitItemFactory
+// Fabryka: VisitSummary (model odczytu) → VisitItem (model prezentacji) – teksty z formattera, ton ze statusu.
+// Element powstaje raz: wszystkie teksty liczymy tutaj, a nie w konwerterach przy każdym wiązaniu wiersza.
+public sealed class VisitItemFactory(IVisitFormatter formatter, IThumbnailCache thumbnails) : IVisitItemFactory
 {
     public VisitItem Create(VisitSummary visit)
     {
@@ -33,7 +35,8 @@ public sealed class VisitItemFactory(IVisitFormatter formatter) : IVisitItemFact
             IsLate = visit.IsLate,
             IsBrigade = visit.IsBrigade,
             IsCancelled = visit.Status == VisitStatus.Cancelled,
-            ThumbnailUrl = visit.ThumbnailUrl
+            ThumbnailUrl = visit.ThumbnailUrl,
+            Thumbnail = ct => thumbnails.OpenAsync(visit.ThumbnailUrl, ct)
         };
     }
 
@@ -54,8 +57,9 @@ public sealed class VisitItemFactory(IVisitFormatter formatter) : IVisitItemFact
             _ => VisitTone.Success
         },
         IsCancelled = entry.Status == VisitStatus.Cancelled,
-        VisitDate = entry.CompletedAt ?? entry.PlannedStart,
+        WhenText = formatter.FormatRelativeDate(entry.CompletedAt ?? entry.PlannedStart),
         ThumbnailUrl = entry.ThumbnailUrl,
+        Thumbnail = ct => thumbnails.OpenAsync(entry.ThumbnailUrl, ct),
         PhotoUrl = entry.PhotoUrl,
         OpenCommand = new AsyncRelayCommand(open)
     };

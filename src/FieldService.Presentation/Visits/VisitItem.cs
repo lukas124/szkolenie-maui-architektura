@@ -17,4 +17,6 @@ public sealed record VisitItem
     public required bool IsBrigade { get; init; }
     public required bool IsCancelled { get; init; }
     public required string ThumbnailUrl { get; init; }
+    // miniatura przez cache (IThumbnailCache) – UI zamienia ją na obrazek; bez typów MAUI w ViewModelu
+    public required Func<CancellationToken, Task<Stream>> Thumbnail { get; init; }
 }

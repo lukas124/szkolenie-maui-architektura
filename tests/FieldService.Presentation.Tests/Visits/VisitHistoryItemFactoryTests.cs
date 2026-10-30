@@ -30,7 +30,7 @@ public class VisitHistoryItemFactoryTests
         var clock = new Mock<IClock>();
         clock.Setup(c => c.Now).Returns(Now);
         _formatter = new VisitFormatter(new BracketLocalizer(), clock.Object);
-        _factory = new VisitItemFactory(_formatter);
+        _factory = new VisitItemFactory(_formatter, Mock.Of<IThumbnailCache>());
     }
 
     private static VisitHistoryEntry Entry(VisitStatus status, VisitOutcomeType? outcome, DateTimeOffset? completedAt) =>
@@ -53,19 +53,19 @@ public class VisitHistoryItemFactoryTests
     }
 
     [Test]
-    public void CreateHistory_CompletedAtSet_VisitDateIsCompletedAt()
+    public void CreateHistory_CompletedAtSet_WhenTextFromCompletedAt()
     {
         var item = _factory.CreateHistory(Entry(VisitStatus.Completed, VisitOutcomeType.Fixed, Completed), NoOp);
 
-        Assert.That(item.VisitDate, Is.EqualTo(Completed));
+        Assert.That(item.WhenText, Is.EqualTo(_formatter.FormatRelativeDate(Completed)));
     }
 
     [Test]
-    public void CreateHistory_CompletedAtNull_VisitDateIsPlannedStart()
+    public void CreateHistory_CompletedAtNull_WhenTextFromPlannedStart()
     {
         var item = _factory.CreateHistory(Entry(VisitStatus.Cancelled, null, null), NoOp);
 
-        Assert.That(item.VisitDate, Is.EqualTo(Planned));
+        Assert.That(item.WhenText, Is.EqualTo(_formatter.FormatRelativeDate(Planned)));
     }
 
     [Test]

@@ -7,6 +7,7 @@ using FieldService.Presentation.Feedback;
 using FieldService.Presentation.Navigation;
 using FieldService.Presentation.Visits;
 using static FieldService.Presentation.Tests.BlackBox.SpecVisitData;
+using FieldService.Presentation.Tests.Visits;
 
 namespace FieldService.Presentation.Tests.BlackBox;
 
@@ -46,7 +47,8 @@ public class VisitsListViewModelSpecTests
 
         var handler = new GetTodayVisitsHandler(_gateway.Object, EmptyReplica(), Mock.Of<IVisitListSnapshotStore>(), Mock.Of<IClock>(c => c.Now == Now));
         _vm = new VisitsListViewModel(handler, _items.Object, _formatter.Object, _feedback.Object, _navigation.Object,
-            new AppState(Mock.Of<IPreferencesStore>()), Mock.Of<ISyncScheduler>());
+            new AppState(Mock.Of<IPreferencesStore>()), Mock.Of<ISyncScheduler>(),
+            VisitsListTestDeps.Logger());
     }
 
     // 07: wizyty zmienione w telefonie – tu żadnych
