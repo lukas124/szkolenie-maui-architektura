@@ -50,6 +50,7 @@
                     </BindableLayout.ItemTemplate>
                 </VerticalStackLayout>
                 <Button Text="{loc:Translate CompleteVisit_AddPart}" Command="{Binding AddPartCommand}" Style="{StaticResource SecondaryButton}" />
+                <Button Text="{loc:Translate CompleteVisit_ReserveFromWarehouse}" Command="{Binding ReserveFromWarehouseCommand}" Style="{StaticResource SecondaryButton}" />
             </VerticalStackLayout>
         </DataTemplate>
 

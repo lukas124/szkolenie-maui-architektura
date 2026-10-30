@@ -16,8 +16,8 @@ public class SignInHandlerSpecTests
     {
         _auth = new Mock<IAuthGateway>();
         _auth.Setup(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Success("token-123"));
-        _handler = new SignInHandler(_auth.Object, Mock.Of<IPreferencesStore>(), Mock.Of<ILocalTechnicianData>());
+            .ReturnsAsync(Result<SessionTokens>.Success(new SessionTokens("access-token", "refresh-token", "token-123")));
+        _handler = new SignInHandler(_auth.Object, Mock.Of<IPreferencesStore>(), Mock.Of<ILocalTechnicianData>(), new AccessTokenStore(), Mock.Of<ISessionStore>());
     }
 
     [TestCase("  jan@firma.pl  ")]
@@ -44,7 +44,7 @@ public class SignInHandlerSpecTests
     {
         var error = new Error("Auth.InvalidCredentials", ErrorType.Unauthorized);
         _auth.Setup(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Failure(error));
+            .ReturnsAsync(Result<SessionTokens>.Failure(error));
 
         var result = await _handler.HandleAsync(new SignIn("jan@firma.pl", "0000"), CancellationToken.None);
 

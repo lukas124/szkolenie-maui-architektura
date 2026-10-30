@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Rezerwacja części z magazynu dla wizyty (modal nad kreatorem). Komenda do Magazynu – wynik od razu. -->
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:loc="clr-namespace:FieldService.UI.MarkupExtensions"
+                xmlns:pages="clr-namespace:FieldService.UI.Pages"
+                xmlns:parts="clr-namespace:FieldService.Presentation.Parts;assembly=FieldService.Presentation"
+                x:Class="FieldService.UI.Parts.Pages.ReservePartPage"
+                x:DataType="parts:ReservePartViewModel"
+                Title="{loc:Translate ReservePart_Title}"
+                CanNavigateBack="True">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Label Text="{loc:Translate ReservePart_PartSection}" Style="{StaticResource SectionHeader}" SemanticProperties.HeadingLevel="Level2" />
+            <Button Text="{Binding PartText}" Command="{Binding ChoosePartCommand}" Style="{StaticResource SecondaryButton}" />
+            <Label Text="{loc:Translate ReservePart_WarehouseSection}" Style="{StaticResource SectionHeader}" SemanticProperties.HeadingLevel="Level2" />
+            <Button Text="{Binding WarehouseText}" Command="{Binding ChooseWarehouseCommand}" Style="{StaticResource SecondaryButton}" />
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Text="{Binding Quantity, StringFormat={loc:TranslateFormat ReservePart_Quantity}}" Style="{StaticResource Body}" VerticalOptions="Center" />
+                <Stepper Grid.Column="1" Value="{Binding Quantity}" Minimum="1" Maximum="10" Increment="1" />
+            </Grid>
+            <Button Text="{loc:Translate ReservePart_Reserve}" Command="{Binding ReserveCommand}" />
+            <Label Text="{Binding ResultText}" Style="{StaticResource CardTitle}" />
+            <Button Text="{loc:Translate ReservePart_Close}" Command="{Binding CloseCommand}" Style="{StaticResource SecondaryButton}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</pages:BasePage>

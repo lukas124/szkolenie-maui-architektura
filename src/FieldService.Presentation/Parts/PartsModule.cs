@@ -9,7 +9,10 @@ public static class PartsModule
     public static IServiceCollection AddPartsPresentation(this IServiceCollection services, RouteMap routes)
     {
         services.AddTransient<VanStockViewModel>();
-        routes.Map<VanStockRoute, VanStockViewModel>();
+        services.AddTransient<ReservePartViewModel>();
+        routes
+            .Map<VanStockRoute, VanStockViewModel>()
+            .Map<ReservePartRoute, ReservePartViewModel>();
         return services;
     }
 }

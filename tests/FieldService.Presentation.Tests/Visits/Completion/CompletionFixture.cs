@@ -71,7 +71,7 @@ internal sealed class CompletionFixture
 
         Activities = new ActivitiesStepViewModel(Draft, new RecordActivityHandler(Repository, Clock), DetailsHandler(), Localizer.Object, Feedback.Object);
         Parts = new PartsStepViewModel(Draft, new UsePartHandler(Repository, Clock), new RemoveUsedPartHandler(Repository, Clock),
-            new GetVanStockHandler(Inventory.Object), DetailsHandler(), Feedback.Object, Localizer.Object);
+            new GetVanStockHandler(Inventory.Object), DetailsHandler(), Feedback.Object, Localizer.Object, Navigation.Object);
         Signature = new SignatureStepViewModel(Draft, new SignByCustomerHandler(Repository, Clock), DetailsHandler(), Feedback.Object, Localizer.Object);
         Summary = new SummaryStepViewModel(Draft, ProtocolHandler(), Feedback.Object, Localizer.Object);
         Flow = new CompleteVisitFlowViewModel(Draft, Activities, Parts, Signature, Summary, DetailsHandler(),

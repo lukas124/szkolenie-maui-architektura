@@ -59,18 +59,20 @@ i nie blokuje `UsePart`.
 | `IVisitReplica` | Application/Abstractions | `SqliteVisitRepository` (ten sam obiekt) | Infrastructure/Persistence |
 | `IFlowDraftStore` (szkic kreatora) | Application/Abstractions | `SqliteFlowDraftStore` (tabela `flow_drafts`) | Infrastructure/Persistence |
 | `IPreferencesStore` (filtr listy) | Application/Abstractions | `MauiPreferencesStore` | UI/Platform |
-| `IVisitsGateway` | Application/Abstractions | `HttpVisitsGateway` + `VisitDtoMapper` (ACL) | Infrastructure/Visits |
+| `IVisitsGateway` | Application/Abstractions | `ApiVisitsGateway` + `VisitDtoMapper` (ACL; wygenerowany klient przez `ApiExecutor`) | Infrastructure/Visits |
 | `ISyncScheduler` (wysyłka zmian) | Application/Abstractions | `SyncScheduler` + `OutboxProcessor` (tabela `outbox`) | Infrastructure/Outbox |
-| `IOutboxSender` (wiadomość → żądanie) | Infrastructure/Outbox | `HttpVisitsGateway.SendAsync` | Infrastructure/Visits |
+| `IOutboxSender` (wiadomość → żądanie) | Infrastructure/Outbox | `ApiVisitsGateway.SendAsync` | Infrastructure/Visits |
 | `IVisitPhotoStore` | Application/Abstractions | `SqliteVisitPhotoStore` | Infrastructure/Persistence |
 | `ILocalTechnicianData` (dane technika w telefonie) | Application/Abstractions | `SqliteTechnicianData` | Infrastructure/Persistence |
 | `IVisitListSnapshotStore` (lista bez sieci) | Application/Abstractions | `SqliteVisitListSnapshotStore` (tabela `visit_list_snapshot`) | Infrastructure/Persistence |
 | `IClock` | Application/Abstractions | `SystemClock` | Infrastructure |
-| `IInventoryGateway` | Application/Abstractions | `HttpInventoryGateway` | Infrastructure/Inventory |
+| `IInventoryGateway` | Application/Abstractions | `ApiInventoryGateway` (także rezerwacja części – `ReserveAsync`) | Infrastructure/Inventory |
+| `ISessionStore` (refresh token) | Application/Abstractions | `SecureSessionStore` (`SecureStorage`) | UI/Platform |
+| `ISessionExpiry` (sesja wygasła) | Application/Abstractions | `SessionExpiryNavigator` (ekran logowania; outbox zostaje) | UI/Platform |
 | `IPermissionService` | Application/Abstractions | `MauiPermissionService` | UI/Platform |
 | `IPhotoCapture` | Application/Abstractions | `MauiPhotoCapture` | UI/Platform |
 
-Mapa wiadomość → żądanie (`HttpVisitsGateway.SendAsync`, nagłówki `Idempotency-Key`, `If-Match` i `X-If-Match`):
+Mapa wiadomość → żądanie (`ApiVisitsGateway.SendAsync`, nagłówki `Idempotency-Key`, `If-Match` i `X-If-Match`):
 
 | Zdarzenie | Żądanie |
 |---|---|
@@ -114,7 +116,10 @@ w `src/FieldService.UI/Visits/Pages` (rejestr: `VisitsPages`); status w wierszu 
 | lista bez sieci (migawka) | `tests/FieldService.Application.Tests/Visits/GetTodayVisitsSnapshotTests.cs`, `tests/FieldService.Infrastructure.Tests/Persistence/SqliteVisitListSnapshotStoreTests.cs`, `tests/FieldService.Presentation.Tests/Visits/VisitsListOfflineTests.cs` |
 | dane technika w telefonie (zmiana technika) | `tests/FieldService.Application.Tests/Session/SignInHandlerTests.cs`, `tests/FieldService.Infrastructure.Tests/Persistence/SqliteTechnicianDataTests.cs` |
 | outbox (zapis w transakcji, wysyłka, kompensacja) | `tests/FieldService.Infrastructure.Tests/Outbox/OutboxTests.cs`, `OutboxMessageTests.cs`, `SyncSchedulerTests.cs` |
-| wiadomość → żądanie HTTP | `tests/FieldService.Infrastructure.Tests/Visits/HttpVisitsGatewaySendTests.cs` |
+| wiadomość → żądanie HTTP | `tests/FieldService.Infrastructure.Tests/Api/ApiVisitsGatewayTests.cs` |
+| odpowiedź i wyjątki → `Result`, statusy HTTP | `tests/FieldService.Infrastructure.Tests/Api/ApiExecutorTests.cs`, `ApiErrorMapperTests.cs` |
+| token i sesja (401 → odświeżenie) | `tests/FieldService.Infrastructure.Tests/Http/AuthHeaderHandlerTests.cs`, `tests/FieldService.Application.Tests/Session/TokenRefresherTests.cs`, `RestoreSessionHandlerTests.cs`, `SignInHandlerSessionTests.cs`, `tests/FieldService.Presentation.Tests/Session/LoginRestoreTests.cs`, `StartupNavigatorDeepLinkTests.cs` |
+| rezerwacja części | `tests/FieldService.Application.Tests/Parts/ReservePartHandlerTests.cs`, `tests/FieldService.Infrastructure.Tests/Api/ApiInventoryGatewayTests.cs`, `tests/FieldService.Presentation.Tests/Parts/ReservePartViewModelTests.cs` |
 | ViewModele | `tests/FieldService.Presentation.Tests/Visits/*Tests.cs` |
 | reguła zależności | `tests/FieldService.Tests/LayerDependencyTests.cs` |
 

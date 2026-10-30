@@ -31,6 +31,8 @@ public sealed class NavigationService(IServiceProvider services, IServiceScopeFa
         ChangeStackAsync(route, services, async page =>
         {
             var navigation = CurrentNavigation;
+            // reset = nowy początek: najpierw zamykamy modale (kreator, dialog), żeby nowa strona nie została pod nimi
+            while (navigation.ModalStack.Count > 0) await navigation.PopModalAsync(false);
             await navigation.PushAsync(page, false);
             // stare strony usuwamy dopiero PO dodaniu nowej – stos ani na chwilę nie jest pusty
             foreach (var oldPage in navigation.NavigationStack.Where(p => p != page).ToList())

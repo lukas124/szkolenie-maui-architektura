@@ -1,0 +1,3060 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "FieldService API (szkoleniowe)",
+    "description": "API szkoleniowe do aplikacji FieldService (.NET MAUI) — szkolenie „Architektura aplikacji w .NET MAUI”.\n\n**Jak zacząć:** `POST /api/auth/login` z dowolnym poprawnym e-mailem i PIN-em `1234` → skopiuj `accessToken` → przycisk **Authorize** → wklej token. Przy pierwszym logowaniu w danym dniu serwer tworzy dzień pracy: 4 wizyty na dziś (jedna rozpoczęta), zlecenia, auto technika i historię wizyt.\n\n**Komendy wizyty** wymagają `If-Match` (albo `X-If-Match` – hosting wycina `If-Match`) z wersją wizyty (`ETag` z `GET api/visits/{id}`; inna wersja → 409 `Visit.VersionConflict`, brak → 428) i przyjmują `Idempotency-Key` (powtórka z tym samym kluczem zwraca zapisaną odpowiedź). Listy i katalog mają `ETag` — `If-None-Match` z tym samym ETagiem → 304.\n\nBłędy to ProblemDetails z polem `code` (np. `Visit.SignatureRequired`, `Inventory.OutOfStock`). Wyliczenia w JSON są tekstowe, daty w ISO 8601. Endpointy **Dispatcher** symulują dyspozytora.",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "/maui/architektura"
+    }
+  ],
+  "paths": {
+    "/api/admin/reset": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Reset danych (wszystkich albo jednego technika). Wymaga nagłówka `X-Admin-Key`.",
+        "description": "Jeden technik: jego wizyty (także wspólne wizyty brygady), zlecenia, auto, rezerwacje i sesje — przy następnym\nlogowaniu powstaje nowy dzień pracy. Wszystko: cała baza, potem katalog i zapasy od nowa (z rezerwacją\nostatniej sztuki `KOMPRESOR-R32`). Bez `Admin:Key` na serwerze reset jest wyłączony (403).",
+        "operationId": "ResetData",
+        "parameters": [
+          {
+            "name": "X-Admin-Key",
+            "in": "header",
+            "description": "Klucz administratora (tylko trener).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "technicianEmail",
+            "in": "query",
+            "description": "Opcjonalnie: tylko ten technik.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "jan.kowalski@firma.pl"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wyczyszczono.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub zły klucz.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Reset wyłączony.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Logowanie: dowolny poprawny e-mail + PIN 1234.",
+        "description": "Każdy e-mail to osobny technik z własnym dniem pracy — tworzonym przy pierwszym logowaniu danego dnia\n(4 wizyty na dziś, zlecenia, auto technika, historia). Konta `technik@szkolenie.pl` i `technik2@szkolenie.pl`\nto brygada (wspólna wizyta), `wydajnosc@szkolenie.pl` ma 2000 wizyt w historii.\n            \n    POST /api/auth/login\n    { \"email\": \"jan.kowalski@firma.pl\", \"pin\": \"1234\" }",
+        "operationId": "Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/LoginRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/LoginRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/LoginRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zalogowano — tokeny i imię technika.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nieprawidłowy e-mail lub PIN.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Za dużo prób z tego adresu IP.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Odświeżenie tokenu: refresh token → nowa para tokenów.",
+        "description": "Refresh token jest jednorazowy (rotacja): zapisz nowy z odpowiedzi. Wygasły, użyty lub nieznany → 401.",
+        "operationId": "RefreshToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RefreshRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RefreshRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RefreshRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Nowe tokeny.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token nieprawidłowy lub wygasły.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dispatcher/visits": {
+      "get": {
+        "tags": [
+          "Dispatcher"
+        ],
+        "summary": "Wizyty na dziś (wszystkich albo jednego technika) z wersjami.",
+        "operationId": "GetDispatcherVisits",
+        "parameters": [
+          {
+            "name": "technicianEmail",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Dispatcher-Key",
+            "in": "header",
+            "description": "Klucz dyspozytora – wymagany, gdy serwer ma ustawiony `Dispatcher:Key` (na szkoleniu: tylko trener).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DispatcherVisitDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Dispatcher"
+        ],
+        "summary": "Nowa wizyta dla technika (albo brygady) z nowym zleceniem.",
+        "operationId": "CreateVisit",
+        "parameters": [
+          {
+            "name": "X-Dispatcher-Key",
+            "in": "header",
+            "description": "Klucz dyspozytora – wymagany, gdy serwer ma ustawiony `Dispatcher:Key` (na szkoleniu: tylko trener).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateVisitRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateVisitRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateVisitRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispatcherVisitDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dispatcher/visits/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Dispatcher"
+        ],
+        "summary": "R6: anulowanie wizyty (zakończonej nie można → 409 `Visit.AlreadyCompleted`).",
+        "operationId": "CancelVisit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Dispatcher-Key",
+            "in": "header",
+            "description": "Klucz dyspozytora – wymagany, gdy serwer ma ustawiony `Dispatcher:Key` (na szkoleniu: tylko trener).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CancelVisitRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CancelVisitRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CancelVisitRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispatcherVisitDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dispatcher/visits/{id}/reschedule": {
+      "post": {
+        "tags": [
+          "Dispatcher"
+        ],
+        "summary": "Przeniesienie wizyty na inny termin (tylko Planned).",
+        "operationId": "RescheduleVisit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Dispatcher-Key",
+            "in": "header",
+            "description": "Klucz dyspozytora – wymagany, gdy serwer ma ustawiony `Dispatcher:Key` (na szkoleniu: tylko trener).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RescheduleVisitRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RescheduleVisitRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RescheduleVisitRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispatcherVisitDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dispatcher/stock/{partId}/{warehouseId}": {
+      "put": {
+        "tags": [
+          "Dispatcher"
+        ],
+        "summary": "Stan części w magazynie (inwentaryzacja albo dostawa). Rezerwacje zostają.",
+        "operationId": "SetStock",
+        "parameters": [
+          {
+            "name": "partId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Dispatcher-Key",
+            "in": "header",
+            "description": "Klucz dyspozytora – wymagany, gdy serwer ma ustawiony `Dispatcher:Key` (na szkoleniu: tylko trener).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SetStockRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SetStockRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SetStockRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockLevelDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Wersja, czas serwera, połączenie z bazą, PathBase i czy API eksportuje telemetrię.",
+        "operationId": "GetHealth",
+        "responses": {
+          "200": {
+            "description": "Usługa działa.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Brak połączenia z bazą danych.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Wersja, czas serwera, połączenie z bazą, PathBase i czy API eksportuje telemetrię.",
+        "operationId": "HeadHealth",
+        "responses": {
+          "200": {
+            "description": "Usługa działa.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Brak połączenia z bazą danych.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/images/{key}": {
+      "get": {
+        "tags": [
+          "Images"
+        ],
+        "summary": "Obrazek PNG: pełny 800 px albo miniatura 160 px (`size=thumb`). Ten sam adres = ten sam obrazek.",
+        "operationId": "GetImage",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Klucz z `imageUrl`/`thumbnailUrl`.",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z0-9-]{1,64}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "`thumb` albo puste.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified"
+          }
+        }
+      }
+    },
+    "/api/parts": {
+      "get": {
+        "tags": [
+          "Parts"
+        ],
+        "summary": "Katalog części (nazwa, opis, cena, zdjęcie). Odpowiedź z `ETag` — `If-None-Match` → 304.",
+        "operationId": "GetParts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PartDto"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified"
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/warehouses": {
+      "get": {
+        "tags": [
+          "Parts"
+        ],
+        "summary": "Magazyny.",
+        "operationId": "GetWarehouses",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WarehouseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/parts/{id}/stock": {
+      "get": {
+        "tags": [
+          "Parts"
+        ],
+        "summary": "Stan części w magazynach: na stanie, zarezerwowane (aktywne rezerwacje), dostępne.",
+        "operationId": "GetPartStock",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockLevelDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nie ma takiej części.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/vanstock": {
+      "get": {
+        "tags": [
+          "Parts"
+        ],
+        "summary": "Części w aucie technika.",
+        "operationId": "GetVanStock",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VanStockItemDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/parts/reservations": {
+      "post": {
+        "tags": [
+          "Parts"
+        ],
+        "summary": "Rezerwacja części z magazynu dla wizyty (wygasa po `Inventory:ReservationMinutes`, domyślnie 30 min).",
+        "description": "Reguła agregatu `PartStock` (jedna część w jednym magazynie): suma aktywnych rezerwacji ≤ stan.\nBrak sztuk → 409 `Inventory.OutOfStock` z polem `available`. Część `KOMPRESOR-R32` w MAG-01 ma\njedną sztukę zarezerwowaną przez innego technika — rezerwacja zawsze kończy się konfliktem.",
+        "operationId": "ReservePart",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ReservePartRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ReservePartRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ReservePartRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Zarezerwowano.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Brak części, magazynu albo wizyty technika.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Brak dostępnych sztuk.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Nieprawidłowa ilość.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Parts"
+        ],
+        "summary": "Aktywne rezerwacje technika.",
+        "operationId": "GetReservations",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservationDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/parts/reservations/{id}": {
+      "delete": {
+        "tags": [
+          "Parts"
+        ],
+        "summary": "Zwolnienie rezerwacji (sztuki wracają do puli).",
+        "operationId": "ReleaseReservation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Zwolniono."
+          },
+          "404": {
+            "description": "Brak rezerwacji technika.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/today": {
+      "get": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "Wizyty na dziś (strefa czasowa dnia pracy), od najwcześniejszej.",
+        "description": "Odpowiedź ma `ETag`; ten sam ETag w `If-None-Match` → 304 bez treści.",
+        "operationId": "GetTodayVisits",
+        "responses": {
+          "200": {
+            "description": "Lista wizyt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VisitSummaryDto"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Lista się nie zmieniła."
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/history": {
+      "get": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "Historia: zakończone i anulowane wizyty z poprzednich dni, od najnowszej (stronicowanie).",
+        "operationId": "GetVisitHistory",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Numer strony od 1.",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Rozmiar strony 1–100.",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitHistoryItemDtoPageDto"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified"
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{id}": {
+      "get": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "Szczegóły wizyty. Nagłówek `ETag` = wersja wizyty (do `If-Match` w komendach).",
+        "operationId": "GetVisit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wizyta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitDetailsDto"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Wersja z `If-None-Match` jest aktualna."
+          },
+          "404": {
+            "description": "Brak wizyty albo nie jest przypisana do technika.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{id}/start": {
+      "post": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "R1: rozpoczęcie wizyty (tylko Planned).",
+        "operationId": "StartVisit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Wersja wizyty, którą widzi telefon, np. `\"3\"` (ETag z `GET api/visits/{id}`). Inna wersja na serwerze → 409 `Visit.VersionConflict`; brak → 428.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-If-Match",
+            "in": "header",
+            "description": "To samo co `If-Match` – na hostingu (proxy wycina `If-Match`) wpisz wersję tutaj.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Dowolny unikalny klucz (np. GUID). Powtórka z tym samym kluczem zwraca zapisaną odpowiedź – zmiana nie wykona się drugi raz.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/StartVisitRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/StartVisitRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/StartVisitRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{id}/activities": {
+      "post": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "R2: czynność w zakresie prac (tylko InProgress; po podpisie unieważnia podpis — R3).",
+        "operationId": "RecordActivity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Wersja wizyty, którą widzi telefon, np. `\"3\"` (ETag z `GET api/visits/{id}`). Inna wersja na serwerze → 409 `Visit.VersionConflict`; brak → 428.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-If-Match",
+            "in": "header",
+            "description": "To samo co `If-Match` – na hostingu (proxy wycina `If-Match`) wpisz wersję tutaj.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Dowolny unikalny klucz (np. GUID). Powtórka z tym samym kluczem zwraca zapisaną odpowiedź – zmiana nie wykona się drugi raz.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RecordActivityRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RecordActivityRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RecordActivityRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{id}/parts": {
+      "post": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "R2: zużyta część (ta sama część drugi raz zwiększa ilość; po podpisie unieważnia podpis — R3).",
+        "operationId": "UsePart",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Wersja wizyty, którą widzi telefon, np. `\"3\"` (ETag z `GET api/visits/{id}`). Inna wersja na serwerze → 409 `Visit.VersionConflict`; brak → 428.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-If-Match",
+            "in": "header",
+            "description": "To samo co `If-Match` – na hostingu (proxy wycina `If-Match`) wpisz wersję tutaj.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Dowolny unikalny klucz (np. GUID). Powtórka z tym samym kluczem zwraca zapisaną odpowiedź – zmiana nie wykona się drugi raz.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UsePartRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UsePartRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UsePartRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{id}/parts/{partId}": {
+      "delete": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "R7: usunięcie omyłkowo dopisanej części (tylko InProgress; po podpisie unieważnia podpis — R3).",
+        "operationId": "RemoveUsedPart",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "partId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Wersja wizyty, którą widzi telefon, np. `\"3\"` (ETag z `GET api/visits/{id}`). Inna wersja na serwerze → 409 `Visit.VersionConflict`; brak → 428.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-If-Match",
+            "in": "header",
+            "description": "To samo co `If-Match` – na hostingu (proxy wycina `If-Match`) wpisz wersję tutaj.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Dowolny unikalny klucz (np. GUID). Powtórka z tym samym kluczem zwraca zapisaną odpowiedź – zmiana nie wykona się drugi raz.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{id}/signature": {
+      "put": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "R4: podpis klienta pod bieżącym zakresem prac (tylko InProgress, zakres niepusty).",
+        "operationId": "SignVisit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Wersja wizyty, którą widzi telefon, np. `\"3\"` (ETag z `GET api/visits/{id}`). Inna wersja na serwerze → 409 `Visit.VersionConflict`; brak → 428.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-If-Match",
+            "in": "header",
+            "description": "To samo co `If-Match` – na hostingu (proxy wycina `If-Match`) wpisz wersję tutaj.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Dowolny unikalny klucz (np. GUID). Powtórka z tym samym kluczem zwraca zapisaną odpowiedź – zmiana nie wykona się drugi raz.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SignVisitRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SignVisitRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SignVisitRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/visits/{id}/complete": {
+      "post": {
+        "tags": [
+          "Visits"
+        ],
+        "summary": "R5: zakończenie wizyty. Fixed wymaga ważnego podpisu i zamyka zlecenie; inne wyniki wymagają powodu.",
+        "operationId": "CompleteVisit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Wersja wizyty, którą widzi telefon, np. `\"3\"` (ETag z `GET api/visits/{id}`). Inna wersja na serwerze → 409 `Visit.VersionConflict`; brak → 428.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-If-Match",
+            "in": "header",
+            "description": "To samo co `If-Match` – na hostingu (proxy wycina `If-Match`) wpisz wersję tutaj.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Dowolny unikalny klucz (np. GUID). Powtórka z tym samym kluczem zwraca zapisaną odpowiedź – zmiana nie wykona się drugi raz.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CompleteVisitRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CompleteVisitRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CompleteVisitRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/api/workorders": {
+      "get": {
+        "tags": [
+          "WorkOrders"
+        ],
+        "summary": "„Moje zlecenia”: otwarte zlecenia z wizytami technika i zlecenia z wizytami na dziś.",
+        "operationId": "GetMyWorkOrders",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkOrderSummaryDto"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified"
+          },
+          "401": {
+            "description": "Brak lub wygasły access token (odśwież przez /api/auth/refresh)."
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityDto": {
+        "required": [
+          "code",
+          "description",
+          "recordedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CancelVisitRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Klient odwołał wizytę telefonicznie"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompleteVisitRequest": {
+        "required": [
+          "outcome"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VisitOutcomeType"
+              }
+            ],
+            "description": "Wynik wizyty: `Fixed` = Naprawione (wymaga podpisu klienta, zamyka zlecenie), `NeedsFollowUp` = Potrzebna kolejna wizyta, `NotFixed` = Nie naprawiono (oba wymagają powodu).",
+            "example": "Fixed"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Wymagany dla NeedsFollowUp i NotFixed.",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateVisitRequest": {
+        "required": [
+          "technicianEmail"
+        ],
+        "type": "object",
+        "properties": {
+          "technicianEmail": {
+            "type": "string",
+            "example": "jan.kowalski@firma.pl"
+          },
+          "secondTechnicianEmail": {
+            "type": "string",
+            "description": "Drugi technik brygady (opcjonalnie).",
+            "nullable": true
+          },
+          "plannedStart": {
+            "type": "string",
+            "description": "Brak = za godzinę, okno 90 min.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "faultDescription": {
+            "type": "string",
+            "nullable": true,
+            "example": "Pompa ciepła nie grzeje, błąd F.022"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CustomerDto": {
+        "required": [
+          "city",
+          "name",
+          "phone",
+          "street"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DispatcherVisitDto": {
+        "required": [
+          "customerName",
+          "id",
+          "plannedStart",
+          "status",
+          "technicianEmails",
+          "version",
+          "workOrderNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workOrderNumber": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VisitStatus"
+              }
+            ],
+            "description": "Status wizyty: `Planned` = Zaplanowana, `InProgress` = W trakcie, `Completed` = Zakończona, `Cancelled` = Anulowana. Przejścia pilnuje serwer (np. zakończonej nie można anulować).",
+            "example": "Planned"
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "technicianEmails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HealthDto": {
+        "required": [
+          "accessTokenLifetimeSeconds",
+          "databaseConnected",
+          "environment",
+          "pathBase",
+          "serverTime",
+          "status",
+          "telemetryExport",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "databaseConnected": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string"
+          },
+          "serverTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pathBase": {
+            "type": "string"
+          },
+          "accessTokenLifetimeSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "telemetryExport": {
+            "type": "boolean",
+            "description": "Czy API wysyła telemetrię (OTEL_EXPORTER_OTLP_ENDPOINT)."
+          },
+          "environment": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "example": "jan.kowalski@firma.pl"
+          },
+          "pin": {
+            "type": "string",
+            "nullable": true,
+            "example": "1234"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PartDto": {
+        "required": [
+          "description",
+          "id",
+          "imageUrl",
+          "name",
+          "thumbnailUrl",
+          "unitPrice"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {}
+      },
+      "RecordActivityRequest": {
+        "required": [
+          "code",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "DIAG"
+          },
+          "description": {
+            "type": "string",
+            "example": "Diagnostyka układu chłodniczego"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RescheduleVisitRequest": {
+        "required": [
+          "plannedEnd",
+          "plannedStart"
+        ],
+        "type": "object",
+        "properties": {
+          "plannedStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "plannedEnd": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReservationDto": {
+        "required": [
+          "expiresAt",
+          "id",
+          "partId",
+          "quantity",
+          "visitId",
+          "warehouseId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "partId": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "type": "string"
+          },
+          "visitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReservePartRequest": {
+        "required": [
+          "partId",
+          "quantity",
+          "visitId",
+          "warehouseId"
+        ],
+        "type": "object",
+        "properties": {
+          "partId": {
+            "type": "string",
+            "example": "KOMPRESOR-R32"
+          },
+          "warehouseId": {
+            "type": "string",
+            "example": "MAG-01"
+          },
+          "visitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "ResetResult": {
+        "required": [
+          "message",
+          "removedTechnicians",
+          "removedVisits"
+        ],
+        "type": "object",
+        "properties": {
+          "removedTechnicians": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "removedVisits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetStockRequest": {
+        "required": [
+          "onHand"
+        ],
+        "type": "object",
+        "properties": {
+          "onHand": {
+            "type": "integer",
+            "format": "int32",
+            "example": 5
+          }
+        },
+        "additionalProperties": false
+      },
+      "SignVisitRequest": {
+        "required": [
+          "signerName"
+        ],
+        "type": "object",
+        "properties": {
+          "signerName": {
+            "type": "string",
+            "example": "Anna Wiśniewska"
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SignatureDto": {
+        "required": [
+          "isValid",
+          "scopeVersion",
+          "signedAt",
+          "signerName"
+        ],
+        "type": "object",
+        "properties": {
+          "signerName": {
+            "type": "string"
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "scopeVersion": {
+            "type": "integer",
+            "description": "Wersja zakresu prac, pod którą klient się podpisał.",
+            "format": "int32"
+          },
+          "isValid": {
+            "type": "boolean",
+            "description": "false = zakres zmienił się po podpisie (podpis nieważny, potrzebny nowy)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "StartVisitRequest": {
+        "type": "object",
+        "properties": {
+          "startedAt": {
+            "type": "string",
+            "description": "Kiedy technik rozpoczął wizytę (czas z telefonu; brak = teraz).",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StockLevelDto": {
+        "required": [
+          "available",
+          "onHand",
+          "partId",
+          "reserved",
+          "warehouseId",
+          "warehouseName"
+        ],
+        "type": "object",
+        "properties": {
+          "partId": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "type": "string"
+          },
+          "warehouseName": {
+            "type": "string"
+          },
+          "onHand": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reserved": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TokenResponse": {
+        "required": [
+          "accessToken",
+          "expiresIn",
+          "refreshToken",
+          "technicianName"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Ważność access tokenu w sekundach.",
+            "format": "int32"
+          },
+          "technicianName": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UsePartRequest": {
+        "required": [
+          "partId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "partId": {
+            "type": "string",
+            "example": "FILTR-SIATKOWY-22"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "example": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "UsedPartDto": {
+        "required": [
+          "partId",
+          "partName",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "partId": {
+            "type": "string"
+          },
+          "partName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VanStockItemDto": {
+        "required": [
+          "partId",
+          "partName",
+          "quantity",
+          "thumbnailUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "partId": {
+            "type": "string"
+          },
+          "partName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VisitDetailsDto": {
+        "required": [
+          "activities",
+          "customer",
+          "deviceName",
+          "faultDescription",
+          "id",
+          "imageUrl",
+          "parts",
+          "plannedEnd",
+          "plannedStart",
+          "scopeVersion",
+          "slaDueAt",
+          "status",
+          "technicianEmails",
+          "technicianNames",
+          "thumbnailUrl",
+          "version",
+          "workOrderId",
+          "workOrderNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workOrderNumber": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VisitStatus"
+              }
+            ],
+            "description": "Status wizyty: `Planned` = Zaplanowana, `InProgress` = W trakcie, `Completed` = Zakończona, `Cancelled` = Anulowana. Przejścia pilnuje serwer (np. zakończonej nie można anulować).",
+            "example": "Planned"
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "plannedEnd": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "customer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerDto"
+              }
+            ]
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "faultDescription": {
+            "type": "string"
+          },
+          "slaDueAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "technicianNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "technicianEmails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "E-maile przypisanych techników (brygada = dwa) – aplikacja sprawdza regułę „rozpoczynam tylko swoją wizytę”."
+          },
+          "activities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityDto"
+            }
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsedPartDto"
+            }
+          },
+          "scopeVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "signature": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SignatureDto"
+              }
+            ],
+            "nullable": true
+          },
+          "outcome": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VisitOutcomeType"
+              }
+            ],
+            "nullable": true
+          },
+          "outcomeReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancelReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Wersja wizyty — wysyłana w `If-Match` przy komendach (to samo co nagłówek `ETag`).",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VisitHistoryItemDto": {
+        "required": [
+          "city",
+          "customerName",
+          "deviceName",
+          "id",
+          "plannedStart",
+          "status",
+          "thumbnailUrl",
+          "workOrderNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workOrderNumber": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VisitStatus"
+              }
+            ],
+            "description": "Status wizyty: `Planned` = Zaplanowana, `InProgress` = W trakcie, `Completed` = Zakończona, `Cancelled` = Anulowana. Przejścia pilnuje serwer (np. zakończonej nie można anulować).",
+            "example": "Planned"
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "outcome": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VisitOutcomeType"
+              }
+            ],
+            "nullable": true
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VisitHistoryItemDtoPageDto": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VisitHistoryItemDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VisitOutcomeType": {
+        "enum": [
+          "Fixed",
+          "NeedsFollowUp",
+          "NotFixed"
+        ],
+        "type": "string",
+        "description": "Wynik wizyty: `Fixed` = Naprawione (wymaga podpisu klienta, zamyka zlecenie), `NeedsFollowUp` = Potrzebna kolejna wizyta, `NotFixed` = Nie naprawiono (oba wymagają powodu).",
+        "example": "Fixed"
+      },
+      "VisitStatus": {
+        "enum": [
+          "Planned",
+          "InProgress",
+          "Completed",
+          "Cancelled"
+        ],
+        "type": "string",
+        "description": "Status wizyty: `Planned` = Zaplanowana, `InProgress` = W trakcie, `Completed` = Zakończona, `Cancelled` = Anulowana. Przejścia pilnuje serwer (np. zakończonej nie można anulować).",
+        "example": "Planned"
+      },
+      "VisitSummaryDto": {
+        "required": [
+          "address",
+          "customerName",
+          "deviceName",
+          "faultDescription",
+          "id",
+          "isBrigade",
+          "plannedEnd",
+          "plannedStart",
+          "status",
+          "thumbnailUrl",
+          "version",
+          "workOrderId",
+          "workOrderNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workOrderNumber": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VisitStatus"
+              }
+            ],
+            "description": "Status wizyty: `Planned` = Zaplanowana, `InProgress` = W trakcie, `Completed` = Zakończona, `Cancelled` = Anulowana. Przejścia pilnuje serwer (np. zakończonej nie można anulować).",
+            "example": "Planned"
+          },
+          "plannedStart": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "plannedEnd": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "faultDescription": {
+            "type": "string"
+          },
+          "isBrigade": {
+            "type": "boolean",
+            "description": "Wizyta brygady (dwóch techników)."
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Wersja wizyty — wysyłana w `If-Match` przy komendach.",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WarehouseDto": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkOrderStatus": {
+        "enum": [
+          "Open",
+          "Closed"
+        ],
+        "type": "string",
+        "description": "Status zlecenia: `Open` = Otwarte, `Closed` = Zamknięte (po wizycie z wynikiem `Fixed`).",
+        "example": "Open"
+      },
+      "WorkOrderSummaryDto": {
+        "required": [
+          "address",
+          "customerName",
+          "deviceName",
+          "faultDescription",
+          "id",
+          "number",
+          "slaDueAt",
+          "status",
+          "visitCount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkOrderStatus"
+              }
+            ],
+            "description": "Status zlecenia: `Open` = Otwarte, `Closed` = Zamknięte (po wizycie z wynikiem `Fixed`).",
+            "example": "Open"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "faultDescription": {
+            "type": "string"
+          },
+          "slaDueAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "visitCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Wklej `accessToken` z `POST /api/auth/login` (bez słowa Bearer).",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Logowanie technika (PIN `1234`) i odświeżanie tokenu (refresh token jednorazowy)."
+    },
+    {
+      "name": "Visits",
+      "description": "Wizyty technika: lista na dziś, historia, szczegóły i komendy (If-Match / X-If-Match, Idempotency-Key)."
+    },
+    {
+      "name": "Parts",
+      "description": "Magazyn części: katalog, magazyny, stan, auto technika i rezerwacje (ostatnia sztuka → 409 `Inventory.OutOfStock`)."
+    },
+    {
+      "name": "WorkOrders",
+      "description": "Zlecenia technika (model odczytu „Moje zlecenia”)."
+    },
+    {
+      "name": "Dispatcher",
+      "description": "Symulacja dyspozytora (trener): anulowanie i przeniesienie wizyty, nowa wizyta, stan magazynu. Nagłówek X-Dispatcher-Key."
+    },
+    {
+      "name": "Images",
+      "description": "Zdjęcia części i urządzeń (bez logowania; `size=thumb` – miniatura)."
+    },
+    {
+      "name": "Admin",
+      "description": "Administracja: reset danych (nagłówek X-Admin-Key)."
+    },
+    {
+      "name": "Health",
+      "description": "Stan usługi."
+    }
+  ]
+}

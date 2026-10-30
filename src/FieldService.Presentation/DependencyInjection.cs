@@ -21,7 +21,7 @@ public static class DependencyInjection
         services.AddSingleton(routes);
         services.AddSingleton<IAppState, AppState>();
         services.AddTransient<LoginViewModel>();
-        services.AddTransient<StartupNavigator>();
+        services.AddSingleton<StartupNavigator>();
 
         // Moduły = modele z mapy kontekstów, które mają ekrany w aplikacji
         services.AddVisitsPresentation(routes);

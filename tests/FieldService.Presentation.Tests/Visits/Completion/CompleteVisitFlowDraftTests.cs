@@ -55,7 +55,7 @@ public class CompleteVisitFlowDraftTests
 
         var activities = new ActivitiesStepViewModel(draft, new RecordActivityHandler(repository, _clock.Object), details, localizer, _feedback.Object);
         var parts = new PartsStepViewModel(draft, new UsePartHandler(repository, _clock.Object), new RemoveUsedPartHandler(repository, _clock.Object),
-            new GetVanStockHandler(_inventory.Object), details, _feedback.Object, localizer);
+            new GetVanStockHandler(_inventory.Object), details, _feedback.Object, localizer, Mock.Of<INavigationService>());
         _signature = new SignatureStepViewModel(draft, new SignByCustomerHandler(repository, _clock.Object), details, _feedback.Object, localizer);
         var summary = new SummaryStepViewModel(draft, new GetVisitProtocolHandler(repository, _inventory.Object, _clock.Object), _feedback.Object, localizer);
 

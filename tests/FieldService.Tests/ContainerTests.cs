@@ -35,6 +35,8 @@ public class ContainerTests
         services.AddSingleton(Mock.Of<IAppPaths>());
         services.AddSingleton(Mock.Of<IPermissionService>());
         services.AddSingleton(Mock.Of<IPhotoCapture>());
+        services.AddSingleton(Mock.Of<ISessionStore>());
+        services.AddSingleton(Mock.Of<ISessionExpiry>());
 
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });
     }
@@ -75,7 +77,7 @@ public class ContainerTests
         Assert.That(map.Entries.Keys, Is.SupersetOf(new[]
         {
             typeof(LoginRoute), typeof(VisitsListRoute), typeof(VisitDetailsRoute), typeof(CompleteVisitRoute),
-            typeof(VisitHistoryRoute), typeof(VanStockRoute),
+            typeof(VisitHistoryRoute), typeof(VanStockRoute), typeof(ReservePartRoute),
         }));
     }
 

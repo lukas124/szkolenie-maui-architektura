@@ -30,6 +30,8 @@
             <Label Text="{Binding ErrorMessage}" TextColor="{StaticResource DangerColor}" Style="{StaticResource Body}" />
             <Button Text="{loc:Translate Login_SignIn}" Command="{Binding SignInCommand}" Margin="0,8,0,0" />
             <ActivityIndicator IsRunning="{Binding SignInCommand.IsRunning}" IsVisible="{Binding SignInCommand.IsRunning}" />
+            <!-- przywracanie zapamiętanej sesji przy starcie -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
             <Label Text="{loc:Translate Login_TrainingHint}" Style="{StaticResource Caption}"
                    HorizontalTextAlignment="Center" Margin="0,8,0,0" />
         </VerticalStackLayout>

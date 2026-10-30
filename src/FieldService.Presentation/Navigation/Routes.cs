@@ -26,3 +26,6 @@ public sealed record VisitHistoryRoute : IRoute;
 
 // „Auto technika” – części w aucie (moduł Parts)
 public sealed record VanStockRoute : IRoute;
+
+// Rezerwacja części z magazynu dla wizyty – modal (moduł Parts)
+public sealed record ReservePartRoute(Guid VisitId) : IRoute;

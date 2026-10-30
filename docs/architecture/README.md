@@ -13,7 +13,7 @@ Pięć projektów w `src/`, od środka na zewnątrz:
 |---|---|---|
 | `FieldService.Domain` | model Realizacji wizyty: `Visit` z regułami, obiekty wartości, `VisitErrors`, zdarzenia, interfejs `IVisitRepository`; `Result`, `Error` | nic |
 | `FieldService.Application` | przypadki użycia (`…Handler`), modele odczytu (`VisitSummary`, `VisitDetails`), porty w `Abstractions` (`IVisitsGateway`, `IClock`, …) | Domain |
-| `FieldService.Infrastructure` | adaptery portów: HTTP (`HttpVisitsGateway`, `VisitDtoMapper`), SQLite (`SqliteVisitRepository`), `SystemClock` | Application, Domain |
+| `FieldService.Infrastructure` | adaptery portów: API (klient `FieldServiceApiClient` generowany w buildzie z OpenAPI, `ApiExecutor`, bramy `Api…Gateway`, `VisitDtoMapper`), SQLite (`SqliteVisitRepository`), `SystemClock` | Application, Domain |
 | `FieldService.Presentation` | ViewModele (CommunityToolkit.Mvvm), modele prezentacji (`VisitItem`, `VisitTone`), porty UI (`IDialogService`, `ILocalizer`, `INavigationService`) | Application, Domain |
 | `FieldService.UI` | projekt MAUI: strony XAML, konwertery, adaptery platformy (`MauiPhotoCapture`, `MauiPermissionService`, …), `Strings.resx`, korzeń kompozycji `MauiProgram` | wszystkie |
 
@@ -57,7 +57,7 @@ CompleteVisitPage (UI, XAML – kreator, ostatni krok)
               └─ IVisitRepository.SaveAsync ─────────▶ SqliteVisitRepository (Infrastructure)
                                                          ├─ transakcja: wiersz wizyty + wiadomość w outbox
                                                          └─ ISyncScheduler.RequestSync() ─▶ OutboxProcessor
-                                                              └─ HttpVisitsGateway.SendAsync ─▶ POST api/visits/{id}/complete
+                                                              └─ ApiVisitsGateway.SendAsync ─▶ POST api/visits/{id}/complete
         ◀─ Result (sukces → INavigationService zamyka kreator i wraca na listę; błąd → IUserFeedback.ShowErrorAsync)
 ```
 
@@ -75,6 +75,22 @@ CompleteVisitPage (UI, XAML – kreator, ostatni krok)
 
 Błąd wraca jako `Result`, nie jako wyjątek. Tekst dla użytkownika pochodzi z `Strings.resx` (`Error_{Code}`, np.
 `Error_Visit.SignatureRequired`) przez `ErrorMessageProvider`.
+
+## Droga żądania HTTP
+
+```text
+Api…Gateway (Infrastructure, port z Application)
+  └─ ApiExecutor.ExecuteAsync("parts.reserve", …) – wynik i wyjątki → Result
+        └─ FieldServiceApiClient (wygenerowany z Api/openapi/fieldservice.v1.json)
+              └─ AuthHeaderHandler (token; 401 → jedno odświeżenie i jedno ponowienie)
+                    └─ CorrelationIdHandler (X-Correlation-Id)
+                          └─ handler odporności (Polly: ponawia tylko odczyty, limity czasu, bezpiecznik)
+                                └─ handler systemu (AndroidMessageHandler / NSUrlSessionHandler) ─▶ API
+```
+
+Rejestracja: `AddApiClients` w `src/FieldService.Infrastructure/DependencyInjection.cs`. Statusy HTTP → `Error`:
+`ApiErrorMapper` (409 z kodem z `ProblemDetails`, np. `Inventory.OutOfStock`). Wygenerowany kod i bramy są `internal` –
+DTO nie wychodzą z Infrastructure.
 
 ## Gdzie szukać dalej
 

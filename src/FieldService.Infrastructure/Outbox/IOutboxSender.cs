@@ -2,7 +2,7 @@ using FieldService.Domain.Common;
 
 namespace FieldService.Infrastructure.Outbox;
 
-// Wysyłka jednej wiadomości na serwer (implementuje HttpVisitsGateway). expectedVersion = wersja wizyty, którą widział
+// Wysyłka jednej wiadomości na serwer (implementuje ApiVisitsGateway). expectedVersion = wersja wizyty, którą widział
 // telefon; wynik = nowa wersja wizyty na serwerze.
 public interface IOutboxSender
 {

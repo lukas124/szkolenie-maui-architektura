@@ -5,7 +5,8 @@ Layer) razem z testem, także dla danych, których model się nie spodziewa.
 
 **Kontekst do dołączenia:**
 - `AGENTS.md`;
-- `src/FieldService.Infrastructure/Visits/VisitDto.cs`, `VisitDetailsDto.cs`, `VisitDtoMapper.cs`;
+- `src/FieldService.Infrastructure/Visits/VisitDtoMapper.cs` i DTO z wygenerowanego klienta (`VisitSummaryDto`,
+  `VisitDetailsDto` – F12 w IDE albo schemat w `src/FieldService.Infrastructure/Api/openapi/fieldservice.v1.json`);
 - typy docelowe: `src/FieldService.Application/Visits/Queries/GetTodayVisits.cs` (`VisitSummary`),
   `src/FieldService.Domain/Visits/VisitStatus.cs`;
 - przykładowa odpowiedź API (bez danych osobowych – wartości zmyślone).

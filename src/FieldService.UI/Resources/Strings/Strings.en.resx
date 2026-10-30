@@ -8,7 +8,7 @@
   <data name="Common_Ok" xml:space="preserve"><value>OK</value></data>
   <data name="Error_Title" xml:space="preserve"><value>Something went wrong</value></data>
   <data name="Error_Network" xml:space="preserve"><value>No connection to the server. Check your internet connection and try again.</value></data>
-  <data name="Error_Unauthorized" xml:space="preserve"><value>Your session has expired. Sign in again.</value></data>
+  <data name="Error_Unauthorized" xml:space="preserve"><value>Your session has expired – sign in again.</value></data>
   <data name="Error_Validation" xml:space="preserve"><value>Check the data you entered.</value></data>
   <data name="Error_Conflict" xml:space="preserve"><value>The data has changed in the meantime. Refresh and try again.</value></data>
   <data name="Error_NotFound" xml:space="preserve"><value>No data found.</value></data>
@@ -74,6 +74,12 @@
   <data name="Visits_Outcome_Fixed" xml:space="preserve"><value>Fixed</value></data>
   <data name="Visits_Outcome_NeedsFollowUp" xml:space="preserve"><value>Another visit needed</value></data>
   <data name="Visits_Outcome_NotFixed" xml:space="preserve"><value>Not fixed</value></data>
+  <data name="Parts_ChoosePart" xml:space="preserve"><value>Choose a part</value></data>
+  <data name="Parts_ChooseWarehouse" xml:space="preserve"><value>Choose a warehouse</value></data>
+  <data name="Parts_Reserved" xml:space="preserve"><value>Reserved {0} pcs until {1}</value></data>
+  <data name="Error_Inventory.OutOfStock" xml:space="preserve"><value>Someone else has already reserved the last item – check the van or another warehouse.</value></data>
+  <data name="Error_Inventory.InvalidQuantity" xml:space="preserve"><value>The quantity must be greater than zero.</value></data>
+  <data name="Error_Session.Expired" xml:space="preserve"><value>Your session has expired – sign in again. Unsent changes are waiting on the phone.</value></data>
   <data name="Visits_OfflineSince" xml:space="preserve"><value>Offline – data from {0}</value></data>
   <data name="Visits_PendingSync" xml:space="preserve"><value>Waiting to be sent ({0})</value></data>
   <data name="Error_Sync.Conflict" xml:space="preserve"><value>The dispatcher changed the visit before the changes from the phone arrived. Changes rejected – you see the state from the server.</value></data>
@@ -111,6 +117,7 @@
   <data name="CompleteVisit_AddActivity" xml:space="preserve"><value>Add activity</value></data>
   <data name="CompleteVisit_Remove" xml:space="preserve"><value>Remove</value></data>
   <data name="CompleteVisit_AddPart" xml:space="preserve"><value>Add part</value></data>
+  <data name="CompleteVisit_ReserveFromWarehouse" xml:space="preserve"><value>Missing? Reserve from the warehouse</value></data>
   <data name="CompleteVisit_SignerName" xml:space="preserve"><value>Signer's full name</value></data>
   <data name="CompleteVisit_ClearSignature" xml:space="preserve"><value>Clear</value></data>
   <data name="CompleteVisit_ActivitiesSection" xml:space="preserve"><value>ACTIVITIES</value></data>
@@ -134,4 +141,10 @@
   <data name="VanStock_Empty" xml:space="preserve"><value>No parts in the van</value></data>
   <data name="VanStock_Quantity" xml:space="preserve"><value>{0} pcs</value></data>
   <data name="VanStock_QuantityDescription" xml:space="preserve"><value>Pieces in the van: {0}</value></data>
+  <data name="ReservePart_Title" xml:space="preserve"><value>Warehouse reservation</value></data>
+  <data name="ReservePart_PartSection" xml:space="preserve"><value>PART</value></data>
+  <data name="ReservePart_WarehouseSection" xml:space="preserve"><value>WAREHOUSE</value></data>
+  <data name="ReservePart_Reserve" xml:space="preserve"><value>Reserve</value></data>
+  <data name="ReservePart_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="ReservePart_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
 </root>
