@@ -79,6 +79,18 @@ Błędy wracają jako `ProblemDetails` z polem `code` (np. `Visit.VersionConflic
 kody, które aplikacja zamienia na komunikaty z `Strings.resx`. Specyfikacja OpenAPI, z której build generuje klienta:
 `src/FieldService.Infrastructure/Api/openapi/fieldservice.v1.json` (aktualizacja: `tools/update-openapi.sh`).
 
+## CI/CD
+
+- **Gałęzie (gitflow)** – `develop` to bieżąca praca (pull requesty z `feature/*`). Wydanie: `release/1.4.0` z `develop`,
+  po testach scalona do `main` (tag `v1.4.0`) i z powrotem do `develop`. Poprawka wydania: `hotfix/*` z `main`.
+- **CI** (`.github/workflows/ci.yml`, wariant Azure DevOps: `azure-pipelines/ci.yml`) – przy każdym pushu na `develop`
+  i `main` i przy pull requeście do nich: wszystkie testy, także architektury (`tests/FieldService.Tests`, z regułą
+  ochrony gałęzi `develop` i `main` czerwony test zatrzymuje scalenie), i build Androida w Release.
+- **CD** (`.github/workflows/cd.yml`, `azure-pipelines/cd.yml`) – uruchamiane ręcznie, tylko z `main` albo z tagu `v*`:
+  wersja z GitVersion (`GitVersion.yml`), podpisany AAB i IPA z symbolami, testy wewnętrzne Google Play i TestFlight,
+  po zatwierdzeniu (środowisko `production`) Google Play – produkcja. Sekrety tylko w CI, nazwy w nagłówku `cd.yml`.
+- Przed wydaniem: [`docs/release/checklista-publikacji.md`](docs/release/checklista-publikacji.md).
+
 ## Checkpointy
 
 Każdy blok ćwiczeń ma dwie gałęzie:

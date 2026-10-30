@@ -6,6 +6,9 @@ title FieldService – kontenery
 
 Person(technik, "Technik serwisu", "Pracuje u klienta, często bez zasięgu")
 System_Ext(tozsamosc, "Dostawca tożsamości", "Logowanie technika, tokeny dostępu")
+System_Ext(otlp, "Backend OpenTelemetry", "Collector OTLP + ślady, metryki, logi i raporty awarii (np. Grafana: Tempo, Prometheus, Loki)")
+System_Ext(sklepy, "Sklepy", "Google Play (testy wewnętrzne → produkcja), App Store Connect (TestFlight → App Store)")
+System_Ext(ci, "CI/CD", "GitHub Actions albo Azure DevOps: testy (także architektury), podpisany AAB/IPA, symbole")
 
 System_Boundary(fs, "FieldService") {
     Container(app, "Aplikacja mobilna", ".NET MAUI (Android, iOS)", "Pierścienie Domain, Application, Infrastructure, Presentation, UI")
@@ -19,5 +22,9 @@ Rel(app, replika, "Czyta i zapisuje", "sqlite-net-pcl")
 Rel(app, api, "Loguje technika (api/auth/login), pobiera wizyty i auto technika", "HTTPS/JSON, Bearer")
 Rel(api, baza, "Czyta i zapisuje", "SQL")
 Rel(api, tozsamosc, "Uwierzytelnia technika, weryfikuje tokeny", "HTTPS")
+Rel(app, otlp, "Ślady, metryki, logi i raporty awarii (wysyłka przy następnym starcie)", "OTLP/HTTP")
+Rel(api, otlp, "Ślady (ten sam traceparent co telefon), metryki, logi", "OTLP")
+Rel(ci, sklepy, "Wysyła podpisany build: testerzy, po zatwierdzeniu produkcja", "API sklepów")
+Rel(sklepy, technik, "Instalacja i aktualizacje aplikacji")
 
 @enduml

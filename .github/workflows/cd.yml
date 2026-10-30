@@ -1,0 +1,282 @@
+# CD (Continuous Delivery): ręcznie uruchamiane wydanie. Jeden przebieg i jeden commit, dwie aplikacje:
+#   TEST (pl.szkolenie.fieldservice.test, konfiguracja Test) i PROD (pl.szkolenie.fieldservice, konfiguracja Release)
+#   budowane równolegle z tego samego kodu, z tą samą wersją i tym samym numerem builda.
+# Linia montażowa:
+#   wersja (GitVersion) → podpisane AAB i IPA obu aplikacji + symbole jako artefakty
+#   → TEST do testerów: ścieżka testów wewnętrznych Google Play i TestFlight
+#   → zatwierdzenie w środowisku „production” (testy aplikacji TEST zakończone pozytywnie)
+#   → PROD do sklepów: Google Play – produkcja (wydawanie stopniowe), App Store Connect – build do wysłania do review.
+# PROD nigdy nie trafia na ścieżkę testową – testerzy pracują wyłącznie na aplikacji TEST.
+#
+# Sekrety (Settings → Secrets and variables → Actions) – w repozytorium są tylko ich NAZWY:
+#   ANDROID_KEYSTORE_BASE64          plik .jks/.keystore zakodowany base64 (base64 -i upload.jks)
+#   ANDROID_KEYSTORE_PASSWORD        hasło keystore
+#   ANDROID_KEY_ALIAS                alias klucza w keystore
+#   ANDROID_KEY_PASSWORD             hasło klucza
+#   IOS_CERTIFICATE_P12_BASE64       certyfikat dystrybucyjny Apple (.p12) w base64
+#   IOS_CERTIFICATE_PASSWORD         hasło do .p12
+#   IOS_CODESIGN_KEY                 nazwa certyfikatu, np. "Apple Distribution: Firma (TEAMID)"
+#   IOS_PROFILE_TEST_BASE64          profil App Store aplikacji TEST (.mobileprovision) w base64
+#   IOS_PROFILE_TEST_NAME            nazwa tego profilu z Apple Developer
+#   IOS_PROFILE_RELEASE_BASE64       profil App Store aplikacji PROD w base64
+#   IOS_PROFILE_RELEASE_NAME         nazwa tego profilu
+#   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON klucz konta usługi Google Cloud z dostępem do obu aplikacji w Play Console (JSON)
+#   APP_STORE_CONNECT_ISSUER_ID      Issuer ID klucza API App Store Connect
+#   APP_STORE_CONNECT_KEY_ID         identyfikator klucza API (rola App Manager)
+#   APP_STORE_CONNECT_PRIVATE_KEY    zawartość pliku AuthKey_<KEY_ID>.p8
+#   OTLP_ENDPOINT, OTLP_HEADERS      backend OpenTelemetry, puste = bez telemetrii
+# Środowisko „production” (Settings → Environments) z wymaganym zatwierdzeniem – job „release” czeka na kliknięcie.
+name: CD
+
+on:
+  workflow_dispatch:   # tylko ręcznie (gitflow: z main po scaleniu release/* albo z tagu v*)
+
+jobs:
+  # 1. Wersja aplikacji z historii gita – jedna dla obu aplikacji
+  version:
+    name: Wersja (GitVersion)
+    # wydanie tylko z main albo z tagu v*. Z innej gałęzi (develop, release/*) job się nie uruchamia, a z nim cały przebieg
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    outputs:
+      displayVersion: ${{ steps.gitversion.outputs.majorMinorPatch }}   # np. 1.4.0 → ApplicationDisplayVersion
+      buildNumber: ${{ github.run_number }}                             # 61, 62… → ApplicationVersion (zawsze rośnie)
+    steps:
+      # Pełna historia i tagi – GitVersion liczy wersję od ostatniego tagu v*
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: gittools/actions/gitversion/setup@v4.7.0
+        with:
+          versionSpec: '6.3.x'
+
+      - id: gitversion
+        uses: gittools/actions/gitversion/execute@v4.7.0
+
+      - name: Wynik
+        run: echo "Wersja ${{ steps.gitversion.outputs.majorMinorPatch }} (build ${{ github.run_number }})"
+
+  # 2. Android: podpisane AAB obu aplikacji + symbole (Test i Release równolegle, ten sam commit)
+  android:
+    name: Android (${{ matrix.configuration }})
+    needs: version
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        configuration: [Test, Release]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Instalacja workloadu maui-android
+        run: dotnet workload install maui-android
+
+      # Adres backendu telemetrii z sekretu do konfiguracji buildu (w repozytorium jest pusty)
+      - name: Telemetria z sekretów
+        env:
+          OTLP_ENDPOINT: ${{ secrets.OTLP_ENDPOINT }}
+          OTLP_HEADERS: ${{ secrets.OTLP_HEADERS }}
+        run: >
+          jq --arg e "$OTLP_ENDPOINT" --arg h "$OTLP_HEADERS" '.Telemetry.OtlpEndpoint = $e | .Telemetry.OtlpHeaders = $h'
+          src/FieldService.UI/appsettings.${{ matrix.configuration }}.json > "$RUNNER_TEMP/appsettings.json"
+          && mv "$RUNNER_TEMP/appsettings.json" src/FieldService.UI/appsettings.${{ matrix.configuration }}.json
+
+      # Keystore z sekretu do pliku tymczasowego (nigdy nie trafia do repozytorium)
+      - name: Keystore z sekretu
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/upload.keystore"
+
+      # Publikacja: AAB podpisany kluczem z keystore, wersja z joba „version” (ta sama dla TEST i PROD)
+      - name: dotnet publish (Android)
+        run: >
+          dotnet publish src/FieldService.UI/FieldService.UI.csproj -f net10.0-android -c ${{ matrix.configuration }}
+          -p:AndroidPackageFormat=aab
+          -p:AndroidKeyStore=true
+          -p:AndroidSigningKeyStore="$RUNNER_TEMP/upload.keystore"
+          -p:AndroidSigningKeyAlias="${{ secrets.ANDROID_KEY_ALIAS }}"
+          -p:AndroidSigningKeyPass="${{ secrets.ANDROID_KEY_PASSWORD }}"
+          -p:AndroidSigningStorePass="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
+          -p:ApplicationDisplayVersion=${{ needs.version.outputs.displayVersion }}
+          -p:ApplicationVersion=${{ needs.version.outputs.buildNumber }}
+          -o artifacts/android
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fieldservice-aab-${{ matrix.configuration }}
+          path: artifacts/android/*-Signed.aab
+
+      # Symbole z TEGO SAMEGO buildu: .pdb (numery linii w stosie zarządzanym) i mapping.txt, gdy włączony R8 –
+      # do analizy awarii z tej wersji
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-android-${{ matrix.configuration }}
+          path: |
+            src/FieldService.UI/bin/${{ matrix.configuration }}/net10.0-android/*.pdb
+            src/FieldService.UI/obj/${{ matrix.configuration }}/net10.0-android/**/mapping.txt
+          if-no-files-found: ignore
+
+  # 3. iOS: podpisane IPA obu aplikacji + dSYM (macOS z Xcode 26 – wymaga go .NET 10 dla iOS i App Store)
+  ios:
+    name: iOS (${{ matrix.configuration }})
+    needs: version
+    runs-on: macos-26
+    strategy:
+      matrix:
+        # każda aplikacja ma własny identyfikator, więc i własny profil App Store
+        include:
+          - configuration: Test
+            profile: IOS_PROFILE_TEST
+          - configuration: Release
+            profile: IOS_PROFILE_RELEASE
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Instalacja workloadu maui-ios
+        run: dotnet workload install maui-ios
+
+      - name: Telemetria z sekretów
+        env:
+          OTLP_ENDPOINT: ${{ secrets.OTLP_ENDPOINT }}
+          OTLP_HEADERS: ${{ secrets.OTLP_HEADERS }}
+        run: >
+          jq --arg e "$OTLP_ENDPOINT" --arg h "$OTLP_HEADERS" '.Telemetry.OtlpEndpoint = $e | .Telemetry.OtlpHeaders = $h'
+          src/FieldService.UI/appsettings.${{ matrix.configuration }}.json > "$RUNNER_TEMP/appsettings.json"
+          && mv "$RUNNER_TEMP/appsettings.json" src/FieldService.UI/appsettings.${{ matrix.configuration }}.json
+
+      # Certyfikat do tymczasowego pęku kluczy (keychain) i profil do katalogu, w którym szuka go Xcode
+      - name: Certyfikat i profil z sekretów
+        env:
+          P12_BASE64: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          PROFILE_BASE64: ${{ secrets[format('{0}_BASE64', matrix.profile)] }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          echo "$P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "" "$KEYCHAIN"
+          security set-keychain-settings -lut 3600 "$KEYCHAIN"
+          security unlock-keychain -p "" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/fieldservice.mobileprovision
+
+      # Publikacja: archiwum IPA na urządzenia (ios-arm64), podpis certyfikatem i profilem, wersja z joba „version”
+      - name: dotnet publish (iOS)
+        run: >
+          dotnet publish src/FieldService.UI/FieldService.UI.csproj -f net10.0-ios -c ${{ matrix.configuration }}
+          -p:RuntimeIdentifier=ios-arm64
+          -p:ArchiveOnBuild=true
+          -p:CodesignKey="${{ secrets.IOS_CODESIGN_KEY }}"
+          -p:CodesignProvision="${{ secrets[format('{0}_NAME', matrix.profile)] }}"
+          -p:ApplicationDisplayVersion=${{ needs.version.outputs.displayVersion }}
+          -p:ApplicationVersion=${{ needs.version.outputs.buildNumber }}
+          -o artifacts/ios
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fieldservice-ipa-${{ matrix.configuration }}
+          path: artifacts/ios/*.ipa
+
+      # dSYM i .pdb z tego samego buildu – czytelny stos w raportach awarii tej wersji
+      - uses: actions/upload-artifact@v7
+        with:
+          name: symbols-ios-${{ matrix.configuration }}
+          path: |
+            src/FieldService.UI/bin/${{ matrix.configuration }}/net10.0-ios/ios-arm64/*.dSYM
+            src/FieldService.UI/bin/${{ matrix.configuration }}/net10.0-ios/ios-arm64/*.pdb
+          if-no-files-found: ignore
+
+  # 4a. TEST do testerów Androida: ścieżka testów wewnętrznych Google Play (do 100 osób, bez review)
+  testers-android:
+    name: Testerzy – Google Play (TEST)
+    needs: android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: fieldservice-aab-Test
+          path: aab
+
+      - uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: pl.szkolenie.fieldservice.test
+          releaseFiles: aab/*-Signed.aab
+          track: internal
+          status: completed
+
+  # 4b. TEST do testerów iOS: TestFlight (wewnętrzni od razu, zewnętrzni po review beta)
+  testers-ios:
+    name: Testerzy – TestFlight (TEST)
+    needs: ios
+    runs-on: macos-26
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: fieldservice-ipa-Test
+          path: ipa
+
+      - name: Plik IPA
+        id: ipa
+        run: echo "path=$(find ipa -name "*.ipa" | head -1)" >> "$GITHUB_OUTPUT"
+
+      - uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: ${{ steps.ipa.outputs.path }}
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
+  # 5. PROD do sklepów – dopiero po zatwierdzeniu w środowisku „production” (testy aplikacji TEST zakończone
+  #    pozytywnie). Pliki to artefakty PROD z tego samego przebiegu, zbudowane razem z TEST.
+  release:
+    name: Wydanie PROD (po zatwierdzeniu)
+    needs: [testers-android, testers-ios]
+    runs-on: macos-26
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: fieldservice-aab-Release
+          path: aab
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: fieldservice-ipa-Release
+          path: ipa
+
+      # Google Play: produkcja, wydawanie stopniowe – 10 % użytkowników (w Play Console zwiększasz albo wstrzymujesz)
+      - uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: pl.szkolenie.fieldservice
+          releaseFiles: aab/*-Signed.aab
+          track: production
+          status: inProgress
+          userFraction: 0.1
+
+      - name: Plik IPA
+        id: ipa
+        run: echo "path=$(find ipa -name "*.ipa" | head -1)" >> "$GITHUB_OUTPUT"
+
+      # App Store Connect: build PROD trafia do aplikacji produkcyjnej (bez grup testerów). Wysłanie wersji do review
+      # to świadomy krok w App Store Connect (opis wersji, zrzuty)
+      - uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: ${{ steps.ipa.outputs.path }}
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}

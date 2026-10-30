@@ -1,0 +1,247 @@
+# CD w Azure DevOps: ten sam przepływ co w GitHub Actions (.github/workflows/cd.yml) – ręcznie uruchamiane wydanie.
+# Jeden przebieg i jeden commit, dwie aplikacje budowane równolegle z tą samą wersją i tym samym numerem builda:
+#   TEST (pl.szkolenie.fieldservice.test, konfiguracja Test) i PROD (pl.szkolenie.fieldservice, konfiguracja Release).
+#   wersja (GitVersion) → podpisane AAB i IPA obu aplikacji + symbole jako artefakty
+#   → TEST do testerów (Google Play: testy wewnętrzne, TestFlight)
+#   → zatwierdzenie w środowisku „production” (testy aplikacji TEST zakończone pozytywnie)
+#   → PROD do sklepów (Google Play: produkcja, wydawanie stopniowe, App Store Connect: build do wysłania do review).
+# PROD nigdy nie trafia na ścieżkę testową – testerzy pracują wyłącznie na aplikacji TEST.
+#
+# Sekrety NIE są w repozytorium:
+# - Library → Secure files: upload.keystore (Android), certificate.p12, fieldservice-test.mobileprovision (TEST)
+#   i fieldservice.mobileprovision (PROD),
+# - Library → Variable group „FieldService Release” (hasła oznaczone jako secret):
+#   AndroidKeystorePassword, AndroidKeyAlias, AndroidKeyPassword, AppleCertificatePassword, AppleCodesignKey,
+#   OtlpEndpoint, OtlpHeaders (backend OpenTelemetry),
+# - Project settings → Service connections: „Google Play” (konto usługi Google Cloud, rozszerzenie Google Play)
+#   i „App Store Connect” (klucz API .p8 w base64, rozszerzenie Apple App Store),
+# - Pipelines → Environments: „production” z zatwierdzeniem (Approvals and checks).
+trigger: none   # tylko ręcznie (przycisk „Run pipeline”), gitflow: z main po scaleniu release/* albo z tagu v*
+pr: none
+
+variables:
+  - group: 'FieldService Release'
+
+stages:
+  # 1. Wersja aplikacji z historii gita – jedna dla obu aplikacji
+  - stage: Version
+    displayName: Wersja
+    # wydanie tylko z main albo z tagu v*. Z innej gałęzi etap się nie uruchamia, a z nim kolejne
+    condition: or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+    jobs:
+      - job: GitVersion
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+            fetchDepth: 0   # pełna historia i tagi – GitVersion liczy od ostatniego tagu v*
+          - template: templates/gitversion.yml
+
+  # 2. Build i podpis: TEST i PROD na obu platformach równolegle, z tego samego commitu
+  - stage: Build
+    displayName: Build i podpis
+    dependsOn: Version
+    variables:
+      # ApplicationDisplayVersion = SemVer z GitVersion (np. 1.4.0), ApplicationVersion = rosnący numer builda
+      displayVersion: $[ dependencies.Version.outputs['GitVersion.version.majorMinorPatch'] ]
+    jobs:
+      - job: Android
+        displayName: Android
+        strategy:
+          matrix:
+            Test:
+              configuration: Test
+            Release:
+              configuration: Release
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - template: templates/setup-dotnet.yml
+            parameters:
+              workload: android
+
+          # Adres backendu telemetrii z biblioteki zmiennych do konfiguracji buildu (w repozytorium jest pusty)
+          - bash: >
+              jq --arg e "$(OtlpEndpoint)" --arg h "$(OtlpHeaders)" '.Telemetry.OtlpEndpoint = $e | .Telemetry.OtlpHeaders = $h'
+              src/FieldService.UI/appsettings.$(configuration).json > $(Agent.TempDirectory)/appsettings.json
+              && mv $(Agent.TempDirectory)/appsettings.json src/FieldService.UI/appsettings.$(configuration).json
+            displayName: Telemetria z biblioteki zmiennych
+
+          # Keystore z „Secure files” do pliku tymczasowego na agencie
+          - task: DownloadSecureFile@1
+            name: keystore
+            displayName: Pobranie keystore
+            inputs:
+              secureFile: upload.keystore
+
+          - bash: >
+              dotnet publish src/FieldService.UI/FieldService.UI.csproj -f net10.0-android -c $(configuration)
+              -p:AndroidPackageFormat=aab
+              -p:AndroidKeyStore=true
+              -p:AndroidSigningKeyStore=$(keystore.secureFilePath)
+              -p:AndroidSigningKeyAlias=$(AndroidKeyAlias)
+              -p:AndroidSigningKeyPass=$(AndroidKeyPassword)
+              -p:AndroidSigningStorePass=$(AndroidKeystorePassword)
+              -p:ApplicationDisplayVersion=$(displayVersion)
+              -p:ApplicationVersion=$(Build.BuildId)
+              -o $(Build.ArtifactStagingDirectory)/android
+            displayName: dotnet publish (Android)
+
+          - publish: $(Build.ArtifactStagingDirectory)/android
+            artifact: fieldservice-aab-$(configuration)
+
+          # Symbole z TEGO SAMEGO buildu (numery linii w stosie zarządzanym)
+          - publish: src/FieldService.UI/bin/$(configuration)/net10.0-android
+            artifact: symbols-android-$(configuration)
+            displayName: Symbole (.pdb)
+
+      - job: iOS
+        displayName: iOS
+        strategy:
+          matrix:
+            # każda aplikacja ma własny identyfikator, więc i własny profil App Store
+            Test:
+              configuration: Test
+              profile: fieldservice-test.mobileprovision
+            Release:
+              configuration: Release
+              profile: fieldservice.mobileprovision
+        pool:
+          vmImage: macos-26   # build iOS: Xcode 26 (.NET 10 dla iOS, App Store). Obraz niedostępny → macos-15 + xcode-select na Xcode 26
+        steps:
+          - template: templates/setup-dotnet.yml
+            parameters:
+              workload: ios
+
+          - bash: >
+              jq --arg e "$(OtlpEndpoint)" --arg h "$(OtlpHeaders)" '.Telemetry.OtlpEndpoint = $e | .Telemetry.OtlpHeaders = $h'
+              src/FieldService.UI/appsettings.$(configuration).json > $(Agent.TempDirectory)/appsettings.json
+              && mv $(Agent.TempDirectory)/appsettings.json src/FieldService.UI/appsettings.$(configuration).json
+            displayName: Telemetria z biblioteki zmiennych
+
+          # Certyfikat dystrybucyjny do pęku kluczy agenta
+          - task: InstallAppleCertificate@2
+            displayName: Instalacja certyfikatu
+            inputs:
+              certSecureFile: certificate.p12
+              certPwd: $(AppleCertificatePassword)
+
+          # Profil (provisioning profile) tej aplikacji – ustawia zmienną APPLE_PROV_PROFILE_UUID
+          - task: InstallAppleProvisioningProfile@1
+            displayName: Instalacja profilu
+            inputs:
+              provProfileSecureFile: $(profile)
+
+          - bash: >
+              dotnet publish src/FieldService.UI/FieldService.UI.csproj -f net10.0-ios -c $(configuration)
+              -p:RuntimeIdentifier=ios-arm64
+              -p:ArchiveOnBuild=true
+              -p:CodesignKey="$(AppleCodesignKey)"
+              -p:CodesignProvision=$(APPLE_PROV_PROFILE_UUID)
+              -p:ApplicationDisplayVersion=$(displayVersion)
+              -p:ApplicationVersion=$(Build.BuildId)
+              -o $(Build.ArtifactStagingDirectory)/ios
+            displayName: dotnet publish (iOS)
+
+          - publish: $(Build.ArtifactStagingDirectory)/ios
+            artifact: fieldservice-ipa-$(configuration)
+
+          # dSYM i .pdb z tego samego buildu
+          - publish: src/FieldService.UI/bin/$(configuration)/net10.0-ios/ios-arm64
+            artifact: symbols-ios-$(configuration)
+            displayName: Symbole (dSYM)
+
+  # 3. TEST do testerów: ścieżka testów wewnętrznych Google Play i TestFlight
+  - stage: Testers
+    displayName: Testerzy (TEST)
+    dependsOn: Build
+    jobs:
+      - job: GooglePlayInternal
+        displayName: Google Play – testy wewnętrzne (TEST)
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - download: current
+            artifact: fieldservice-aab-Test
+
+          - task: GooglePlayRelease@4
+            displayName: Wysyłka na ścieżkę internal
+            inputs:
+              serviceConnection: Google Play
+              applicationId: pl.szkolenie.fieldservice.test
+              action: SingleBundle
+              bundleFile: $(Pipeline.Workspace)/fieldservice-aab-Test/*-Signed.aab
+              track: internal
+
+      - job: TestFlight
+        displayName: TestFlight (TEST)
+        pool:
+          vmImage: macos-26
+        steps:
+          - download: current
+            artifact: fieldservice-ipa-Test
+
+          - task: AppStoreRelease@1
+            displayName: Wysyłka do TestFlight
+            inputs:
+              serviceEndpoint: App Store Connect
+              releaseTrack: TestFlight
+              appIdentifier: pl.szkolenie.fieldservice.test
+              appType: iOS
+              ipaPath: $(Pipeline.Workspace)/fieldservice-ipa-Test/*.ipa
+              shouldSkipWaitingForProcessing: true
+
+  # 4. PROD do sklepów – po zatwierdzeniu w środowisku „production” (testy aplikacji TEST zakończone pozytywnie).
+  #    Pliki to artefakty PROD z tego samego przebiegu, zbudowane razem z TEST.
+  - stage: Release
+    displayName: Wydanie PROD
+    dependsOn: Testers
+    jobs:
+      - deployment: GooglePlayProduction
+        displayName: Google Play – produkcja (10 %)
+        environment: production
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: fieldservice-aab-Release
+
+                # wydawanie stopniowe: 10 % użytkowników (w Play Console zwiększasz albo wstrzymujesz)
+                - task: GooglePlayRelease@4
+                  displayName: Wysyłka na ścieżkę production
+                  inputs:
+                    serviceConnection: Google Play
+                    applicationId: pl.szkolenie.fieldservice
+                    action: SingleBundle
+                    bundleFile: $(Pipeline.Workspace)/fieldservice-aab-Release/*-Signed.aab
+                    track: production
+                    rolloutToUserFraction: true
+                    userFraction: '0.1'
+
+      - deployment: AppStoreConnect
+        displayName: App Store Connect (PROD)
+        environment: production
+        pool:
+          vmImage: macos-26
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: fieldservice-ipa-Release
+
+                # build PROD trafia do App Store Connect bez grup testerów. Wysłanie wersji do review to świadomy krok
+                # w App Store Connect (opis wersji, zrzuty)
+                - task: AppStoreRelease@1
+                  displayName: Wysyłka do App Store Connect
+                  inputs:
+                    serviceEndpoint: App Store Connect
+                    releaseTrack: Production
+                    appIdentifier: pl.szkolenie.fieldservice
+                    appType: iOS
+                    ipaPath: $(Pipeline.Workspace)/fieldservice-ipa-Release/*.ipa
+                    shouldSubmitForReview: false
+                    shouldSkipWaitingForProcessing: true

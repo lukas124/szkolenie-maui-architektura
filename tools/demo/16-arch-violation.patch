@@ -1,0 +1,38 @@
+diff --git a/Directory.Packages.props b/Directory.Packages.props
+index 6a6fe1c..1809311 100644
+--- a/Directory.Packages.props
++++ b/Directory.Packages.props
+@@ -8,6 +8,7 @@
+   <ItemGroup>
+     <!-- UI (jedyny projekt MAUI) -->
+     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.110" />
++    <PackageVersion Include="Microsoft.Maui.Graphics" Version="10.0.110" />
+     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+     <PackageVersion Include="CommunityToolkit.Maui" Version="15.0.1" />
+     <!-- Lokalna baza SQLite. bundle_green = natywny SQLite dla Androida (e_sqlite3) i systemowy na iOS -->
+diff --git a/src/FieldService.Presentation/FieldService.Presentation.csproj b/src/FieldService.Presentation/FieldService.Presentation.csproj
+index 5f0cc5a..c16236e 100644
+--- a/src/FieldService.Presentation/FieldService.Presentation.csproj
++++ b/src/FieldService.Presentation/FieldService.Presentation.csproj
+@@ -8,6 +8,8 @@
+ 
+   <ItemGroup>
+     <PackageReference Include="CommunityToolkit.Mvvm" />
++    <!-- „szybciej będzie od razu z kolorem” -->
++    <PackageReference Include="Microsoft.Maui.Graphics" />
+     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+   </ItemGroup>
+diff --git a/src/FieldService.Presentation/Visits/VisitItem.cs b/src/FieldService.Presentation/Visits/VisitItem.cs
+index a657196..c52e201 100644
+--- a/src/FieldService.Presentation/Visits/VisitItem.cs
++++ b/src/FieldService.Presentation/Visits/VisitItem.cs
+@@ -13,6 +13,8 @@ public sealed record VisitItem
+     public string? StartsInText { get; init; }
+     public required string StatusText { get; init; }
+     public required VisitTone Tone { get; init; }
++    // kolor statusu od razu w elemencie listy – typ MAUI w ViewModelu
++    public Microsoft.Maui.Graphics.Color? StatusColor { get; init; }
+     public required bool IsLate { get; init; }
+     public required bool IsBrigade { get; init; }
+     public required bool IsCancelled { get; init; }

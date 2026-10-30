@@ -111,7 +111,8 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 ## Polecenia
 - `dotnet build FieldService.slnx` – zero ostrzeżeń (`TreatWarningsAsErrors`).
 - Po zmianie XAML: `dotnet build src/FieldService.UI -c Release -f net10.0-android` – zły binding wychodzi dopiero w Release.
-- `dotnet test FieldService.slnx` – wszystkie projekty testowe, także testy architektury.
+- `dotnet test FieldService.slnx` – wszystkie projekty testowe, także testy architektury (te same uruchamia CI:
+  `.github/workflows/ci.yml`; wydanie – `cd.yml`, checklista `docs/release/checklista-publikacji.md`).
 
 ## Definition of Done
 1. Nowa reguła ma testy (najpierw test, potem kod).

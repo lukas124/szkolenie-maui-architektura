@@ -1,0 +1,20 @@
+# GitVersion: wylicza numer wersji aplikacji z historii gita (gałęzie, tagi, commity), bez ręcznej edycji csproj.
+#
+# Model gałęzi: gitflow (workflow GitFlow/v1). Punktem odniesienia jest ostatni tag wersji na main, np. v1.3.0
+# (prefiks v jest opcjonalny). Po nim:
+# - develop – bieżąca praca, wersje robocze z etykietą alpha (1.4.0-alpha.3),
+# - feature/raport – zmiana do develop, etykieta z nazwy gałęzi (1.4.0-raport.1),
+# - release/1.4.0 – przygotowanie wydania, wersję wyznacza nazwa gałęzi, etykieta beta (1.4.0-beta.1),
+# - main – po scaleniu release/1.4.0 i z tagiem v1.4.0 czysta wersja 1.4.0 (develop przechodzi na 1.5.0-alpha),
+# - hotfix/1.4.1 – poprawka wydania z main, etykieta beta (1.4.1-beta.1).
+# Słowo w opisie commita może podbić większy człon: „+semver: minor” albo „+semver: major”.
+#
+# Wynik (MajorMinorPatch, np. 1.4.0) pipeline CD wpisuje do ApplicationDisplayVersion,
+# a ApplicationVersion (numer, który sklep wymaga zawsze rosnącego) bierze z numeru uruchomienia pipeline'u.
+workflow: GitFlow/v1
+# wersja startowa, dopóki w repozytorium nie ma żadnego tagu v*
+next-version: '1.0.0'
+tag-prefix: '[vV]?'
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
