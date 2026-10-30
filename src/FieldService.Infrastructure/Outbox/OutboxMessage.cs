@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -31,6 +32,9 @@ public sealed class OutboxMessage
     // nie wysyłamy więcej (za dużo nieudanych prób albo konflikt z serwerem)
     public bool Failed { get; set; }
 
+    // ślad, w którym zmiana powstała (W3C traceparent) – span wysyłki dostaje link do niego
+    public string? TraceParent { get; set; }
+
     // Zdarzenie domenowe → wiadomość. Nie wysyłamy: unieważnienia podpisu (serwer unieważnia go sam po zmianie zakresu)
     // i anulowania (anuluje dyspozytor, nie technik).
     public static OutboxMessage? From(IDomainEvent domainEvent) => domainEvent switch
@@ -54,6 +58,7 @@ public sealed class OutboxMessage
         Type = type,
         VisitId = visitId.ToString(),
         Payload = JsonSerializer.Serialize(payload, Json),
-        CreatedAt = occurredAt.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)
+        CreatedAt = occurredAt.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
+        TraceParent = Activity.Current?.Id
     };
 }

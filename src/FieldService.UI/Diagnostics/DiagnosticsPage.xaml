@@ -24,6 +24,9 @@
             <Label Text="{Binding LiveViewModelsText}" Style="{StaticResource Body}" />
             <Button Text="{loc:Translate Diagnostics_ForceGc}" Command="{Binding ForceGcCommand}" Style="{StaticResource SecondaryButton}" />
             <Button Text="{loc:Translate Diagnostics_Refresh}" Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}" />
+
+            <Label Text="{loc:Translate Diagnostics_CrashSection}" Style="{StaticResource SectionHeader}" />
+            <Button Text="{loc:Translate Diagnostics_ForceCrash}" Command="{Binding ForceCrashCommand}" Style="{StaticResource SecondaryButton}" />
         </VerticalStackLayout>
     </ScrollView>
 </pages:BasePage>

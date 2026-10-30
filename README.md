@@ -50,6 +50,18 @@ Logowanie w aplikacji: dowolny adres e-mail (każdy adres to osobny technik z w�
 
 Logi aplikacji na Androidzie: `adb logcat -s DOTNET`.
 
+Konfiguracja: `src/FieldService.UI/appsettings.json` + plik bieżącej konfiguracji (`appsettings.Debug.json`,
+`appsettings.Test.json`, `appsettings.Release.json`). Lokalne API i backend telemetrii na swoim komputerze – plik
+`src/FieldService.UI/appsettings.Local.json` (nie trafia do repo; adresy `http://` działają na Androidzie tylko w Debug),
+np. dla emulatora Androida:
+
+```json
+{
+  "Api": { "BaseUrl": "http://10.0.2.2:5090/" },
+  "Telemetry": { "OtlpEndpoint": "http://10.0.2.2:4318" }
+}
+```
+
 ## API szkoleniowe
 
 Aplikacja łączy się z API szkoleniowym: https://mobilny.dev/maui/architektura/ (strona startowa z opisem).

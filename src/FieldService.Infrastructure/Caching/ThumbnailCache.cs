@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using FieldService.Application.Abstractions;
 using Microsoft.Extensions.Caching.Memory;
+using OpenTelemetry;
 
 namespace FieldService.Infrastructure.Caching;
 
@@ -93,6 +94,8 @@ public sealed class ThumbnailCache : IThumbnailCache
         if (!Uri.TryCreate(url, UriKind.Absolute, out _)) return null; // brak adresu miniatury → pusta miniatura
         try
         {
+            // miniatury bez śladów OpenTelemetry – setki pobrań przy przewijaniu zasłoniłyby ślady pracy technika
+            using var suppress = SuppressInstrumentationScope.Begin();
             using var response = await _http().GetAsync(url, ct);
             return response.IsSuccessStatusCode ? await response.Content.ReadAsByteArrayAsync(ct) : null;
         }

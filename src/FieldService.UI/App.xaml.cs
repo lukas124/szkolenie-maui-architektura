@@ -1,4 +1,5 @@
 using FieldService.Application.Session;
+using FieldService.Infrastructure.Telemetry;
 using FieldService.Presentation.Navigation;
 using FieldService.Presentation.Session;
 using FieldService.UI.Extensions;
@@ -18,6 +19,13 @@ public partial class App : Microsoft.Maui.Controls.Application
     {
         InitializeComponent();
         _services = services;
+    }
+
+    // W tło: telemetria z buforów idzie od razu (system może ubić proces, zanim minie minuta eksportu metryk)
+    protected override void OnSleep()
+    {
+        base.OnSleep();
+        _services.FlushTelemetry();
     }
 
     // Deep link tą samą drogą co przycisk: adres → trasa (DeepLinkParser) → usługa nawigacji. Tylko po zalogowaniu.

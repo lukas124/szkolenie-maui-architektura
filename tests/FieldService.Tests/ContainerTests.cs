@@ -2,6 +2,7 @@ using System.Globalization;
 using FieldService.Application;
 using FieldService.Application.Abstractions;
 using FieldService.Infrastructure;
+using FieldService.Infrastructure.Telemetry;
 using FieldService.Presentation;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
@@ -25,6 +26,7 @@ public class ContainerTests
         var services = new ServiceCollection();
         services.AddApplication()
             .AddInfrastructure(new ApiOptions { BaseUrl = "https://example.invalid/" }, new CachingOptions())
+            .AddTelemetry(new TelemetryOptions())
             .AddPresentation();
 
         // Porty z warstwy UI – atrapy

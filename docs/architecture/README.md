@@ -104,6 +104,16 @@ DTO nie wychodzą z Infrastructure.
 Wszystko w czystym .NET (Infrastructure); z platformy pochodzi tylko katalog plików cache (`MauiAppPaths`).
 `ILocalCaches` czyści wszystko naraz – przy wylogowaniu i zmianie technika.
 
+## Telemetria
+
+Ślad od tapnięcia do bazy: zapis zmiany to span przypadku użycia (`CompleteVisit`, atrybut `visit.id`). Wysyłka z
+outboxu to osobny ślad z linkiem do śladu zapisu: `outbox.send` → span wywołania API w `ApiExecutor`
+(`visits.send.VisitCompleted`) → żądanie `HttpClient` z nagłówkiem `traceparent` (W3C) → API (`fieldservice-api`,
+ASP.NET Core) → zapytanie SQL. Wywołania API poza outboxem (np. `parts.reserve`) to span `ApiExecutor` → `HttpClient` →
+API. Miniatury bez śladów (`SuppressInstrumentationScope`). Metryki: `fieldservice.visits.completed`,
+`fieldservice.outbox.pending`. Logi: ostrzeżenia i błędy przez OTLP; awarie zapisane przy awarii i wysłane przy
+następnym starcie. Eksport tylko z adresem backendu OTLP w konfiguracji (`Telemetry:OtlpEndpoint`).
+
 ## Gdzie szukać dalej
 
 - obszar wizyt (typy, reguły R1–R7, porty, testy): [`../areas/visits.md`](../areas/visits.md);

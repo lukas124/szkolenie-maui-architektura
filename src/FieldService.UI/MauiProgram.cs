@@ -1,8 +1,11 @@
-using System.Reflection;
+using System.Globalization;
 using CommunityToolkit.Maui;
 using FieldService.Application;
 using FieldService.Infrastructure;
 using FieldService.Presentation;
+using FieldService.Infrastructure.Telemetry;
+using FieldService.UI.Extensions;
+using FieldService.UI.Telemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -26,10 +29,7 @@ public static class MauiProgram
                 fonts.AddFont("JetBrainsMono-Bold.ttf", "MonoBold");
             });
 
-        // appsettings.json jest zasobem wbudowanym w zestaw (EmbeddedResource w FieldService.UI.csproj)
-        using var settings = Assembly.GetExecutingAssembly().GetManifestResourceStream("appsettings.json");
-        if (settings is not null)
-            builder.Configuration.AddJsonStream(settings);
+        builder.AddAppConfiguration();
 
         // Rejestracje pierścieni od środka na zewnątrz – jedyne miejsce, które zna wszystkie projekty
         var api = new ApiOptions
@@ -48,6 +48,7 @@ public static class MauiProgram
         builder.Services
             .AddApplication()
             .AddInfrastructure(api, caching)
+            .AddTelemetry(TelemetryOptionsFrom(builder.Configuration))
             .AddPresentation()
             .AddPlatformServices()
             .AddPages();
@@ -64,6 +65,36 @@ public static class MauiProgram
         builder.Logging.AddSimpleConsole(o => o.SingleLine = true);
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+        // awarie: zapis przy awarii, wysyłka zapisanych przy starcie (OpenTelemetry)
+        CrashHandlers.Register(app.Services);
+        app.Services.StartTelemetryAsync(CancellationToken.None).FireAndForget();
+        return app;
     }
+
+    // Konfiguracja per środowisko: zasoby osadzone (csproj) – appsettings.json, plik bieżącej konfiguracji
+    // (appsettings.Debug/Test/Release.json) i opcjonalny appsettings.Local.json; każdy kolejny nadpisuje poprzednie
+    private static MauiAppBuilder AddAppConfiguration(this MauiAppBuilder builder)
+    {
+        var assembly = typeof(MauiProgram).Assembly;
+        foreach (var name in new[] { "appsettings.json", "appsettings.environment.json", "appsettings.local.json" })
+        {
+            using var stream = assembly.GetManifestResourceStream(name);
+            if (stream is not null) builder.Configuration.AddJsonStream(stream);
+        }
+        return builder;
+    }
+
+    // Telemetria: adres backendu OTLP z konfiguracji (appsettings.{Konfiguracja}.json), wersja z platformy
+    private static TelemetryOptions TelemetryOptionsFrom(IConfiguration configuration) => new()
+    {
+        OtlpEndpoint = configuration["Telemetry:OtlpEndpoint"],
+        OtlpHeaders = configuration["Telemetry:OtlpHeaders"],
+        SamplingRatio = double.TryParse(configuration["Telemetry:SamplingRatio"], CultureInfo.InvariantCulture, out var ratio) ? ratio : 1.0,
+        AppVersion = AppInfo.Current.VersionString,
+        EnvironmentName = configuration["Environment:Name"] ?? "PROD",
+#if DEBUG
+        ConsoleExporter = true
+#endif
+    };
 }

@@ -18,12 +18,13 @@ public class LayerDependencyTests
 
     [Test]
     public void Domain_DoesNotDependOnOtherProjects() =>
-        AssertNoDependency(Domain, "FieldService.Application", "FieldService.Infrastructure", "FieldService.Presentation", "FieldService.UI", Maui);
+        AssertNoDependency(Domain, "FieldService.Application", "FieldService.Infrastructure", "FieldService.Presentation", "FieldService.UI", Maui, "OpenTelemetry");
 
-    // Przypadki użycia nie znają adapterów ani szczegółów, którymi adaptery się zajmują (tu: HTTP)
+    // Przypadki użycia nie znają adapterów ani szczegółów, którymi adaptery się zajmują (HTTP, SQLite, SDK OpenTelemetry –
+    // ślady i metryki tylko przez ActivitySource i Meter z .NET)
     [Test]
     public void Application_DoesNotDependOnInfrastructure() =>
-        AssertNoDependency(Application, "FieldService.Infrastructure", "System.Net.Http", "SQLite");
+        AssertNoDependency(Application, "FieldService.Infrastructure", "System.Net.Http", "SQLite", "OpenTelemetry");
 
     [Test]
     public void Application_DoesNotDependOnPresentationOrUi() =>
@@ -35,7 +36,7 @@ public class LayerDependencyTests
 
     [Test]
     public void Presentation_DoesNotDependOnInfrastructure() =>
-        AssertNoDependency(Presentation, "FieldService.Infrastructure", "System.Net.Http");
+        AssertNoDependency(Presentation, "FieldService.Infrastructure", "System.Net.Http", "OpenTelemetry");
 
     // ViewModel dostaje model odczytu (VisitDetails), nigdy agregat ani repozytorium – zmiany tylko przez przypadki użycia
     [Test]

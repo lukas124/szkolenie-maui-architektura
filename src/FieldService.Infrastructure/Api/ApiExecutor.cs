@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Text.Json;
+using FieldService.Application.Diagnostics;
 using FieldService.Domain.Common;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -7,35 +9,36 @@ namespace FieldService.Infrastructure.Api;
 
 // Wykonanie wokół (Execute Around Method): jedno miejsce przed i po każdym wywołaniu API. Odpowiedź i wyjątki
 // (także wyjątki Polly) → Result. Anulowanie przez wywołującego idzie dalej. Nie pokazuje UI i nie czeka na użytkownika.
-// Bramy nie mają ani jednego try/catch.
+// Bramy nie mają ani jednego try/catch. Każde wywołanie to span OpenTelemetry (nazwa = operation, przy błędzie error.type).
 public sealed class ApiExecutor(ILogger<ApiExecutor> logger)
 {
     public async Task<Result<T>> ExecuteAsync<T>(string operation, Func<CancellationToken, Task<T>> call, CancellationToken ct)
     {
+        using var activity = AppTelemetry.Source.StartActivity(operation);
         try
         {
             return Result<T>.Success(await call(ct));
         }
         catch (ApiException ex) // serwer odpowiedział statusem błędu (wygenerowany klient rzuca ApiException)
         {
-            return Fail<T>(operation, ex, ToError(ex));
+            return Fail<T>(activity, operation, ex, ToError(ex));
         }
         // wyjątki sieci i niepoprawna odpowiedź → błąd w Result
         catch (HttpRequestException ex) // brak sieci, DNS, zerwane połączenie
         {
-            return Fail<T>(operation, ex, ApiErrors.Network);
+            return Fail<T>(activity, operation, ex, ApiErrors.Network);
         }
         catch (TaskCanceledException ex) when (!ct.IsCancellationRequested) // limit czasu HttpClient, nie anulowanie
         {
-            return Fail<T>(operation, ex, ApiErrors.Network);
+            return Fail<T>(activity, operation, ex, ApiErrors.Network);
         }
         catch (ExecutionRejectedException ex) // Polly: limit czasu próby/całości albo otwarty obwód
         {
-            return Fail<T>(operation, ex, ApiErrors.Network);
+            return Fail<T>(activity, operation, ex, ApiErrors.Network);
         }
         catch (JsonException ex) // treść nie jest oczekiwanym JSON-em (gdy klient nie opakował błędu w ApiException)
         {
-            return Fail<T>(operation, ex, ApiErrors.InvalidResponse);
+            return Fail<T>(activity, operation, ex, ApiErrors.InvalidResponse);
         }
     }
 
@@ -45,8 +48,10 @@ public sealed class ApiExecutor(ILogger<ApiExecutor> logger)
         return result.IsSuccess ? Result.Success() : Result.Failure(result.Error!);
     }
 
-    private Result<T> Fail<T>(string operation, Exception ex, Error error)
+    private Result<T> Fail<T>(Activity? activity, string operation, Exception ex, Error error)
     {
+        activity?.SetStatus(ActivityStatusCode.Error);
+        activity?.SetTag("error.type", error.Type.ToString().ToLowerInvariant());
         logger.LogWarning("{Operation} → {ErrorCode} ({Exception})", operation, error.Code, ex.GetType().Name);
         return Result<T>.Failure(error);
     }

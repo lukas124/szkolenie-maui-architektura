@@ -91,6 +91,10 @@ internal static class SqliteMigrations
                 Body TEXT NOT NULL,
                 StoredAt TEXT NOT NULL)
             """
+        ],
+        // 6: ślad zapisu zmiany (traceparent) – span wysyłki z outboxu łączy się z nim linkiem
+        [
+            "ALTER TABLE outbox ADD COLUMN TraceParent TEXT NULL"
         ]
     ];
 

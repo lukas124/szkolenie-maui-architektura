@@ -9,6 +9,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <!-- OpenTelemetry: SDK, instrumentacja HttpClient, eksporter OTLP (i konsolowy w Debug) – tylko tutaj -->
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
     <PackageReference Include="sqlite-net-pcl" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" />
     <PackageReference Include="NSwag.ApiDescription.Client" PrivateAssets="all" />

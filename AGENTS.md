@@ -79,6 +79,18 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
   plus Diagnostyka; pomiary), Release (sklep). Stała `DIAGNOSTICS` w Debug i Test: strona Diagnostyka (Ustawienia),
   `RequestCounterHandler`, log `http.requests` i `visits.list.shown`. Mierzymy w Test, nie w Debug.
 
+## Telemetria i raporty awarii
+- OpenTelemetry: Application zna tylko `Diagnostics/AppTelemetry` (`ActivitySource` i `Meter` „FieldService” z .NET – bez
+  pakietów) i port `ICrashReporter`; SDK, instrumentacja `HttpClient` i eksporter OTLP/HTTP tylko w
+  `Infrastructure/Telemetry` (`AddTelemetry(options)`), rejestracja i start w korzeniu kompozycji (`MauiProgram`).
+- Span: jeden na wywołanie API w `ApiExecutor` (nazwa = operacja, przy błędzie `error.type`), przypadki użycia o
+  znaczeniu biznesowym (`CompleteVisit`), wysyłka z outboxu (`outbox.send` z linkiem do śladu zapisu). Atrybuty: `visit.id`
+  tak; nazwisko klienta, podpis, e-mail, token – nigdy.
+- Awaria nieobsłużona → `PendingCrashStore` (plik w chwili awarii, `UI/Telemetry/CrashHandlers`), wysyłka przy następnym
+  starcie jako log OTLP; wyjątek obsłużony (`FireAndForget`, nieobserwowany `Task`) → `ICrashReporter.RecordHandled`.
+- Konfiguracja jak w aplikacji z podstaw: `appsettings.json` + osadzony `appsettings.{Konfiguracja}.json` (środowisko,
+  telemetria) + opcjonalny `appsettings.Local.json` poza repo (lokalne API i backend OTLP, `.gitignore`).
+
 ## Konwencje
 - Nazwy z języka domeny (`docs/architecture/slownik.md`): `Visit`, `VisitScope`, `CustomerSignature`.
 - Komenda `CompleteVisit` + `CompleteVisitHandler`; zapytanie `GetVisitDetails` → model odczytu `VisitDetails`;

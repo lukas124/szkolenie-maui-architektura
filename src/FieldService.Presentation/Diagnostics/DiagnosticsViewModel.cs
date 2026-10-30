@@ -63,6 +63,10 @@ public sealed partial class DiagnosticsViewModel(
         return RefreshAsync();
     }
 
+    // Awaria do pokazu raportu: aplikacja się zamyka, raport idzie do backendu przy następnym starcie
+    [RelayCommand]
+    private void ForceCrash() => throw new InvalidOperationException("Wymuszona awaria (Diagnostyka)");
+
     [RelayCommand]
     private async Task RefreshAsync()
     {

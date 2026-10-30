@@ -497,6 +497,9 @@ $RECYCLE.BIN/
 .idea/
 *.DotSettings.user
 
+# lokalne nadpisanie konfiguracji aplikacji (API i backend OTLP na komputerze trenera) – nie trafia do repo
+appsettings.Local.json
+
 # zrzuty pamięci i ślady profilowania – lokalne pliki z Bloku 14
 *.gcdump
 *.nettrace

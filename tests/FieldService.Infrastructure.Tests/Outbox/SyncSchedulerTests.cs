@@ -36,7 +36,7 @@ public class SyncSchedulerTests
             .Setup(s => s.SendAsync(It.IsAny<OutboxMessage>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(SendResults.Ok(10));
         _tokens = new AccessTokenStore();
-        _scheduler = new SyncScheduler(() => new OutboxProcessor(_db, _sender.Object), _tokens);
+        _scheduler = new SyncScheduler(() => new OutboxProcessor(_db, _sender.Object), _tokens, Mock.Of<ICrashReporter>());
         // repozytorium z atrapą harmonogramu – wiadomości przygotowujemy bez uruchamiania testowanego przebiegu
         _repository = new SqliteVisitRepository(_db, new Mock<ISyncScheduler>().Object);
     }

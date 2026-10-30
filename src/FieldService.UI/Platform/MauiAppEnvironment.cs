@@ -1,17 +1,13 @@
 using FieldService.Presentation.Common;
+using Microsoft.Extensions.Configuration;
 
 namespace FieldService.UI.Platform;
 
-// Adapter portu IAppEnvironment: środowisko z konfiguracji buildu, wersja z ApplicationDisplayVersion i ApplicationVersion
-public sealed class MauiAppEnvironment : IAppEnvironment
+// Adapter portu IAppEnvironment: środowisko z konfiguracji (appsettings.{Konfiguracja}.json – jak w podstawach),
+// wersja z ApplicationDisplayVersion i ApplicationVersion
+public sealed class MauiAppEnvironment(IConfiguration configuration) : IAppEnvironment
 {
-#if DEBUG
-    public string EnvironmentName => "DEV";
-#elif TEST
-    public string EnvironmentName => "TEST";
-#else
-    public string EnvironmentName => "PROD";
-#endif
+    public string EnvironmentName => configuration["Environment:Name"] ?? "PROD";
 
     public string VersionText => $"{AppInfo.Current.VersionString} ({AppInfo.Current.BuildString})";
 

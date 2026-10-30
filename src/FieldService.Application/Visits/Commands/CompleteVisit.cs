@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using FieldService.Application.Diagnostics;
 using FieldService.Application.Abstractions;
 using FieldService.Domain.Common;
 using FieldService.Domain.Visits;
@@ -10,6 +12,23 @@ public sealed record CompleteVisit(VisitId VisitId, VisitOutcomeType Outcome, st
 public sealed class CompleteVisitHandler(IVisitRepository visits, IClock clock)
 {
     public async Task<Result> HandleAsync(CompleteVisit command, CancellationToken ct)
+    {
+        // span przypadku użycia: identyfikator wizyty tak, dane klienta i podpis – nigdy
+        using var activity = AppTelemetry.Source.StartActivity("CompleteVisit");
+        activity?.SetTag("visit.id", command.VisitId.Value.ToString());
+
+        var result = await CompleteAsync(command, ct);
+        if (result.IsSuccess)
+            AppTelemetry.VisitsCompleted.Add(1, new KeyValuePair<string, object?>("outcome", command.Outcome.ToString()));
+        else
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.SetTag("error.type", result.Error!.Type.ToString().ToLowerInvariant());
+        }
+        return result;
+    }
+
+    private async Task<Result> CompleteAsync(CompleteVisit command, CancellationToken ct)
     {
         var visit = await visits.GetAsync(command.VisitId, ct);
         if (visit is null) return VisitErrors.NotFound;

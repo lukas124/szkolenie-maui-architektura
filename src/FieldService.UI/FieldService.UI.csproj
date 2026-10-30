@@ -9,6 +9,10 @@
     <OutputType>Exe</OutputType>
     <!-- trzy konfiguracje: Debug (DEV), Test (pomiary), Release (sklep) – .NET Meteor pokazuje je na pasku stanu -->
     <Configurations>Debug;Release;Test</Configurations>
+    <!-- OpenTelemetry w buildach z optymalizacjami: SDK Androida/iOS domyślnie wycina metryki i nagłówek traceparent
+         (przycinanie) – bez tego w Test i Release nie byłoby metryk ani śladu od telefonu do API -->
+    <MetricsSupport>true</MetricsSupport>
+    <HttpActivityPropagationSupport>true</HttpActivityPropagationSupport>
     <RootNamespace>FieldService.UI</RootNamespace>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
@@ -36,6 +40,8 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <ApplicationId>pl.szkolenie.fieldservice.dev</ApplicationId>
     <ApplicationTitle>FieldService DEV</ApplicationTitle>
+    <!-- HTTP bez TLS tylko w Debug: lokalne API i backend OTLP trenera (http://10.0.2.2) – Test i Release tylko HTTPS -->
+    <AndroidManifestPlaceholders>usesCleartextTraffic=true</AndroidManifestPlaceholders>
   </PropertyGroup>
   <!-- Test = pomiary: jak Release (AOT, przycinanie), ale osobna aplikacja (.test) ze stroną Diagnostyka; APK do adb install -->
   <PropertyGroup Condition="'$(Configuration)' == 'Test'">
@@ -47,6 +53,7 @@
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <RunAOTCompilation>true</RunAOTCompilation>
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+    <AndroidManifestPlaceholders>usesCleartextTraffic=false</AndroidManifestPlaceholders>
   </PropertyGroup>
   <!-- iOS: Test bez generowania kodu w locie – z ustawieniami Test (przycinanie) aplikacja na iOS inaczej pada przy starcie -->
   <PropertyGroup Condition="'$(Configuration)' == 'Test' And $(TargetFramework.Contains('-ios'))">
@@ -60,6 +67,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <ApplicationId>pl.szkolenie.fieldservice</ApplicationId>
     <ApplicationTitle>FieldService</ApplicationTitle>
+    <AndroidManifestPlaceholders>usesCleartextTraffic=false</AndroidManifestPlaceholders>
   </PropertyGroup>
 
   <ItemGroup>
@@ -70,8 +78,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Konfiguracja aplikacji (adres API) wbudowana w zestaw i czytana przy starcie w MauiProgram -->
+    <!-- Konfiguracja aplikacji: appsettings.json + TYLKO plik bieżącej konfiguracji trafia do binarki (jak w podstawach);
+         appsettings.Local.json (poza repo, .gitignore) – lokalne API i backend OTLP trenera, nadpisuje oba -->
     <EmbeddedResource Include="appsettings.json" LogicalName="appsettings.json" />
+    <EmbeddedResource Include="appsettings.$(Configuration).json" LogicalName="appsettings.environment.json"
+                      Condition="Exists('appsettings.$(Configuration).json')" />
+    <EmbeddedResource Include="appsettings.Local.json" LogicalName="appsettings.local.json"
+                      Condition="Exists('appsettings.Local.json') And '$(Configuration)' != 'Release'" />
+    <None Remove="appsettings*.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using FieldService.Application.Diagnostics;
 using System.Globalization;
 using FieldService.Application.Abstractions;
 using FieldService.Domain.Common;
@@ -16,6 +18,9 @@ public sealed class OutboxProcessor(SqliteDb db, IOutboxSender sender)
 
     public async Task<SyncResult> ProcessAsync(CancellationToken ct)
     {
+        // przebieg wysyłki to osobne ślady, nie dzieci spanu, w którym ktoś poprosił o wysyłkę (Task.Run przenosi kontekst);
+        // ze zmianą łączy je link (StartSendActivity)
+        System.Diagnostics.Activity.Current = null;
         var connection = await db.GetConnectionAsync();
         // kolejność zapisu (rowid), nie zegar telefonu – ten może się cofnąć
         var messages = await connection.QueryAsync<OutboxMessage>($"SELECT * FROM outbox WHERE {Pending} ORDER BY rowid");
@@ -30,6 +35,8 @@ public sealed class OutboxProcessor(SqliteDb db, IOutboxSender sender)
 
             // wersja, którą widział telefon – serwer odrzuci komendę, jeśli wizyta zmieniła się w międzyczasie
             var serverVersion = await connection.ExecuteScalarAsync<int>("SELECT ServerVersion FROM visits WHERE Id = ?", message.VisitId);
+            // osobny ślad wysyłki (inna chwila niż zapis) z linkiem do śladu, w którym technik zmienił wizytę
+            using var activity = StartSendActivity(message);
             var result = await SendAsync(message, serverVersion, ct);
             if (result.IsSuccess)
             {
@@ -63,6 +70,15 @@ public sealed class OutboxProcessor(SqliteDb db, IOutboxSender sender)
         }
 
         return new SyncResult(sent, await CountPendingAsync(ct), conflicts, rejected);
+    }
+
+    private static System.Diagnostics.Activity? StartSendActivity(OutboxMessage message)
+    {
+        IEnumerable<ActivityLink>? links = message.TraceParent is { } traceParent
+            && ActivityContext.TryParse(traceParent, null, out var saved) ? [new ActivityLink(saved)] : null;
+        var activity = AppTelemetry.Source.StartActivity("outbox.send", ActivityKind.Producer, default(ActivityContext), links: links);
+        activity?.SetTag("outbox.type", message.Type);
+        return activity;
     }
 
     public async Task<int> CountPendingAsync(CancellationToken ct)

@@ -53,8 +53,8 @@ public sealed class SqliteVisitRepository(SqliteDb db, ISyncScheduler sync) : IV
             foreach (var message in messages)
             {
                 c.Execute(
-                    "INSERT INTO outbox (Id, Type, VisitId, Payload, CreatedAt, Attempts, Failed) VALUES (?, ?, ?, ?, ?, 0, 0)",
-                    message.Id, message.Type, message.VisitId, message.Payload, message.CreatedAt);
+                    "INSERT INTO outbox (Id, Type, VisitId, Payload, CreatedAt, Attempts, Failed, TraceParent) VALUES (?, ?, ?, ?, ?, 0, 0, ?)",
+                    message.Id, message.Type, message.VisitId, message.Payload, message.CreatedAt, message.TraceParent);
             }
             saved = true;
         });

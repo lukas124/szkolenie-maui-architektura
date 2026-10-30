@@ -173,4 +173,6 @@
   <data name="Diagnostics_MemorySection" xml:space="preserve"><value>Memory</value></data>
   <data name="Diagnostics_ForceGc" xml:space="preserve"><value>Force GC</value></data>
   <data name="Diagnostics_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Diagnostics_CrashSection" xml:space="preserve"><value>Crash report</value></data>
+  <data name="Diagnostics_ForceCrash" xml:space="preserve"><value>Force crash</value></data>
 </root>
