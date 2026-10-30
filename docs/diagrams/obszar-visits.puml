@@ -17,7 +17,7 @@ Container_Boundary(presentation, "FieldService.Presentation") {
 
 Container_Boundary(infrastructure, "FieldService.Infrastructure") {
     Component(repo, "SqliteVisitRepository", "SQLite", "IVisitRepository + IVisitReplica")
-    Component(gateway, "HttpVisitsGateway, VisitDtoMapper", "HTTP, ACL", "IVisitsGateway")
+    Component(gateway, "ApiVisitsGateway, VisitDtoMapper", "Wygenerowany klient + ApiExecutor, ACL", "IVisitsGateway")
     Component(clock, "SystemClock", "C#", "IClock")
 }
 

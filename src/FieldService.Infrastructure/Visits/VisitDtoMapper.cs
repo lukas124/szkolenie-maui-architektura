@@ -1,13 +1,15 @@
 using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Inventory;
 using FieldService.Domain.Visits;
+using Dto = FieldService.Infrastructure.Api;
 
 namespace FieldService.Infrastructure.Visits;
 
-// Warstwa ochronna (ACL): format API → model odczytu i model domeny aplikacji
+// Warstwa ochronna (ACL): DTO wygenerowanego klienta → model odczytu i model domeny aplikacji.
+// DTO nie wychodzą poza Infrastructure.
 internal static class VisitDtoMapper
 {
-    public static VisitSummary ToSummary(VisitDto dto) => new(
+    public static VisitSummary ToSummary(Dto.VisitSummaryDto dto) => new(
         dto.Id,
         dto.WorkOrderNumber,
         ToStatus(dto.Status),
@@ -21,7 +23,7 @@ internal static class VisitDtoMapper
         dto.ThumbnailUrl,
         dto.Version);
 
-    public static RemoteVisit ToRemoteVisit(VisitDetailsDto dto)
+    public static RemoteVisit ToRemoteVisit(Dto.VisitDetailsDto dto)
     {
         var scope = new VisitScope(
             dto.Activities.Select(a => new Activity(a.Code, a.Description, a.RecordedAt)).ToList(),
@@ -29,7 +31,7 @@ internal static class VisitDtoMapper
         var visit = Visit.Restore(
             new VisitId(dto.Id),
             dto.WorkOrderId,
-            dto.TechnicianEmails,
+            dto.TechnicianEmails.ToList(),
             ToStatus(dto.Status),
             dto.PlannedStart,
             dto.PlannedEnd,
@@ -38,7 +40,7 @@ internal static class VisitDtoMapper
             scope,
             dto.ScopeVersion,
             dto.Signature is null ? null : CustomerSignature.Restore(dto.Signature.SignerName, dto.Signature.SignedAt, dto.Signature.ScopeVersion),
-            dto.Outcome is null ? null : VisitOutcome.Create(Enum.Parse<VisitOutcomeType>(dto.Outcome), dto.OutcomeReason).Value,
+            dto.Outcome is { } outcome ? VisitOutcome.Create(ToOutcome(outcome), dto.OutcomeReason).Value : null,
             dto.CancelReason,
             dto.Version);
         var snapshot = new VisitSnapshot(
@@ -50,7 +52,7 @@ internal static class VisitDtoMapper
         return new RemoteVisit(visit, snapshot);
     }
 
-    public static VisitHistoryPageResult ToHistoryPage(VisitHistoryPageDto dto) => new(
+    public static VisitHistoryPageResult ToHistoryPage(Dto.VisitHistoryItemDtoPageDto dto) => new(
         dto.Items.Select(i => new VisitHistoryEntry(
             i.Id,
             i.WorkOrderNumber,
@@ -60,13 +62,15 @@ internal static class VisitDtoMapper
             i.CustomerName,
             i.City,
             i.DeviceName,
-            Enum.TryParse<VisitOutcomeType>(i.Outcome, ignoreCase: true, out var outcome) ? outcome : null,
+            i.Outcome is { } outcome ? ToOutcome(outcome) : null,
             i.ThumbnailUrl,
             // pełny obraz (w liście nie używamy – pułapka startu ćwiczenia 12): ten sam adres bez parametru miniatury
             i.ThumbnailUrl.Replace("?size=thumb", "", StringComparison.Ordinal))).ToList(),
         dto.Page,
         dto.TotalCount);
 
-    private static VisitStatus ToStatus(string status) =>
-        Enum.TryParse<VisitStatus>(status, ignoreCase: true, out var value) ? value : VisitStatus.Planned;
+    // wyliczenia API i domeny mają te same nazwy – po nazwie, nie po liczbie
+    private static VisitStatus ToStatus(Dto.VisitStatus status) => Enum.Parse<VisitStatus>(status.ToString());
+
+    private static VisitOutcomeType ToOutcome(Dto.VisitOutcomeType outcome) => Enum.Parse<VisitOutcomeType>(outcome.ToString());
 }

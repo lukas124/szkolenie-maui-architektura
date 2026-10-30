@@ -6,6 +6,7 @@ using FieldService.Application.Visits.Queries;
 using FieldService.Domain.Inventory;
 using FieldService.Presentation.Common;
 using FieldService.Presentation.Feedback;
+using FieldService.Presentation.Navigation;
 
 namespace FieldService.Presentation.Visits.Completion;
 
@@ -17,7 +18,8 @@ public sealed partial class PartsStepViewModel(
     GetVanStockHandler vanStock,
     GetVisitDetailsHandler details,
     IUserFeedback feedback,
-    ILocalizer localizer) : CompletionStep
+    ILocalizer localizer,
+    INavigationService navigation) : CompletionStep
 {
     public override string Title => localizer["Completion_PartsTitle"];
 
@@ -51,6 +53,10 @@ public sealed partial class PartsStepViewModel(
                 draft, details, feedback))
             await OnShownAsync();
     }
+
+    // Brakuje części w aucie – rezerwacja w magazynie dla tej wizyty (moduł Parts, modal nad kreatorem)
+    [RelayCommand]
+    private Task ReserveFromWarehouseAsync() => navigation.OpenModalAsync(new ReservePartRoute(draft.VisitId.Value));
 
     [RelayCommand]
     private async Task RemovePartAsync(VisitPartLine line)

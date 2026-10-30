@@ -1,5 +1,6 @@
 using FieldService.Application.Session;
 using FieldService.Presentation.Navigation;
+using FieldService.Presentation.Session;
 using FieldService.UI.Extensions;
 using FieldService.UI.Navigation;
 using FieldService.UI.Platform;
@@ -23,9 +24,14 @@ public partial class App : Microsoft.Maui.Controls.Application
     protected override void OnAppLinkRequestReceived(Uri uri)
     {
         base.OnAppLinkRequestReceived(uri);
-        // Bez sesji link ginie (sesja zapamiętana dopiero w Bloku 13); przy otwartym modalu (kreator, dialog) też –
-        // strona trafiłaby pod modal
-        if (_services.GetRequiredService<AccessTokenStore>().AccessToken is null) return;
+        // Bez sesji (zimny start, ekran logowania) link czeka na zalogowanie albo przywrócenie sesji (StartupNavigator);
+        // przy otwartym modalu (kreator, dialog) link ginie – strona trafiłaby pod modal
+        if (_services.GetRequiredService<AccessTokenStore>().AccessToken is null)
+        {
+            if (DeepLinkParser.Parse(uri) is VisitDetailsRoute linked)
+                _services.GetRequiredService<StartupNavigator>().RememberVisit(linked.Id);
+            return;
+        }
         if (Windows.FirstOrDefault()?.Page?.Navigation.ModalStack.Count > 0) return;
 
         // Trasa z adresu ma typ IRoute – usługa nawigacji woła hak INavigatedTo<TRoute> po typie statycznym, więc

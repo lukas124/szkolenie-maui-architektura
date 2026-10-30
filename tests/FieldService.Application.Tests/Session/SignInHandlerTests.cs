@@ -22,10 +22,10 @@ public class SignInHandlerTests
     {
         _auth = new Mock<IAuthGateway>();
         _auth.Setup(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Success("Technik"));
+            .ReturnsAsync(Result<SessionTokens>.Success(new SessionTokens("access-token", "refresh-token", "Technik")));
         _localData = new Mock<ILocalTechnicianData>();
         _preferences = new Preferences();
-        _handler = new SignInHandler(_auth.Object, _preferences, _localData.Object);
+        _handler = new SignInHandler(_auth.Object, _preferences, _localData.Object, new AccessTokenStore(), Mock.Of<ISessionStore>());
     }
 
     [Test]
@@ -91,7 +91,7 @@ public class SignInHandlerTests
     {
         await _handler.HandleAsync(new SignIn(Jan, "1234"), CancellationToken.None);
         _auth.Setup(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Failure(new Error("Auth.InvalidCredentials", ErrorType.Unauthorized)));
+            .ReturnsAsync(Result<SessionTokens>.Failure(new Error("Auth.InvalidCredentials", ErrorType.Unauthorized)));
 
         var result = await _handler.HandleAsync(new SignIn(Anna, "0000"), CancellationToken.None);
 
@@ -108,7 +108,7 @@ public class SignInHandlerTests
     {
         await _handler.HandleAsync(new SignIn(Jan, "1234"), CancellationToken.None);
         _auth.Setup(a => a.SignInAsync(Anna, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Failure(new Error("Auth.InvalidCredentials", ErrorType.Unauthorized)));
+            .ReturnsAsync(Result<SessionTokens>.Failure(new Error("Auth.InvalidCredentials", ErrorType.Unauthorized)));
         await _handler.HandleAsync(new SignIn(Anna, "0000"), CancellationToken.None);
 
         var result = await _handler.HandleAsync(new SignIn(Jan, "1234"), CancellationToken.None);

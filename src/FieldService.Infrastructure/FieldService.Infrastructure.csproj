@@ -10,6 +10,24 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="sqlite-net-pcl" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" />
+    <PackageReference Include="NSwag.ApiDescription.Client" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="Polly.Core" />
+  </ItemGroup>
+
+  <!-- Klient API generowany przy każdym buildzie z pliku specyfikacji w repo (obj/, nie edytujemy i nie commitujemy).
+       Aktualizacja specyfikacji: tools/update-openapi.sh -->
+  <ItemGroup>
+    <OpenApiReference Include="Api/openapi/fieldservice.v1.json"
+                      CodeGenerator="NSwagCSharp"
+                      Namespace="FieldService.Infrastructure.Api"
+                      ClassName="FieldServiceApiClient"
+                      Options="/UseBaseUrl:false /JsonLibrary:SystemTextJson /GenerateClientInterfaces:false /GenerateOptionalParameters:true /ExceptionClass:ApiException /TypeAccessModifier:internal /ClientClassAccessModifier:internal" />
+  </ItemGroup>
+
+  <!-- wygenerowany klient i DTO są internal (DTO nie wychodzą z Infrastructure – ACL), testy bram widzą je -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="FieldService.Infrastructure.Tests" />
   </ItemGroup>
 
   <ItemGroup>

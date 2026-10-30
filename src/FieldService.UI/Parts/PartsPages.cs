@@ -8,5 +8,6 @@ namespace FieldService.UI.Parts;
 public static class PartsPages
 {
     public static IServiceCollection AddPartsPages(this IServiceCollection services) => services
-        .AddPage<VanStockPage, VanStockViewModel>();
+        .AddPage<VanStockPage, VanStockViewModel>()
+        .AddPage<ReservePartPage, ReservePartViewModel>();
 }

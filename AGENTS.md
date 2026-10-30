@@ -8,7 +8,8 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 - `FieldService.Application` – przypadki użycia (`…Handler`), porty do świata zewnętrznego w `Abstractions/`
   (`I…Gateway`, `IClock`, `IVisitReplica`), modele odczytu. Interfejs repozytorium agregatu (`IVisitRepository`) jest
   częścią modelu – leży w Domain.
-- `FieldService.Infrastructure` – adaptery: HTTP (DTO i mapery ACL), SQLite (repozytorium, Data Mapper).
+- `FieldService.Infrastructure` – adaptery: API (klient generowany z OpenAPI, `ApiExecutor`, bramy i mapery ACL),
+  SQLite (repozytorium, Data Mapper).
 - `FieldService.Presentation` – ViewModele, formatter, fabryki, fasada komunikatów `IUserFeedback`; porty prezentacji
   (`IDialogService`, `ILocalizer`, `INavigationService`) z adapterami w UI.
 - `FieldService.UI` – jedyny projekt MAUI: strony XAML, adaptery platformy, korzeń kompozycji (`MauiProgram`).
@@ -46,6 +47,20 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
   „Bez sieci – dane z …”.
 - Dane w telefonie należą do jednego technika: logowanie innego usuwa je (`ILocalTechnicianData.ClearAsync`), a przy
   oczekujących wiadomościach poprzedniego technika logowanie odmawia – jego zmiany nie mogą pójść z cudzym tokenem.
+
+## Komunikacja z API
+- Klienta `FieldServiceApiClient` generuje NSwag przy każdym `dotnet build` ze specyfikacji
+  `src/FieldService.Infrastructure/Api/openapi/fieldservice.v1.json` (wynik w `obj/` – nie edytujemy, nie commitujemy).
+  Nowa wersja kontraktu: `tools/update-openapi.sh`, potem `git diff`. Po zmianie `Options` w `<OpenApiReference>` usuń
+  `src/FieldService.Infrastructure/obj/fieldservice.v1Client.cs` – generator nie zauważa zmiany samych opcji.
+- Każde wywołanie przez `ApiExecutor.ExecuteAsync("obszar.operacja", c => client.…Async(…, c), ct)`: bramy nie mają
+  `try/catch`, statusy HTTP → `Error` tylko w `ApiErrorMapper`. Wygenerowany kod i bramy `Api…Gateway` są `internal`;
+  port w Application, DTO mapowane w bramie (ACL).
+- Potok `HttpClient` (`AddApiClients`): `AuthHeaderHandler` (token) → `CorrelationIdHandler` → handler odporności
+  (Polly: automatyczne ponowienia tylko odczytów, limit próby 20 s i całości 60 s, bezpiecznik). Zapisów nie ponawia
+  Polly – wizyty ponawia outbox z `Idempotency-Key`, rezerwację technik.
+- Sesja: 401 → `TokenRefresher` (jedno odświeżenie naraz) i jedno ponowienie żądania; nieudane odświeżenie →
+  `ISessionExpiry` → ekran logowania, outbox zostaje. Refresh token tylko w `ISessionStore` (`SecureStorage`).
 
 ## Konwencje
 - Nazwy z języka domeny (`docs/architecture/slownik.md`): `Visit`, `VisitScope`, `CustomerSignature`.
@@ -87,4 +102,5 @@ klienta i zakończenie – także bez zasięgu. Reguły wizyty działają w tele
 - `async void` poza `FireAndForget` – wyjątek ginie albo zamyka aplikację.
 - `MessagingCenter`, `StrongReferenceMessenger` i `appState.Filter.PropertyChanged +=` w ViewModelu – przestarzałe API albo wycieki pamięci.
 - DTO poza Infrastructure, agregat w ViewModelu – granice pierścieni; ViewModel dostaje model odczytu.
+- `try/catch` wokół wywołania API w bramie i edycja wygenerowanego klienta – od tego jest `ApiExecutor` i specyfikacja.
 - Zmiana testów, żeby kod przeszedł – test jest specyfikacją; najpierw zapytaj.

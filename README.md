@@ -44,9 +44,25 @@ dotnet build src/FieldService.UI -t:Run -f net10.0-ios
 ```
 
 Logowanie w aplikacji: dowolny adres e-mail (każdy adres to osobny technik z własnymi wizytami) i PIN `1234`.
-API szkoleniowe: https://mobilny.dev/maui/architektura/ (Swagger: `/swagger`).
 
 Logi aplikacji na Androidzie: `adb logcat -s DOTNET`.
+
+## API szkoleniowe
+
+Aplikacja łączy się z API szkoleniowym: https://mobilny.dev/maui/architektura/ (strona startowa z opisem).
+Dokumentacja i ręczne wywołania – **Swagger**: https://mobilny.dev/maui/architektura/swagger
+
+1. `POST api/auth/login` → **Try it out** → dowolny e-mail i PIN `1234` → **Execute**; skopiuj `accessToken`
+   z odpowiedzi.
+2. **Authorize** (kłódka u góry) → wklej sam token (bez słowa `Bearer`) → **Authorize**.
+3. `GET api/visits/today` → wizyty tego technika (te same, które widzisz w aplikacji po zalogowaniu tym adresem).
+4. Komendy wizyty (np. `POST api/visits/{id}/start`) wymagają wersji wizyty w `X-If-Match` (pole `version` z listy)
+   i klucza `Idempotency-Key` (dowolny GUID). Wyślij tę samą komendę drugi raz z tym samym kluczem – serwer zwróci
+   ten sam wynik i niczego nie zmieni.
+
+Błędy wracają jako `ProblemDetails` z polem `code` (np. `Visit.VersionConflict`, `Inventory.OutOfStock`) – to te same
+kody, które aplikacja zamienia na komunikaty z `Strings.resx`. Specyfikacja OpenAPI, z której build generuje klienta:
+`src/FieldService.Infrastructure/Api/openapi/fieldservice.v1.json` (aktualizacja: `tools/update-openapi.sh`).
 
 ## Checkpointy
 

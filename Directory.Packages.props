@@ -18,12 +18,17 @@
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.13" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.android" Version="2.1.13" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.ios" Version="2.1.13" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.13" />
     <!-- Application i Infrastructure: rejestracje w kontenerze, klient HTTP -->
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.13" />
+    <!-- Klient API generowany w buildzie z pliku OpenAPI (Infrastructure) -->
+    <PackageVersion Include="NSwag.ApiDescription.Client" Version="14.7.1" />
+    <!-- Odporność HTTP: retry, limity czasu, bezpiecznik (Infrastructure) -->
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.11.0" />
+    <PackageVersion Include="Polly.Core" Version="8.9.0" />
     <!-- Testy -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="NUnit" Version="4.6.1" />

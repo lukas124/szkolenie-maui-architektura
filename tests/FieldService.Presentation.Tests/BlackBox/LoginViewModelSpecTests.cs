@@ -31,15 +31,15 @@ public class LoginViewModelSpecTests
     {
         _auth = new Mock<IAuthGateway>();
         _auth.Setup(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Success("token-123"));
+            .ReturnsAsync(Result<SessionTokens>.Success(new SessionTokens("access-token", "refresh-token", "token-123")));
         _preferences = new Mock<IPreferencesStore>();
         _messages = new Mock<IErrorMessageProvider>();
         _messages.Setup(m => m.GetMessage(It.IsAny<Error>())).Returns(InvalidCredentialsText);
         _navigation = new Mock<INavigationService>();
         _navigation.Setup(n => n.ResetToAsync(It.IsAny<VisitsListRoute>())).ReturnsAsync(NavigationResult.Success);
 
-        _vm = new LoginViewModel(new SignInHandler(_auth.Object, Mock.Of<IPreferencesStore>(), Mock.Of<ILocalTechnicianData>()), _preferences.Object, _messages.Object, _navigation.Object,
-            new StartupNavigator(Mock.Of<IFlowDraftStore>(), Mock.Of<IUserFeedback>(), _navigation.Object, Mock.Of<ISyncScheduler>()));
+        _vm = new LoginViewModel(new SignInHandler(_auth.Object, Mock.Of<IPreferencesStore>(), Mock.Of<ILocalTechnicianData>(), new AccessTokenStore(), Mock.Of<ISessionStore>()), _preferences.Object, _messages.Object, _navigation.Object,
+            new StartupNavigator(Mock.Of<IFlowDraftStore>(), Mock.Of<IUserFeedback>(), _navigation.Object, Mock.Of<ISyncScheduler>()), new RestoreSessionHandler(Mock.Of<IAuthGateway>(), Mock.Of<ISessionStore>(), new AccessTokenStore()));
     }
 
     private void Fill(string email, string pin)
@@ -132,8 +132,8 @@ public class LoginViewModelSpecTests
     public async Task Sukces_PoWczesniejszymBledzie_KomunikatZnika()
     {
         _auth.SetupSequence(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Failure(new Error("Auth.InvalidCredentials", ErrorType.Unauthorized)))
-            .ReturnsAsync(Result<string>.Success("token-123"));
+            .ReturnsAsync(Result<SessionTokens>.Failure(new Error("Auth.InvalidCredentials", ErrorType.Unauthorized)))
+            .ReturnsAsync(Result<SessionTokens>.Success(new SessionTokens("access-token", "refresh-token", "token-123")));
         Fill(Email, "0000");
         await _vm.SignInCommand.ExecuteAsync(null);
 
@@ -160,7 +160,7 @@ public class LoginViewModelSpecTests
     {
         var error = new Error("Auth.InvalidCredentials", ErrorType.Unauthorized);
         _auth.Setup(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Failure(error));
+            .ReturnsAsync(Result<SessionTokens>.Failure(error));
         Fill(Email, "0000");
 
         await _vm.SignInCommand.ExecuteAsync(null);
@@ -173,7 +173,7 @@ public class LoginViewModelSpecTests
     public async Task Blad_BezNawigacjiIBezZapisuEmaila()
     {
         _auth.Setup(a => a.SignInAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<string>.Failure(new Error("Network.Unavailable", ErrorType.Network)));
+            .ReturnsAsync(Result<SessionTokens>.Failure(new Error("Network.Unavailable", ErrorType.Network)));
         Fill(Email, Pin);
 
         await _vm.SignInCommand.ExecuteAsync(null);

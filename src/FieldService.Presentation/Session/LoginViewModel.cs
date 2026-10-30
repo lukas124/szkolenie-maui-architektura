@@ -14,7 +14,8 @@ public partial class LoginViewModel(
     IPreferencesStore preferences,
     IErrorMessageProvider messages,
     INavigationService navigation,
-    StartupNavigator startup) : BaseViewModel
+    StartupNavigator startup,
+    RestoreSessionHandler restore) : BaseViewModel
 {
     private const string EmailKey = "last_email";
 
@@ -29,7 +30,35 @@ public partial class LoginViewModel(
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
-    private bool CanSignIn() => Email.Contains('@') && Pin.Length == 4;
+    // true = start aplikacji już sprawdził zapamiętaną sesję
+    private bool _restoreTried;
+
+    // Start: zapamiętana sesja (refresh token) → od razu lista, bez logowania
+    public override async Task OnAppearingAsync()
+    {
+        if (_restoreTried) return;
+        _restoreTried = true;
+
+        SetBusy(true); // w trakcie przywracania logowanie czeka – inaczej przywrócona sesja nadpisałaby nową
+        try
+        {
+            if (!await restore.HandleAsync(CancellationToken.None)) return;
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+        await navigation.ResetToAsync(new VisitsListRoute());
+        await startup.ResumeAsync();
+    }
+
+    private void SetBusy(bool busy)
+    {
+        IsBusy = busy;
+        SignInCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanSignIn() => !IsBusy && Email.Contains('@') && Pin.Length == 4;
 
     [RelayCommand(CanExecute = nameof(CanSignIn))]
     private async Task SignInAsync(CancellationToken ct)

@@ -14,7 +14,8 @@ public static class SessionErrors
 
 // Logowanie: dane w telefonie należą do jednego technika. Inny technik → dane poprzedniego usuwamy (po udanym
 // logowaniu), chyba że czekają w nich niewysłane zmiany – wtedy logowanie odmawia, zanim cokolwiek zginie.
-public sealed class SignInHandler(IAuthGateway auth, IPreferencesStore preferences, ILocalTechnicianData localData)
+public sealed class SignInHandler(IAuthGateway auth, IPreferencesStore preferences, ILocalTechnicianData localData,
+    AccessTokenStore tokens, ISessionStore session)
 {
     private const string OwnerKey = "local_data_owner";
 
@@ -27,10 +28,12 @@ public sealed class SignInHandler(IAuthGateway auth, IPreferencesStore preferenc
             return Result<string>.Failure(SessionErrors.UnsentChangesOfOtherTechnician);
 
         var result = await auth.SignInAsync(email, command.Pin, ct);
-        if (!result.IsSuccess) return result;
+        if (!result.IsSuccess) return result.Error!;
 
         if (otherTechnician) await localData.ClearAsync(ct);
         preferences.Set(OwnerKey, email);
-        return result;
+        tokens.AccessToken = result.Value.AccessToken;
+        await session.SaveRefreshTokenAsync(result.Value.RefreshToken);
+        return Result<string>.Success(result.Value.TechnicianName);
     }
 }

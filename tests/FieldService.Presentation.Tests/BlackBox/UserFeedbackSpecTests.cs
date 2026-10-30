@@ -50,12 +50,21 @@ public class UserFeedbackSpecTests
     [Test]
     public async Task ShowError_TekstPochodziZDostawcyKomunikatow()
     {
-        var error = new Error("Auth.InvalidCredentials", ErrorType.Unauthorized);
+        var error = new Error("Visit.SignatureRequired", ErrorType.Validation);
         _messages.Setup(m => m.GetMessage(It.IsAny<Error>())).Returns("tekst");
 
         await _feedback.ShowErrorAsync(error);
 
         _messages.Verify(m => m.GetMessage(error), Times.Once);
+    }
+
+    // Wygasła sesja: komunikat pokazuje ekran logowania (ISessionExpiry), nie każde żądanie z 401
+    [Test]
+    public async Task ShowError_Unauthorized_ShowsNothing()
+    {
+        await _feedback.ShowErrorAsync(new Error("Api.Unauthorized", ErrorType.Unauthorized));
+
+        _dialogs.VerifyNoOtherCalls();
     }
 
     [TestCase(true)]

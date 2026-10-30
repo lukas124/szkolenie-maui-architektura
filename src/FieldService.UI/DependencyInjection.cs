@@ -28,6 +28,8 @@ public static class DependencyInjection
         services.AddSingleton<IPermissionService, MauiPermissionService>();
         services.AddSingleton<IPhotoCapture, MauiPhotoCapture>();
         services.AddSingleton<SyncTriggers>();
+        services.AddSingleton<ISessionStore, SecureSessionStore>();
+        services.AddSingleton<ISessionExpiry, SessionExpiryNavigator>();
         return services;
     }
 

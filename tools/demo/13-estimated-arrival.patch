@@ -1,0 +1,25 @@
+diff --git a/src/FieldService.Application/Visits/Queries/GetTodayVisits.cs b/src/FieldService.Application/Visits/Queries/GetTodayVisits.cs
+index 97890dc..98086d7 100644
+--- a/src/FieldService.Application/Visits/Queries/GetTodayVisits.cs
++++ b/src/FieldService.Application/Visits/Queries/GetTodayVisits.cs
+@@ -22,4 +22,5 @@ public sealed record VisitSummary(
+     bool IsBrigade,
+     string ThumbnailUrl,
+     int Version,
+-    bool IsLate = false);
++    bool IsLate = false,
++    DateTimeOffset? EstimatedArrival = null); // przewidywany przyjazd (nowe pole API)
+diff --git a/src/FieldService.Infrastructure/Visits/VisitDtoMapper.cs b/src/FieldService.Infrastructure/Visits/VisitDtoMapper.cs
+index 302732c..519af63 100644
+--- a/src/FieldService.Infrastructure/Visits/VisitDtoMapper.cs
++++ b/src/FieldService.Infrastructure/Visits/VisitDtoMapper.cs
+@@ -21,7 +21,8 @@ internal static class VisitDtoMapper
+         dto.FaultDescription,
+         dto.IsBrigade,
+         dto.ThumbnailUrl,
+-        dto.Version);
++        dto.Version,
++        EstimatedArrival: dto.EstimatedArrival);
+ 
+     public static RemoteVisit ToRemoteVisit(Dto.VisitDetailsDto dto)
+     {
